@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArtiByte — The systems behind your business</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#10182B; --ink-soft:#565F79; --ink-faint:#8A90A4;
+  --paper:#FBFAF8; --panel:#EFF1F4; --panel2:#E6E9EF;
+  --line:#DEE1E8; --line-strong:#C7CBD6;
+  --brass:#8C6A32; --brass-dark:#6E5225; --brass-light:#B99656;
+  --ok:#2F6B4F; --bad:#9C3B32;
+  --radius:14px; --radius-sm:8px;
+  --serif:'Spectral',Georgia,serif;
+  --sans:'IBM Plex Sans',-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --shadow: 0 1px 2px rgba(16,24,43,.04), 0 12px 32px -14px rgba(16,24,43,.16);
+}
+:root:not([data-theme="light"]){
+  @media (prefers-color-scheme: dark){
+    --ink:#F2F1EC; --ink-soft:#B7BCCC; --ink-faint:#7B8195;
+    --paper:#0C1019; --panel:#131826; --panel2:#1B2233;
+    --line:#252C40; --line-strong:#333B54;
+    --brass:#D2A65E; --brass-dark:#B9863C; --brass-light:#E4C384;
+    --ok:#6FBF98; --bad:#E08A80;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 20px 44px -18px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#F2F1EC; --ink-soft:#B7BCCC; --ink-faint:#7B8195;
+  --paper:#0C1019; --panel:#131826; --panel2:#1B2233;
+  --line:#252C40; --line-strong:#333B54;
+  --brass:#D2A65E; --brass-dark:#B9863C; --brass-light:#E4C384;
+  --ok:#6FBF98; --bad:#E08A80;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 20px 44px -18px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms !important; transition-duration:.001ms !important} }
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 40px}
+@media (max-width:720px){.wrap{padding:0 22px}}
+
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;margin:0;color:var(--ink)}
+p{margin:0}
+.eyebrow-label{font-family:var(--mono);font-size:12.5px;color:var(--brass);letter-spacing:.02em}
+
+/* ---------- NAV ---------- */
+header.nav{position:sticky;top:0;z-index:60;background:color-mix(in srgb, var(--paper) 88%, transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.navrow{display:flex;align-items:center;justify-content:space-between;height:76px}
+.brandmark{display:flex;align-items:center;gap:11px;text-decoration:none}
+.brandmark .mk{width:34px;height:34px;position:relative;flex-shrink:0}
+.brandmark .mk span{position:absolute;left:0;right:0;height:6px;border-radius:2px;background:var(--ink)}
+.brandmark .mk span:nth-child(1){bottom:0;background:var(--brass)}
+.brandmark .mk span:nth-child(2){bottom:10px;width:74%}
+.brandmark .mk span:nth-child(3){bottom:20px;width:48%}
+.brandmark b{font-family:var(--serif);font-size:20px;font-weight:700;letter-spacing:-.01em}
+nav.links{display:flex;align-items:center;gap:34px}
+nav.links a{font-size:14.5px;color:var(--ink-soft);text-decoration:none;transition:color .15s}
+nav.links a:hover{color:var(--ink)}
+.navcta{display:flex;align-items:center;gap:18px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--sans);font-size:14.5px;font-weight:500;padding:11px 20px;border-radius:999px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:transform .15s ease, background .15s, border-color .15s, color .15s}
+.btn:active{transform:scale(.98)}
+.btn-brass{background:var(--brass);color:#fff}
+.btn-brass:hover{background:var(--brass-dark)}
+.btn-ghost{border-color:var(--line-strong);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink);background:var(--panel)}
+.btn-sm{padding:8px 15px;font-size:13.5px}
+@media (max-width:940px){ nav.links{display:none} }
+
+/* ---------- HERO ---------- */
+.hero{padding:96px 0 60px;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:64px;align-items:center}
+@media (max-width:980px){.hero-grid{grid-template-columns:1fr;gap:44px}}
+.hero h1{font-size:clamp(34px,4.4vw,54px);line-height:1.08;margin-bottom:22px}
+.hero h1 i{font-style:italic;color:var(--brass)}
+.hero .lede{font-size:18px;color:var(--ink-soft);max-width:520px;margin-bottom:32px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+.hero-note{font-size:13.5px;color:var(--ink-faint);display:flex;align-items:center;gap:9px}
+.hero-note .dot{width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.reveal{opacity:0;transform:translateY(16px);animation:rise .7s cubic-bezier(.2,.7,.3,1) forwards}
+.reveal.d1{animation-delay:.05s}.reveal.d2{animation-delay:.15s}.reveal.d3{animation-delay:.25s}.reveal.d4{animation-delay:.35s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* Architecture stack visual */
+.stackviz{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:28px 26px 26px;box-shadow:var(--shadow)}
+.stackviz .cap{font-size:12px;color:var(--ink-faint);font-family:var(--mono);margin-bottom:16px}
+.prod-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:4px}
+.prod-chip{background:var(--paper);border:1px solid var(--line-strong);border-radius:9px;padding:10px 6px;text-align:center}
+.prod-chip b{display:block;font-size:11.5px;font-weight:600;line-height:1.25}
+.prod-chip span{display:block;font-size:9.5px;color:var(--ink-faint);margin-top:3px}
+@media (max-width:520px){.prod-row{grid-template-columns:repeat(3,1fr)}.prod-chip:nth-child(4),.prod-chip:nth-child(5){display:none}}
+.connectors{height:26px;position:relative}
+.connectors svg{width:100%;height:100%;display:block}
+.foundation{background:var(--ink);border-radius:12px;padding:16px 16px 14px}
+:root[data-theme="dark"] .foundation, :root:not([data-theme="light"]) .foundation{background:var(--panel2)}
+.foundation .flabel{color:var(--brass-light);font-size:11px;font-family:var(--mono);margin-bottom:10px}
+.flayers{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.flayers div{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:7px 4px;text-align:center;font-size:11px;color:#fff}
+@media (prefers-color-scheme: dark){ .foundation{background:var(--panel2)} }
+
+/* ---------- SECTION SHELL ---------- */
+section{padding:88px 0;border-bottom:1px solid var(--line)}
+section.tinted{background:var(--panel)}
+.sec-head{max-width:640px;margin-bottom:48px}
+.sec-head .eyebrow-label{display:block;margin-bottom:12px}
+.sec-head h2{font-size:clamp(26px,3vw,36px);line-height:1.16;margin-bottom:14px}
+.sec-head p{color:var(--ink-soft);font-size:16.5px}
+.sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+
+/* ---------- STAT STRIP ---------- */
+.statstrip{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.statstrip div{padding:26px 24px;border-right:1px solid var(--line)}
+.statstrip div:last-child{border-right:none}
+.statstrip b{display:block;font-family:var(--serif);font-size:32px;color:var(--brass);margin-bottom:4px}
+.statstrip span{font-size:13.5px;color:var(--ink-soft)}
+@media (max-width:820px){.statstrip{grid-template-columns:repeat(2,1fr)}.statstrip div:nth-child(2){border-right:none}}
+
+/* ---------- POSITIONING SPECTRUM ---------- */
+.spectrum{margin-top:8px}
+.spectrum-track{display:flex;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.spectrum-track div{flex:1;padding:16px 14px;text-align:center;border-right:1px solid var(--line);background:var(--panel)}
+.spectrum-track div:last-child{border-right:none}
+.spectrum-track div.hi{background:var(--ink);color:#fff}
+.spectrum-track div b{display:block;font-size:13.5px;margin-bottom:3px}
+.spectrum-track div span{font-size:11.5px;color:var(--ink-faint)}
+.spectrum-track div.hi span{color:rgba(255,255,255,.65)}
+@media (max-width:820px){.spectrum-track{flex-wrap:wrap}.spectrum-track div{flex:1 1 33%;border-bottom:1px solid var(--line)}}
+.positioning-quote{margin-top:26px;font-family:var(--serif);font-size:20px;line-height:1.5;color:var(--ink);max-width:760px}
+.positioning-quote b{color:var(--brass);font-weight:600}
+
+/* ---------- PILLARS ---------- */
+.pillars{display:grid;grid-template-columns:280px 1fr;gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+@media (max-width:820px){.pillars{grid-template-columns:1fr}}
+.pillar-list{background:var(--panel);border-right:1px solid var(--line)}
+.pillar-btn{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);padding:20px 22px;cursor:pointer;font-family:var(--sans);color:var(--ink-soft)}
+.pillar-btn:last-child{border-bottom:none}
+.pillar-btn b{display:block;font-size:14.5px;color:var(--ink);margin-bottom:3px}
+.pillar-btn span{font-size:12.5px}
+.pillar-btn.active{background:var(--paper);box-shadow:inset 3px 0 0 var(--brass)}
+.pillar-btn.active b{color:var(--brass-dark)}
+.pillar-detail{padding:44px 44px}
+@media (max-width:600px){.pillar-detail{padding:30px 24px}}
+.pillar-detail h3{font-size:24px;margin-bottom:14px}
+.pillar-detail p{color:var(--ink-soft);font-size:16px;max-width:560px}
+
+/* ---------- ARCHITECTURE LAYERS TABLE ---------- */
+.layer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:820px){.layer-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.layer-grid{grid-template-columns:1fr}}
+.layer-card{border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;background:var(--paper)}
+.layer-card h4{font-size:15.5px;margin-bottom:8px}
+.layer-card p{font-size:13.5px;color:var(--ink-soft);line-height:1.55}
+.layer-card .risk{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-faint)}
+.layer-card .risk b{color:var(--bad);font-weight:600}
+
+/* ---------- PRODUCTS ---------- */
+.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media (max-width:900px){.product-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.product-grid{grid-template-columns:1fr}}
+.pcard{border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;background:var(--paper);display:flex;flex-direction:column;gap:14px;transition:border-color .15s, transform .15s}
+.pcard:hover{border-color:var(--brass);transform:translateY(-2px)}
+.pcard .vert{font-size:12px;color:var(--brass);font-family:var(--mono)}
+.pcard h4{font-size:19px}
+.pcard p{font-size:14px;color:var(--ink-soft);flex-grow:1}
+.pcard .metric{font-size:12.5px;color:var(--ink-faint);border-top:1px solid var(--line);padding-top:12px}
+.pcard .metric b{color:var(--ink)}
+.pcard.feature{grid-column:span 1;background:var(--ink);border-color:var(--ink)}
+:root[data-theme="dark"] .pcard.feature, :root:not([data-theme="light"]) .pcard.feature{background:var(--panel2);border-color:var(--line-strong)}
+.pcard.feature h4,.pcard.feature p,.pcard.feature .metric b{color:#fff}
+.pcard.feature .vert{color:var(--brass-light)}
+.pcard.feature .metric{border-color:rgba(255,255,255,.15);color:rgba(255,255,255,.55)}
+
+/* ---------- STANDARD ---------- */
+.standard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+@media (max-width:820px){.standard-grid{grid-template-columns:1fr}}
+.standard-col{padding:32px 30px;border-right:1px solid var(--line)}
+.standard-col:last-child{border-right:none}
+@media (max-width:820px){.standard-col{border-right:none;border-bottom:1px solid var(--line)}.standard-col:last-child{border-bottom:none}}
+.standard-col h4{font-size:17px;margin-bottom:16px}
+.standard-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.standard-col li{font-size:14px;color:var(--ink-soft);padding-left:22px;position:relative}
+.standard-col li::before{content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:50%;background:var(--brass)}
+
+/* ---------- WORKFLOW FLOW ---------- */
+.flow{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.flow div{flex:1 1 0;min-width:130px;padding:22px 16px;text-align:center;border-right:1px solid var(--line);position:relative}
+.flow div:last-child{border-right:none}
+.flow div:not(:last-child)::after{content:"";position:absolute;right:-1px;top:50%;transform:translateY(-50%);width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:6px solid var(--brass);z-index:2}
+.flow div b{display:block;font-size:14px;margin-bottom:4px}
+.flow div span{font-size:11.5px;color:var(--ink-faint)}
+@media (max-width:820px){.flow{flex-direction:column}.flow div{border-right:none;border-bottom:1px solid var(--line)}.flow div:not(:last-child)::after{right:auto;bottom:-1px;left:50%;top:auto;transform:translateX(-50%) rotate(90deg)}}
+
+/* ---------- ENTRY LEVELS ---------- */
+.entry-list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.entry-row{display:grid;grid-template-columns:1.1fr 1.4fr auto;gap:18px;align-items:center;padding:20px 26px;border-bottom:1px solid var(--line)}
+.entry-row:last-child{border-bottom:none}
+.entry-row:nth-child(odd){background:var(--panel)}
+.entry-row .say{font-family:var(--serif);font-style:italic;font-size:15.5px;color:var(--ink)}
+.entry-row .sell{font-size:13.5px;color:var(--ink-soft)}
+.entry-row .shape{font-size:11.5px;color:var(--brass);font-family:var(--mono);text-align:right;white-space:nowrap}
+@media (max-width:760px){.entry-row{grid-template-columns:1fr}.entry-row .shape{text-align:left}}
+
+/* ---------- PROMISE ---------- */
+.promise-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:44px}
+@media (max-width:820px){.promise-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.promise-grid{grid-template-columns:1fr}}
+.promise-card{border:1px solid var(--line);border-radius:var(--radius);padding:22px;background:var(--paper)}
+.promise-card .tag{font-family:var(--mono);font-size:11px;color:var(--brass);margin-bottom:8px;display:block}
+.promise-card h4{font-size:15.5px;margin-bottom:6px}
+.promise-card p{font-size:13px;color:var(--ink-soft)}
+.pledge{border:1px solid var(--line);border-radius:20px;padding:44px 46px;background:var(--ink);color:#fff}
+:root[data-theme="dark"] .pledge, :root:not([data-theme="light"]) .pledge{background:var(--panel2)}
+.pledge h3{color:#fff;font-size:26px;margin-bottom:14px;max-width:640px}
+.pledge p{color:rgba(255,255,255,.72);font-size:15.5px;max-width:620px}
+
+/* ---------- CTA ---------- */
+.cta-band{text-align:center;padding:100px 0}
+.cta-band h2{font-size:clamp(28px,3.6vw,44px);max-width:760px;margin:0 auto 20px}
+.cta-band p{color:var(--ink-soft);font-size:17px;max-width:520px;margin:0 auto 34px}
+.cta-actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+
+/* ---------- FOOTER ---------- */
+footer{padding:60px 0 40px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;margin-bottom:48px}
+@media (max-width:820px){.foot-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.foot-grid{grid-template-columns:1fr}}
+.foot-grid h5{font-size:12.5px;color:var(--ink-faint);font-weight:500;margin-bottom:14px;font-family:var(--sans)}
+.foot-grid a{display:block;font-size:14px;color:var(--ink-soft);text-decoration:none;margin-bottom:10px}
+.foot-grid a:hover{color:var(--ink)}
+.foot-brand p{color:var(--ink-soft);font-size:14px;max-width:280px;margin-top:14px}
+.foot-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:28px;border-top:1px solid var(--line);flex-wrap:wrap;gap:12px}
+.foot-bottom span{font-size:12.5px;color:var(--ink-faint)}
+
+::selection{background:var(--brass);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<header class="nav">
+  <div class="wrap navrow">
+    <a href="#top" class="brandmark">
+      <span class="mk"><span></span><span></span><span></span></span>
+      <b>ArtiByte</b>
+    </a>
+    <nav class="links">
+      <a href="#architecture">Platform</a>
+      <a href="#products">Products</a>
+      <a href="#how-we-work">How we work</a>
+      <a href="#company">Company</a>
+    </nav>
+    <div class="navcta">
+      <a href="#contact" class="btn btn-ghost btn-sm">Talk to us</a>
+    </div>
+  </div>
+</header>
+
+<!-- ================= HERO ================= -->
+<div id="top"></div>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1 class="reveal d1">We don't build apps.<br>We build the <i>systems</i><br>your business runs on.</h1>
+      <p class="lede reveal d2">ArtiByte designs specialized software for individual industries — academies, retail, inventory, operations, intelligence — on a single unified foundation of identity, data, infrastructure and billing. One partner. One architecture. Software that keeps working as the business grows.</p>
+      <div class="hero-ctas reveal d3">
+        <a href="#architecture" class="btn btn-brass">See the platform</a>
+        <a href="#contact" class="btn btn-ghost">Talk to our team</a>
+      </div>
+      <div class="hero-note reveal d4"><span class="dot"></span>Built for operators across the Philippines — from single-location teams to multi-site enterprises.</div>
+    </div>
+    <div class="reveal d3">
+      <div class="stackviz">
+        <div class="cap">Specialized on the outside. Unified underneath.</div>
+        <div class="prod-row">
+          <div class="prod-chip"><b>ArtiPlay</b><span>Academies</span></div>
+          <div class="prod-chip"><b>ArtiStock</b><span>Inventory</span></div>
+          <div class="prod-chip"><b>ArtiSnack</b><span>Food & retail</span></div>
+          <div class="prod-chip"><b>BHT</b><span>Intelligence</span></div>
+          <div class="prod-chip"><b>VEX AI</b><span>Automation</span></div>
+        </div>
+        <div class="connectors"><svg viewBox="0 0 500 40" preserveAspectRatio="none">
+          <line x1="50" y1="0" x2="90" y2="40" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <line x1="150" y1="0" x2="170" y2="40" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <line x1="250" y1="0" x2="250" y2="40" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <line x1="350" y1="0" x2="330" y2="40" stroke="var(--line-strong)" stroke-width="1.5"/>
+          <line x1="450" y1="0" x2="410" y2="40" stroke="var(--line-strong)" stroke-width="1.5"/>
+        </svg></div>
+        <div class="foundation">
+          <div class="flabel">Shared foundation</div>
+          <div class="flayers">
+            <div>Identity</div><div>Data</div><div>Infrastructure</div>
+            <div>Billing</div><div>AI</div><div>Analytics</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STAT STRIP ================= -->
+<section style="padding:56px 0;border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="statstrip">
+      <div><b>5</b><span>Pillars behind how we build</span></div>
+      <div><b>8</b><span>Service families, sold as outcomes</span></div>
+      <div><b>1</b><span>Shared foundation under every product</span></div>
+      <div><b>0</b><span>Black boxes — no promises we can't keep</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= POSITIONING ================= -->
+<section id="company">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow-label">Where we sit</span>
+      <h2>Between generic software and bespoke development.</h2>
+      <p>Freelancers sell hours. Agencies sell projects, then move on. Generic SaaS sells a standardized product that was never built for your operation. ArtiByte sits deliberately in between — the specialization of a custom build, with the reliability and reuse of a real software platform.</p>
+    </div>
+    <div class="spectrum">
+      <div class="spectrum-track">
+        <div><b>Freelancer</b><span>Individual execution</span></div>
+        <div><b>Agency</b><span>Project, then next project</span></div>
+        <div><b>Consultancy</b><span>Advice, not software</span></div>
+        <div><b>Generic SaaS</b><span>Standardized, self-serve</span></div>
+        <div><b>Enterprise vendor</b><span>Rigid, multi-year licensing</span></div>
+        <div class="hi"><b>ArtiByte</b><span>Product + implementation + partner</span></div>
+      </div>
+      <p class="positioning-quote">The product has to keep working <b>as a business</b> — not just ship once and go quiet.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PILLARS ================= -->
+<section class="tinted">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow-label">What makes it different</span>
+      <h2>Five ideas run underneath everything we ship.</h2>
+      <p>Not marketing language — the actual operating rules that decide what gets built, and how.</p>
+    </div>
+    <div class="pillars">
+      <div class="pillar-list" id="pillarList"></div>
+      <div class="pillar-detail" id="pillarDetail"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ARCHITECTURE ================= -->
+<section id="architecture">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow-label">Platform architecture</span>
+      <h2>Every product looks different. Underneath, they're the same machine.</h2>
+      <p>A restaurant should never feel like it's using an academy platform. An academy should never feel like generic inventory software. Each product is designed around its own industry — but identity, data, infrastructure, billing, AI and analytics are shared, hardened, and improved once for everyone on top of them.</p>
+    </div>
+    <div class="layer-grid">
+      <div class="layer-card"><h4>Identity</h4><p>Authentication, sessions, roles and permissions, with tenant separation enforced by default.</p><div class="risk">Hardened once, verified continuously — <b>not</b> re-built per client.</div></div>
+      <div class="layer-card"><h4>Data</h4><p>Consistent schema conventions, migrations, backups and export tooling across products.</p><div class="risk">Written once — reused instead of reinvented for the next system.</div></div>
+      <div class="layer-card"><h4>Infrastructure</h4><p>Hosting, deployment, monitoring and scaling handled centrally, not per project.</p><div class="risk">Provisioning a new client becomes routine, not a fire drill.</div></div>
+      <div class="layer-card"><h4>Billing</h4><p>Plans, capacity, invoicing, and usage metering applied consistently across accounts.</p><div class="risk">Predictable, transparent charges — no surprise line items.</div></div>
+      <div class="layer-card"><h4>AI</h4><p>Model access, prompts and guardrails, with usage measured per account.</p><div class="risk">AI is sold against a real business use case, never bolted on for its own sake.</div></div>
+      <div class="layer-card"><h4>Analytics</h4><p>Shared event and reporting primitives that power adoption and health signals.</p><div class="risk">Every product gets usable reporting from day one.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRODUCTS ================= -->
+<section class="tinted" id="products">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow-label">Product portfolio</span>
+      <h2>Built for specific operations, not everyone in general.</h2>
+      <p>Each product is scoped to one kind of business, priced around the metric that actually reflects the value it delivers.</p>
+    </div>
+    <div class="product-grid">
+      <div class="pcard feature">
+        <span class="vert">Sports academies</span>
+        <h4>ArtiPlay</h4>
+        <p>Players, attendance, training programs, coach and admin panels, and membership management for academies running one location or many.</p>
+        <div class="metric">Priced on <b>active players</b></div>
+      </div>
+      <div class="pcard">
+        <span class="vert">Inventory & operations</span>
+        <h4>ArtiStock</h4>
+        <p>Items, purchase orders, suppliers, cycle counts and production tracking for teams that need real control over stock.</p>
+        <div class="metric">Priced on <b>locations</b></div>
+      </div>
+      <div class="pcard">
+        <span class="vert">Food & retail</span>
+        <h4>ArtiSnack</h4>
+        <p>Point-of-sale, transactions and store operations built for food and retail businesses that need to move fast at the counter.</p>
+        <div class="metric">Priced on <b>POS terminals</b></div>
+      </div>
+      <div class="pcard">
+        <span class="vert">Business intelligence</span>
+        <h4>Business Health Toolkit</h4>
+        <p>Connected reporting across a business's data sources, turned into decisions owners can actually act on.</p>
+        <div class="metric">Priced on <b>connected sources</b></div>
+      </div>
+      <div class="pcard feature">
+        <span class="vert">AI & automation</span>
+        <h4>VEX AI</h4>
+        <p>Document processing, classification and workflow automation, scoped to a named business use case with metered, visible cost.</p>
+        <div class="metric">Priced on <b>AI actions / month</b></div>
+      </div>
+      <div class="pcard" style="justify-content:center;align-items:flex-start">
+        <span class="vert">Coming next</span>
+        <h4>New verticals, same foundation</h4>
+        <p>Every new product inherits the same identity, data, billing and analytics layer — so the next one ships faster than the last.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STANDARD ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow-label">The ArtiByte standard</span>
+      <h2>The gate every product passes before a client sees it.</h2>
+      <p>One common bar for product quality, technical soundness and commercial readiness — applied the same way, every time.</p>
+    </div>
+    <div class="standard-grid">
+      <div class="standard-col">
+        <h4>Product</h4>
+        <ul>
+          <li>Solves a named business problem</li>
+          <li>Core workflow completable without training</li>
+          <li>Empty, loading and error states designed on purpose</li>
+          <li>Tested on real device sizes</li>
+        </ul>
+      </div>
+      <div class="standard-col">
+        <h4>Technology</h4>
+        <ul>
+          <li>Authentication and role enforcement</li>
+          <li>Tenant separation verified</li>
+          <li>Backups configured and restore tested</li>
+          <li>Dependency and security updates current</li>
+        </ul>
+      </div>
+      <div class="standard-col">
+        <h4>Business</h4>
+        <ul>
+          <li>Pricing model defined and commercially sound</li>
+          <li>Support scope and response expectations set</li>
+          <li>Implementation plan written before kickoff</li>
+          <li>A named, accountable owner</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOW WE WORK ================= -->
+<section class="tinted" id="how-we-work">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow-label">How we work</span>
+      <h2>We don't go from "interested" straight to a price.</h2>
+      <p>Every engagement moves in the same order — because a price without discovery is just a guess, for both sides.</p>
+    </div>
+    <div class="flow">
+      <div><b>Discovery</b><span>Understand the operation</span></div>
+      <div><b>Solution design</b><span>Decide what actually solves it</span></div>
+      <div><b>Pilot</b><span>Confirm the fit, on your workflow</span></div>
+      <div><b>Implementation</b><span>Configure, migrate, train</span></div>
+      <div><b>Go-live</b><span>Signed off, not assumed</span></div>
+      <div><b>Growth</b><span>Renewal, expansion, next module</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ENTRY LEVELS ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow-label">Wherever you're starting</span>
+      <h2>There's a way in, at whatever stage you're at.</h2>
+    </div>
+    <div class="entry-list">
+      <div class="entry-row"><span class="say">"I have an idea."</span><span class="sell">We start with product strategy — clarity before a single line of code.</span><span class="shape">Fixed-fee discovery</span></div>
+      <div class="entry-row"><span class="say">"I know what I want built."</span><span class="sell">Design and development, scoped and delivered as a real implementation.</span><span class="shape">Implementation + subscription</span></div>
+      <div class="entry-row"><span class="say">"I already have software."</span><span class="sell">We audit, redesign, upgrade or migrate what's already running.</span><span class="shape">Scoped project</span></div>
+      <div class="entry-row"><span class="say">"I need my systems connected."</span><span class="sell">Integrations and automation between the tools you already use.</span><span class="shape">Scoped + recurring</span></div>
+      <div class="entry-row"><span class="say">"I need you to run it for me."</span><span class="sell">A managed platform relationship — we operate it, you run the business.</span><span class="shape">Managed service</span></div>
+      <div class="entry-row"><span class="say">"I want my own branded version."</span><span class="sell">White-label and enterprise licensing under your own brand.</span><span class="shape">License + implementation</span></div>
+      <div class="entry-row"><span class="say">"Let's build something together."</span><span class="sell">A strategic product partnership, structured around what we're building.</span><span class="shape">Custom structure</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROMISE ================= -->
+<section class="tinted">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow-label">What you actually get</span>
+      <h2>Six things, every time — not just an app and a login.</h2>
+    </div>
+    <div class="promise-grid">
+      <div class="promise-card"><span class="tag">Technology</span><h4>The system itself</h4><p>Dashboards, workflows, roles, reporting and integrations, built for your operation.</p></div>
+      <div class="promise-card"><span class="tag">Configuration</span><h4>Shaped to you</h4><p>Branding, users, locations and workflows set up around your organization, not a generic default.</p></div>
+      <div class="promise-card"><span class="tag">Implementation</span><h4>A real rollout</h4><p>Setup, data preparation, training and testing — never just "here's your login."</p></div>
+      <div class="promise-card"><span class="tag">Continuous development</span><h4>It keeps improving</h4><p>Maintenance, fixes, security updates and new capability, on an ongoing basis.</p></div>
+      <div class="promise-card"><span class="tag">Partnership</span><h4>A team, not a ticket queue</h4><p>Product, implementation and support working together — with a roadmap you can see.</p></div>
+      <div class="promise-card"><span class="tag">Expansion</span><h4>Room to grow</h4><p>From one location to five, from a handful of users to an enterprise configuration.</p></div>
+    </div>
+    <div class="pledge">
+      <h3>When we can't do something, we say so.</h3>
+      <p>We won't promise overnight transformation, claim certifications we don't hold, or tell you AI will automate everything. If ArtiByte doesn't currently support something, that's exactly what we'll tell you — in writing, before you sign. It's a smaller promise than most vendors make. It's also one we actually keep.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CTA ================= -->
+<section class="cta-band" id="contact" style="border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <h2>Tell us what your business needs to accomplish. We'll tell you exactly what it takes to get there.</h2>
+    <p>A short conversation, an honest discovery session, and a proposal with nothing hidden in it — that's how every engagement starts.</p>
+    <div class="cta-actions">
+      <a href="mailto:hello@artibyte.ph" class="btn btn-brass">Start a conversation</a>
+      <a href="#products" class="btn btn-ghost">Browse products</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#top" class="brandmark"><span class="mk"><span></span><span></span><span></span></span><b>ArtiByte</b></a>
+        <p>Specialized on the outside. Unified underneath. Built for today, designed for what comes next.</p>
+      </div>
+      <div>
+        <h5>Platform</h5>
+        <a href="#architecture">Architecture</a>
+        <a href="#products">Products</a>
+        <a href="#how-we-work">How we work</a>
+      </div>
+      <div>
+        <h5>Company</h5>
+        <a href="#company">Positioning</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div>
+        <h5>Get started</h5>
+        <a href="mailto:hello@artibyte.ph">hello@artibyte.ph</a>
+        <a href="#contact">Talk to our team</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="yr"></span> ArtiByte. All rights reserved.</span>
+      <span>Philippines</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const PILLARS = [
+  {n:'Specialized on the outside. Unified underneath.', t:'A restaurant should never feel like it\u2019s using an "academy platform." An academy should never feel like it\u2019s using generic inventory software. Each product is designed around its industry \u2014 but they share identity, data, infrastructure, billing, AI and analytics underneath.'},
+  {n:'A business-systems partner, not a vendor.', t:'An agency asks "tell us what you want built." We ask "tell us what your business needs to accomplish" \u2014 then work out whether that needs an existing product, a configuration change, an integration, a new module, or something new entirely.'},
+  {n:'Selling a system, not an app.', t:'Clients don\u2019t want dashboards and buttons. They want their people, process and data turned into something they can operate, monitor and improve \u2014 that\u2019s the actual product.'},
+  {n:'Accountable after launch.', t:'The relationship doesn\u2019t freeze the day the invoice is paid. Maintenance, security, improvement and evolution are part of what you\u2019re buying \u2014 not an afterthought.'},
+  {n:'Capability compounds across the portfolio.', t:'A better onboarding flow, permission model, or reporting pattern discovered in one product gets lifted into the shared foundation and applied to the next. The advantage isn\u2019t cheaper development \u2014 it\u2019s accumulated learning.'}
+];
+const list = document.getElementById('pillarList');
+const detail = document.getElementById('pillarDetail');
+function renderPillar(i){
+  [...list.children].forEach((b,idx)=>b.classList.toggle('active', idx===i));
+  detail.innerHTML = '<h3>'+PILLARS[i].n+'</h3><p>'+PILLARS[i].t+'</p>';
+}
+PILLARS.forEach((p,i)=>{
+  const b=document.createElement('button');
+  b.className='pillar-btn'+(i===0?' active':'');
+  b.innerHTML='<b>'+p.n.split('.')[0]+'</b><span>Read more</span>';
+  b.addEventListener('click',()=>renderPillar(i));
+  list.appendChild(b);
+});
+renderPillar(0);
+</script>
+</body>
+</html>
