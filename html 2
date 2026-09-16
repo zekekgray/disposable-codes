@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#05070b">
+<title>ArtiByte — Business Systems, Built to Compound</title>
+<meta name="description" content="ArtiByte builds specialized business systems on a reusable technology foundation — from strategy and product development to implementation and continuous evolution.">
+<style>
+:root{
+ --bg:#05070b;--bg2:#080c13;--surface:#0c111a;--surface2:#101722;--line:rgba(255,255,255,.09);
+ --text:#f7f9fc;--muted:#9aa6b5;--dim:#687484;--blue:#1683ff;--cyan:#55c8ff;--violet:#7567ff;
+ --green:#38d996;--r:24px;--sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.55;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-3;background:
+ radial-gradient(900px 600px at 8% 0%,rgba(22,131,255,.18),transparent 65%),
+ radial-gradient(850px 600px at 88% 8%,rgba(117,103,255,.15),transparent 65%),
+ radial-gradient(700px 500px at 50% 70%,rgba(34,120,255,.05),transparent 70%)}
+body:after{content:"";position:fixed;inset:0;z-index:-2;opacity:.18;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:80px 80px;mask-image:linear-gradient(to bottom,#000,transparent 72%)}
+a{color:inherit;text-decoration:none}.container{width:min(1240px,calc(100% - 64px));margin:auto}
+header{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid transparent;transition:.3s}
+header.scrolled{background:rgba(5,7,11,.76);backdrop-filter:blur(24px);border-color:var(--line)}
+.nav{height:78px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.5px}
+.mark{width:35px;height:35px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--violet));box-shadow:0 8px 30px rgba(22,131,255,.3);font-size:13px}
+.brand small{display:block;color:var(--dim);font-size:9px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
+.navlinks{display:flex;gap:30px;align-items:center}.navlinks a{font-size:13px;color:#aeb8c5;transition:.2s}.navlinks a:hover{color:white}
+.navcta{display:flex;gap:10px;align-items:center}.btn{border:1px solid var(--line);padding:11px 17px;border-radius:12px;font-size:12px;font-weight:750;transition:.2s;cursor:pointer;background:rgba(255,255,255,.035)}
+.btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.2)}.btn.primary{border:0;background:linear-gradient(135deg,#1683ff,#5f67ff);box-shadow:0 12px 35px rgba(22,131,255,.2)}
+.menu{display:none;background:none;border:0;color:white;font-size:24px}
+
+.hero{min-height:850px;padding:180px 0 100px;position:relative;display:grid;align-items:center}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:80px;align-items:center}
+.kicker{display:inline-flex;align-items:center;gap:9px;color:#74baff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;margin-bottom:23px}
+.kicker i{width:24px;height:1px;background:var(--blue)}
+h1{font-size:clamp(54px,6.6vw,91px);line-height:.96;letter-spacing:-5px;max-width:850px}
+.grad{background:linear-gradient(120deg,#fff 5%,#8bc8ff 45%,#8c7dff 95%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:18px;color:var(--muted);max-width:650px;margin:28px 0 32px;line-height:1.7}
+.actions{display:flex;gap:12px;flex-wrap:wrap}.actions .btn{padding:14px 20px}
+.micro{display:flex;gap:22px;margin-top:30px;color:var(--dim);font-size:11px}.micro span:before{content:"✓";color:var(--green);margin-right:7px}
+.hero-art{height:520px;position:relative;display:grid;place-items:center}
+.orbit{position:absolute;width:430px;height:430px;border:1px solid rgba(100,170,255,.14);border-radius:50%;box-shadow:inset 0 0 80px rgba(22,131,255,.04)}
+.orbit:before,.orbit:after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(117,103,255,.13);inset:48px}.orbit:after{inset:110px;border-color:rgba(85,200,255,.14)}
+.core{width:190px;height:190px;border-radius:48px;background:linear-gradient(145deg,rgba(18,29,45,.95),rgba(10,15,25,.96));border:1px solid rgba(150,205,255,.23);display:grid;place-items:center;box-shadow:0 0 100px rgba(22,131,255,.22),inset 0 1px rgba(255,255,255,.1);position:relative;z-index:3}
+.core b{font-size:43px;letter-spacing:-3px}.core small{display:block;text-align:center;color:var(--dim);font-size:9px;letter-spacing:1.5px;text-transform:uppercase}
+.node{position:absolute;padding:10px 13px;border:1px solid var(--line);background:rgba(10,15,23,.8);backdrop-filter:blur(15px);border-radius:12px;font-size:10px;color:#cbd4df;box-shadow:0 15px 35px rgba(0,0,0,.25)}
+.n1{top:25px;left:80px}.n2{top:105px;right:5px}.n3{bottom:55px;right:55px}.n4{bottom:5px;left:90px}.n5{top:245px;left:0}
+.pulse{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 0 rgba(85,200,255,.7);animation:pulse 2.2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 22px rgba(85,200,255,0)}100%{box-shadow:0 0 0 0 rgba(85,200,255,0)}}
+
+.strip{border-block:1px solid var(--line);background:rgba(255,255,255,.018)}.stripin{display:grid;grid-template-columns:repeat(4,1fr)}
+.metric{padding:25px 25px;border-right:1px solid var(--line)}.metric:last-child{border:0}.metric b{font-size:24px;letter-spacing:-1px}.metric span{display:block;color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:1.2px;margin-top:3px}
+
+section{padding:130px 0}.section-head{display:flex;justify-content:space-between;gap:50px;margin-bottom:55px}.eyebrow{font-size:10px;letter-spacing:1.8px;color:#65b3ff;text-transform:uppercase;font-weight:800}.section-head h2{font-size:clamp(38px,4.6vw,64px);line-height:1.02;letter-spacing:-3px;max-width:760px;margin-top:13px}.section-head p{max-width:420px;color:var(--muted);font-size:15px;align-self:end}
+
+.bento{display:grid;grid-template-columns:1.25fr .75fr .75fr;grid-auto-rows:minmax(190px,auto);gap:14px}.card{background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));border:1px solid var(--line);border-radius:var(--r);padding:30px;position:relative;overflow:hidden;transition:.3s}.card:hover{transform:translateY(-5px);border-color:rgba(110,190,255,.25);box-shadow:0 25px 70px rgba(0,0,0,.24)}.card.large{grid-row:span 2}.card:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-90px;top:-90px;background:radial-gradient(circle,rgba(22,131,255,.16),transparent 65%)}
+.card .num{font-size:10px;color:var(--blue);font-family:monospace}.card h3{font-size:25px;letter-spacing:-1px;margin:28px 0 10px}.card p{color:var(--muted);font-size:13px;max-width:430px}.line{height:1px;background:var(--line);margin:25px 0}.tags{display:flex;gap:7px;flex-wrap:wrap}.tag{font-size:10px;padding:6px 9px;border:1px solid var(--line);border-radius:999px;color:#aab5c2}
+
+.arch{background:#080d15;border:1px solid var(--line);border-radius:30px;padding:45px;overflow:hidden}.arch-top{text-align:center}.arch-top span{font-size:10px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase}.arch-top h3{font-size:31px;letter-spacing:-1.3px;margin:8px 0 35px}.foundation{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}.foundation div{padding:14px 8px;text-align:center;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.025);font-size:10px;color:#c1cad5}.connector{height:65px;border-left:1px dashed rgba(100,180,255,.3);margin:auto;width:1px}.products{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.prod{padding:18px;border:1px solid rgba(85,200,255,.12);background:linear-gradient(145deg,rgba(22,131,255,.08),rgba(117,103,255,.04));border-radius:15px;min-height:90px}.prod b{font-size:13px}.prod small{display:block;color:var(--dim);font-size:9px;margin-top:5px}
+
+.products-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.product-card{min-height:270px;padding:28px;border:1px solid var(--line);border-radius:24px;background:var(--surface);position:relative;overflow:hidden;cursor:pointer}.product-card.active,.product-card:hover{border-color:rgba(75,173,255,.4);background:linear-gradient(145deg,#0d1825,#0a1018)}.product-card b{font-size:12px;color:#70baff;letter-spacing:1px}.product-card h3{font-size:27px;letter-spacing:-1.3px;margin:35px 0 8px}.product-card p{color:var(--muted);font-size:13px}.product-card .arrow{position:absolute;right:25px;bottom:23px;font-size:20px;color:#6f7e90}.product-detail{margin-top:14px;padding:28px;border-radius:22px;border:1px solid var(--line);background:#090e16;display:grid;grid-template-columns:1fr 1fr;gap:30px}.product-detail h3{font-size:30px;letter-spacing:-1px}.product-detail p{color:var(--muted);font-size:14px}.features{display:grid;grid-template-columns:1fr 1fr;gap:9px}.features div{padding:12px;border:1px solid var(--line);border-radius:11px;font-size:11px;color:#bbc5d1}.features div:before{content:"✓";color:var(--green);margin-right:7px}
+
+.process{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;border:1px solid var(--line);border-radius:22px;overflow:hidden}.step{padding:28px 22px;background:rgba(255,255,255,.025);min-height:230px;border-right:1px solid var(--line)}.step:last-child{border:0}.step .n{font-family:monospace;color:var(--blue);font-size:11px}.step h3{font-size:17px;margin:45px 0 8px}.step p{color:var(--muted);font-size:12px}
+
+.trust{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}.quote{font-size:clamp(32px,4vw,56px);line-height:1.06;letter-spacing:-2.5px}.quote em{font-style:normal;color:#75baff}.trust-list{border-top:1px solid var(--line)}.trust-row{display:grid;grid-template-columns:50px 1fr;gap:18px;padding:20px 0;border-bottom:1px solid var(--line)}.trust-row b{color:#6ab8ff;font-family:monospace;font-size:11px}.trust-row h4{font-size:15px}.trust-row p{font-size:12px;color:var(--muted);margin-top:4px}
+
+.cta{padding:0 0 130px}.cta-box{border:1px solid rgba(100,180,255,.2);border-radius:32px;padding:75px;text-align:center;background:radial-gradient(500px 250px at 50% 0%,rgba(22,131,255,.16),transparent 70%),#080d14}.cta-box h2{font-size:clamp(40px,5vw,70px);letter-spacing:-3px;line-height:1}.cta-box p{color:var(--muted);max-width:600px;margin:20px auto 28px}
+
+footer{border-top:1px solid var(--line);padding:45px 0 35px;color:var(--dim);font-size:11px}.foot{display:flex;justify-content:space-between;gap:20px}.footlinks{display:flex;gap:20px}.footlinks a:hover{color:white}
+
+.reveal{opacity:0;transform:translateY(24px);transition:.7s cubic-bezier(.2,.7,.2,1)}.reveal.show{opacity:1;transform:none}
+@media(max-width:1000px){.navlinks{display:none}.menu{display:block}.hero-grid,.trust{grid-template-columns:1fr}.hero-art{height:430px}.bento{grid-template-columns:1fr 1fr}.card.large{grid-row:auto}.foundation{grid-template-columns:repeat(4,1fr)}.products{grid-template-columns:repeat(2,1fr)}.products-wrap{grid-template-columns:1fr 1fr}.process{grid-template-columns:1fr 1fr}.step{border-bottom:1px solid var(--line)}}
+@media(max-width:650px){.container{width:min(100% - 36px,1240px)}.nav{height:68px}.navcta .btn:first-child{display:none}.hero{padding-top:125px;min-height:auto}.hero h1{letter-spacing:-3px;font-size:52px}.hero p{font-size:16px}.hero-art{transform:scale(.78);margin:-25px -55px}.stripin{grid-template-columns:1fr 1fr}.metric:nth-child(2){border-right:0}.section-head{display:block}.section-head p{margin-top:18px}.bento,.products-wrap,.product-detail,.trust{grid-template-columns:1fr}.foundation{grid-template-columns:repeat(2,1fr)}.products{grid-template-columns:1fr}.process{grid-template-columns:1fr}.step{min-height:auto;border-right:0}.cta-box{padding:50px 24px}}
+</style>
+</head>
+<body>
+<header id="header"><div class="container nav">
+<a class="brand" href="#"><span class="mark">AB</span><span>ArtiByte<small>Business Systems</small></span></a>
+<nav class="navlinks"><a href="#build">What We Build</a><a href="#services">What We Do</a><a href="#products">Our Products</a><a href="#platform">Platform</a></nav>
+<div class="navcta"><a class="btn" href="#services">Explore</a><a class="btn primary" href="#contact">Start a conversation</a><button class="menu">☰</button></div>
+</div></header>
+
+<main>
+<section class="hero"><div class="container hero-grid">
+<div class="reveal">
+<div class="kicker"><i></i>Technology for businesses that intend to compound</div>
+<h1>Build the system.<br><span class="grad">Grow the business.</span></h1>
+<p>ArtiByte builds specialized business systems on a reusable technology foundation — combining software, implementation and continuous product infrastructure so organizations can operate and evolve with confidence.</p>
+<div class="actions"><a class="btn primary" href="#contact">Build with ArtiByte →</a><a class="btn" href="#products">Explore the portfolio</a></div>
+<div class="micro"><span>Specialized by industry</span><span>Unified underneath</span><span>Built to evolve</span></div>
+</div>
+<div class="hero-art reveal">
+<div class="orbit"></div><div class="core"><div><b>AB</b><small>Shared foundation</small></div></div>
+<div class="node n1">IDENTITY</div><div class="node n2">DATA + ANALYTICS</div><div class="node n3">AI + AUTOMATION</div><div class="node n4">BILLING</div><div class="node n5">INFRASTRUCTURE</div><span class="pulse"></span>
+</div>
+</div></section>
+
+<div class="strip"><div class="container stripin">
+<div class="metric"><b>01</b><span>Strategy → system</span></div><div class="metric"><b>∞</b><span>Continuous evolution</span></div><div class="metric"><b>01</b><span>Reusable foundation</span></div><div class="metric"><b>24/7</b><span>Business infrastructure mindset</span></div>
+</div></div>
+
+<section id="build"><div class="container">
+<div class="section-head reveal"><div><div class="eyebrow">01 / What we build</div><h2>Not another app.<br>A system your business can operate.</h2></div><p>From focused operational tools to enterprise environments, the objective is the same: turn real business problems into durable technology systems.</p></div>
+<div class="bento">
+<article class="card large reveal"><span class="num">01 — BUSINESS SYSTEMS</span><h3>Specialized on the outside.<br>Unified underneath.</h3><p>Each experience is shaped around its industry and users, while core identity, data, infrastructure, billing, AI, analytics, notifications and permissions can be shared across the ArtiByte foundation.</p><div class="line"></div><div class="tags"><span class="tag">Web platforms</span><span class="tag">Mobile apps</span><span class="tag">Dashboards</span><span class="tag">Portals</span><span class="tag">Multi-tenant systems</span></div></article>
+<article class="card reveal"><span class="num">02 — DIGITAL PRODUCTS</span><h3>Products, not projects.</h3><p>Design and develop software that can become part of how the organization actually operates.</p></article>
+<article class="card reveal"><span class="num">03 — AI</span><h3>Intelligence with a use case.</h3><p>AI assistants, document processing, search, classification, recommendations and workflow automation — tied to measurable business work.</p></article>
+<article class="card reveal"><span class="num">04 — ENTERPRISE</span><h3>Built for the next location.</h3><p>Multi-user, multi-location, role-based and configurable environments designed for expansion.</p></article>
+<article class="card reveal"><span class="num">05 — PLATFORM</span><h3>License the capability.</h3><p>White-label, tenant-specific configuration, partner deployments and platform licensing for organizations that need more control.</p></article>
+</div></div></section>
+
+<section id="platform"><div class="container">
+<div class="section-head reveal"><div><div class="eyebrow">02 / The ArtiByte platform</div><h2>One foundation.<br>Many business experiences.</h2></div><p>The reuse model is designed to compound product, architectural, onboarding and commercial learning instead of rebuilding the same foundations repeatedly.</p></div>
+<div class="arch reveal"><div class="arch-top"><span>ARTIBYTE</span><h3>Shared Technology Foundation</h3></div>
+<div class="foundation"><div>Identity</div><div>Data</div><div>Infrastructure</div><div>Billing</div><div>AI</div><div>Analytics</div><div>Permissions</div></div>
+<div class="connector"></div>
+<div class="products"><div class="prod"><b>ArtiPlay</b><small>Sports academies</small></div><div class="prod"><b>ArtiStock</b><small>Inventory & operations</small></div><div class="prod"><b>ArtiSnack</b><small>Food & retail POS</small></div><div class="prod"><b>BHT</b><small>Business intelligence</small></div><div class="prod"><b>VEX AI</b><small>AI automation</small></div></div>
+</div></div></section>
+
+<section id="products"><div class="container">
+<div class="section-head reveal"><div><div class="eyebrow">03 / Our products</div><h2>Purpose-built products.<br>Shared intelligence underneath.</h2></div><p>Explore the portfolio by selecting a product. The interface is deliberately quiet; the system underneath is not.</p></div>
+<div class="products-wrap">
+<div class="product-card active reveal" data-name="ArtiPlay"><b>SPORTS ACADEMIES</b><h3>ArtiPlay</h3><p>Operations, player management, coaches, attendance, training and academy workflows.</p><span class="arrow">↗</span></div>
+<div class="product-card reveal" data-name="ArtiStock"><b>INVENTORY & OPERATIONS</b><h3>ArtiStock</h3><p>Know your stock. Know your real cost. Run inventory operations with clearer data.</p><span class="arrow">↗</span></div>
+<div class="product-card reveal" data-name="ArtiSnack"><b>FOOD & RETAIL</b><h3>ArtiSnack</h3><p>POS, transactions, locations and operational workflows for food and retail environments.</p><span class="arrow">↗</span></div>
+<div class="product-card reveal" data-name="BHT"><b>BUSINESS INTELLIGENCE</b><h3>Business Health Toolkit</h3><p>Connect business sources and turn operating data into useful reporting and decision signals.</p><span class="arrow">↗</span></div>
+<div class="product-card reveal" data-name="VEX AI"><b>AI AUTOMATION</b><h3>VEX AI</h3><p>AI-powered business automation designed around actions, records and documents.</p><span class="arrow">↗</span></div>
+<div class="product-card reveal" data-name="Portfolio"><b>PORTFOLIO</b><h3>More in development</h3><p>OWLBOUND, ArtiCare, ArtiStage and ArtiWork are part of the broader product portfolio.</p><span class="arrow">↗</span></div>
+</div>
+<div class="product-detail reveal" id="detail"><div><div class="eyebrow">Selected product</div><h3 id="detailName">ArtiPlay</h3><p id="detailText">A specialized operating environment for sports academies, designed around active players, coaches, staff, training and academy operations.</p></div><div class="features"><div>Role-based access</div><div>Operational workflows</div><div>Reporting & analytics</div><div>Scalable capacity</div></div></div>
+</div></section>
+
+<section id="services"><div class="container">
+<div class="section-head reveal"><div><div class="eyebrow">04 / What we do</div><h2>From the first business problem<br>to the system that follows it.</h2></div><p>ArtiByte can enter at different depths — strategy, design, development, integration, managed support, enterprise or platform licensing.</p></div>
+<div class="process reveal">
+<div class="step"><span class="n">01</span><h3>Discover</h3><p>Understand the business problem, current state, stakeholders, constraints and definition of success.</p></div>
+<div class="step"><span class="n">02</span><h3>Design</h3><p>Shape the product, workflow, experience, data model and implementation approach.</p></div>
+<div class="step"><span class="n">03</span><h3>Build</h3><p>Develop the technology system, integrations and operational capabilities against a clear scope.</p></div>
+<div class="step"><span class="n">04</span><h3>Launch</h3><p>Configure, prepare data, train users, test workflows and move the organization into operation.</p></div>
+<div class="step"><span class="n">05</span><h3>Evolve</h3><p>Support, maintain, improve, secure and expand the system as the business changes.</p></div>
+</div>
+</div></section>
+
+<section><div class="container trust">
+<div class="reveal"><div class="eyebrow">05 / The ArtiByte standard</div><div class="quote">Trust is not a slogan.<br>It is a stack of <em>visible mechanisms.</em></div></div>
+<div class="trust-list reveal">
+<div class="trust-row"><b>01</b><div><h4>Clear scope</h4><p>Explicit inclusions, exclusions and assumptions.</p></div></div>
+<div class="trust-row"><b>02</b><div><h4>Professional implementation</h4><p>Kickoff, milestones, testing, acceptance and go-live.</p></div></div>
+<div class="trust-row"><b>03</b><div><h4>Responsible data handling</h4><p>Ownership, export rights and defined retention practices.</p></div></div>
+<div class="trust-row"><b>04</b><div><h4>Continuous improvement</h4><p>Maintenance, security, releases and product evolution after launch.</p></div></div>
+<div class="trust-row"><b>05</b><div><h4>Honest limitations</h4><p>If something is not supported, it is stated rather than promised.</p></div></div>
+</div></div></section>
+
+<section class="cta" id="contact"><div class="container"><div class="cta-box reveal">
+<div class="eyebrow">06 / Start a conversation</div><h2>Bring us the business problem.</h2><p>We will determine whether the answer is an existing ArtiByte product, configuration, integration, new module, new product — or something else entirely.</p>
+<div class="actions" style="justify-content:center"><a class="btn primary" href="mailto:hello@artibyte.com">Talk to ArtiByte →</a><a class="btn" href="#products">See the portfolio</a></div>
+</div></div></section>
+</main>
+
+<footer><div class="container foot"><div>© 2026 ArtiByte™. Specialized on the outside. Unified underneath.</div><div class="footlinks"><a href="#build">Build</a><a href="#services">Services</a><a href="#products">Products</a><a href="#platform">Platform</a></div></div></footer>
+
+<script>
+const header=document.getElementById('header');
+window.addEventListener('scroll',()=>header.classList.toggle('scrolled',scrollY>20),{passive:true});
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(x=>obs.observe(x));
+
+const data={
+ "ArtiPlay":["ArtiPlay","A specialized operating environment for sports academies, designed around active players, coaches, staff, training and academy operations."],
+ "ArtiStock":["ArtiStock","An inventory and operations system centered on locations, inventory volume, transactions, SKUs and users."],
+ "ArtiSnack":["ArtiSnack","A food and retail POS environment centered on terminals, locations, transactions and active users."],
+ "BHT":["Business Health Toolkit","A business intelligence layer for connected sources, reporting, analytics and operating signals."],
+ "VEX AI":["VEX AI","An AI automation product measured around AI actions, documents processed and records analyzed."],
+ "Portfolio":["Portfolio","A broader ArtiByte portfolio including OWLBOUND, ArtiCare, ArtiStage and ArtiWork."]
+};
+document.querySelectorAll('.product-card').forEach(card=>{
+ card.addEventListener('click',()=>{
+  document.querySelectorAll('.product-card').forEach(c=>c.classList.remove('active'));card.classList.add('active');
+  const d=data[card.dataset.name]||data.Portfolio;
+  document.getElementById('detailName').textContent=d[0];
+  document.getElementById('detailText').textContent=d[1];
+  document.getElementById('detail').scrollIntoView({behavior:'smooth',block:'center'});
+ });
+});
+</script>
+</body>
+</html>
