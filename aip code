@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A private note from ArtiBytte — Independent Partners</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="A private invitation to join the Independent ArtiBytte Partners network.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='192 200 640 640'%3E%3Crect x='192' y='200' width='640' height='640' fill='%23142850'/%3E%3Ccircle cx='505' cy='432' r='185' fill='white'/%3E%3Ccircle cx='697' cy='433' r='75' fill='%23142850'/%3E%3Crect x='240' y='660' width='463' height='50' fill='white'/%3E%3Crect x='240' y='745' width='545' height='50' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,340;0,9..144,440;0,9..144,560;0,9..144,650;1,9..144,440;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --obsidian:#0b0c0f;
+  --graphite:#15171b;
+  --graphite2:#1c1f24;
+  --ivory:#f6f2ea;
+  --ink:#17150f;
+  --ink2:#55503f;
+  --bronze:#c78a4d;
+  --bronze-light:#e3b27f;
+  --bronze-micro:#e6b988;
+  --bronze-deep:#8a5a2b;
+  --mist:#9298a3;
+  --mist2:#c7cbd1;
+  --line-dark:rgba(255,255,255,.09);
+  --line-dark2:rgba(255,255,255,.16);
+  --line-light:rgba(23,21,15,.13);
+  --line-light2:rgba(23,21,15,.24);
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+
+  --space-section:96px;
+  --space-section-mobile:64px;
+  --space-section-lg:120px;
+  --space-section-lg-mobile:76px;
+  --radius-card:14px;
+  --radius-tight:9px;
+  --radius-pill:999px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+body{background:var(--obsidian);color:var(--mist2);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+@media(max-width:768px){body{font-size:15px}}
+::selection{background:var(--bronze);color:#0b0c0f}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+.wrap{max-width:900px;margin:0 auto;padding:0 32px}
+@media(max-width:640px){.wrap{padding:0 22px}}
+
+/* one focus language for the whole system */
+a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--bronze-light);outline-offset:3px;border-radius:4px}
+
+/* one hover language for every card in the system */
+.hover-lift{transition:transform .25s cubic-bezier(.22,.9,.32,1),border-color .25s ease,background-color .25s ease}
+.hover-lift:hover{transform:translateY(-3px)}
+
+/* recurring system-tag — echoes the hero's IAP / 01 marker across every section */
+.section-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--sans);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mist);font-weight:600;margin-bottom:14px}
+.section-tag .dot{width:3.5px;height:3.5px;border-radius:50%;background:var(--bronze-micro);flex:none}
+.light .section-tag{color:var(--ink2)}
+
+.grain{position:fixed;inset:0;pointer-events:none;z-index:999;opacity:.035;mix-blend-mode:overlay}
+
+/* minimal top bar — mobile only, desktop uses sidebar */
+.topbar{padding:28px 0 0}
+.topbar .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:17px;letter-spacing:.2px;font-weight:560;color:#f0ede6}
+.brand-mark{width:24px;height:24px;border-radius:6px;flex:none;background:linear-gradient(160deg,var(--bronze-light),var(--bronze-deep));transition:transform .35s cubic-bezier(.22,.9,.32,1)}
+.sidebar-brand:hover .brand-mark{transform:rotate(-8deg) scale(1.08)}
+.private-tag{display:inline-block;margin-left:12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze-light);border:1px solid var(--line-dark2);border-radius:999px;padding:4px 10px;font-family:var(--sans);font-weight:600}
+
+section{position:relative}
+.light{background:var(--ivory);color:var(--ink)}
+.light .mist2{color:var(--ink2)}
+.pad{padding:var(--space-section) 0}
+@media(max-width:640px){.pad{padding:var(--space-section-mobile) 0}}
+.head{max-width:620px;margin-bottom:52px}
+.head h2{font-family:var(--serif);font-weight:440;letter-spacing:-.8px;font-size:clamp(24px,3.6vw,36px);line-height:1.2}
+.light .head h2{color:var(--ink)}
+:not(.light) .head h2{color:#f6f4ef}
+.head p{margin-top:16px;font-size:16px;line-height:1.65;color:var(--mist2)}
+.light .head p{color:var(--ink2)}
+@media(max-width:768px){.head{margin-bottom:38px}.head p{font-size:15px}}
+
+/* hero */
+.hero{padding:96px 0 64px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(1100px 640px at 88% -18%,rgba(199,138,77,.13),transparent 58%),radial-gradient(500px 320px at 6% 30%,rgba(199,138,77,.05),transparent 70%)}
+.hero-motif{position:absolute;top:-40px;right:-40px;width:260px;height:260px;opacity:.5;pointer-events:none;z-index:-1}
+@media(max-width:760px){.hero-motif{width:170px;height:170px;top:-20px;right:-20px}}
+.sys-id{display:inline-flex;align-items:center;gap:8px;font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mist);font-weight:600;margin-bottom:22px}
+.sys-id .dot{width:4px;height:4px;border-radius:50%;background:var(--bronze-micro)}
+.hero-mark{display:flex;align-items:baseline;gap:18px;margin-bottom:34px}
+.hero-mark .iap-big{font-family:var(--serif);font-weight:650;font-size:clamp(64px,12vw,140px);line-height:.85;letter-spacing:-3px;background:linear-gradient(160deg,var(--bronze-light),var(--bronze-deep));-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block;transition:transform .4s cubic-bezier(.22,.9,.32,1)}
+.hero-mark:hover .iap-big{transform:translateY(-2px) scale(1.015)}
+.hero-mark .iap-sub{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mist);line-height:1.6;max-width:150px;border-left:1px solid var(--line-dark2);padding-left:16px}
+.hero h1{font-family:var(--serif);font-weight:440;letter-spacing:-1px;font-size:clamp(24px,3.4vw,36px);line-height:1.16;color:#f6f4ef;max-width:640px;margin-top:6px}
+.hero .lede{margin-top:18px;font-size:15.5px;line-height:1.65;color:var(--mist2);max-width:520px}
+@media(max-width:560px){.hero{padding:72px 0 48px}.hero-mark{gap:12px}.hero-mark .iap-sub{padding-left:12px}}
+
+/* story / pull */
+.story{display:grid;grid-template-columns:1.1fr .9fr;gap:52px;align-items:start}
+@media(max-width:760px){.story{grid-template-columns:1fr;gap:30px}}
+.story .body p{font-size:16px;line-height:1.75;color:var(--ink2)}
+.story .body p + p{margin-top:16px}
+.pull{border-left:2px solid var(--bronze);padding-left:24px}
+.pull p{font-family:var(--serif);font-style:italic;font-size:20px;line-height:1.5;color:var(--ink)}
+.pull span{display:block;margin-top:12px;font-family:var(--sans);font-style:normal;font-size:12.5px;color:var(--ink2)}
+
+/* pillars — recurring-concept strip under Overview */
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:52px;border-top:1px solid var(--line-dark)}
+@media(max-width:680px){.pillars{grid-template-columns:1fr}}
+.pillar{padding:24px 20px 4px;border-right:1px solid var(--line-dark)}
+.pillar:last-child{border-right:none}
+@media(max-width:680px){.pillar{border-right:none;border-bottom:1px solid var(--line-dark);padding:20px 0}.pillar:last-child{border-bottom:none}}
+.pillar .pillar-num{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--bronze-light);display:block;margin-bottom:8px}
+.pillar h4{font-family:var(--serif);font-weight:500;font-size:16px;color:#f5f2ec;margin-bottom:6px;letter-spacing:-.1px}
+.pillar p{font-size:13px;color:var(--mist2);line-height:1.6}
+
+/* tracks */
+.iap-tracks{display:flex;flex-direction:column}
+.iap-track{display:grid;grid-template-columns:56px 1fr 1.3fr;gap:28px;padding:28px 0;border-top:1px solid var(--line-dark);align-items:baseline}
+.iap-tracks .iap-track:last-child{border-bottom:1px solid var(--line-dark)}
+.iap-track .idx{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--bronze-light);align-self:start;padding-top:4px}
+.iap-track h3{font-family:var(--serif);font-weight:440;font-size:19px;color:#f5f2ec;letter-spacing:-.2px;line-height:1.25}
+.iap-track p{font-size:14px;color:var(--mist2);line-height:1.65;max-width:440px}
+@media(max-width:680px){.iap-track{grid-template-columns:1fr;gap:6px}.iap-track .idx{display:none}}
+
+/* tiers — connected path, visual centerpiece */
+#tiers.pad{padding:var(--space-section-lg) 0;position:relative}
+#tiers::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(760px 460px at 12% 20%,rgba(199,138,77,.07),transparent 65%)}
+.tier-path{display:flex;flex-direction:column;position:relative}
+.tier-node{display:grid;grid-template-columns:64px 1fr;column-gap:28px;position:relative;padding-bottom:44px}
+.tier-node:last-child{padding-bottom:0}
+.tier-node-rail{position:relative;display:flex;flex-direction:column;align-items:center}
+.tier-node-circle{width:56px;height:56px;border-radius:50%;background:var(--graphite);border:1.5px solid var(--bronze);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-weight:600;font-size:17px;color:var(--bronze-light);flex:none;z-index:2;box-shadow:0 0 0 6px var(--obsidian)}
+.tier-node-line{position:absolute;top:56px;bottom:-44px;width:2px;background:linear-gradient(var(--bronze),var(--line-dark2));z-index:1}
+.tier-node-body{padding-top:8px}
+.tier-node-body .tier-label{display:block;font-family:var(--serif);font-style:italic;font-weight:600;font-size:15px;letter-spacing:.02em;color:var(--bronze-micro);margin-bottom:10px}
+.tier-node-body h3{font-family:var(--serif);font-weight:500;font-size:clamp(20px,2.6vw,26px);color:#f5f2ec;letter-spacing:-.3px;line-height:1.2;margin-bottom:8px}
+.tier-node-body p{font-size:14.5px;color:var(--mist2);line-height:1.7;max-width:460px}
+@media(max-width:560px){
+  #tiers.pad{padding:var(--space-section-lg-mobile) 0}
+  .tier-node{grid-template-columns:48px 1fr;column-gap:18px;padding-bottom:34px}
+  .tier-node-circle{width:44px;height:44px;font-size:14px}
+  .tier-node-line{top:44px;bottom:-34px}
+}
+.tier-branch-label{display:flex;align-items:center;gap:14px;margin:56px 0 24px;color:var(--mist);font-size:11.5px;text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+.tier-branch-label::after{content:"";flex:1;height:1px;background:var(--line-dark)}
+.tier-x-card{border:1px dashed var(--line-dark2);border-radius:var(--radius-card);background:var(--graphite);padding:30px 32px;display:grid;grid-template-columns:64px 1fr;column-gap:28px;align-items:start;transition:border-color .25s ease,transform .25s cubic-bezier(.22,.9,.32,1)}
+.tier-x-card:hover{border-color:var(--bronze-light);transform:translateY(-3px)}
+.tier-x-card .tier-node-circle{border-style:dashed;border-color:var(--line-dark2);color:var(--mist);box-shadow:none}
+.tier-x-card h3{font-family:var(--serif);font-weight:500;font-size:20px;color:#f5f2ec;margin-bottom:8px}
+.tier-x-card p{font-size:14px;color:var(--mist2);line-height:1.65;max-width:460px}
+@media(max-width:560px){.tier-x-card{grid-template-columns:44px 1fr;column-gap:18px;padding:24px 22px}}
+
+/* categories — editorial bordered grid, echoes .comp-grid; no icons */
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line-dark);border-left:1px solid var(--line-dark)}
+@media(max-width:760px){.cat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.cat-grid{grid-template-columns:1fr}}
+.cat-cell{border-right:1px solid var(--line-dark);border-bottom:1px solid var(--line-dark);padding:30px 26px;transition:background-color .25s ease}
+.cat-cell:hover{background:rgba(255,255,255,.02)}
+.cat-cell .idx{display:block;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--bronze-micro);margin-bottom:14px}
+.cat-cell h3{font-family:var(--serif);font-weight:500;font-size:17px;color:#f5f2ec;margin-bottom:8px;letter-spacing:-.1px}
+.cat-cell .cat-desc{font-size:13px;color:var(--mist2);line-height:1.6;margin-bottom:16px}
+.cat-cell .cat-list{font-size:12px;color:var(--mist);line-height:1.7;letter-spacing:.01em}
+@media(max-width:480px){.cat-cell{padding:24px 22px}}
+.cat-link{margin-top:22px;font-size:13px;color:var(--mist);line-height:1.7;text-align:center;max-width:520px;margin-left:auto;margin-right:auto}
+.cat-link em{font-style:italic;color:var(--mist2)}
+
+/* compensation — transparent, two-row system */
+.comp-guarantee{display:flex;align-items:flex-start;gap:14px;background:rgba(23,21,15,.045);border-radius:var(--radius-card);padding:18px 20px;margin-bottom:36px;max-width:640px}
+.comp-guarantee .check{flex:none;width:22px;height:22px;border-radius:50%;background:var(--bronze-deep);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:1px}
+.comp-guarantee p{font-size:13.5px;color:var(--ink);line-height:1.6;font-weight:500}
+.comp-section-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--bronze-deep);font-weight:700;margin-bottom:14px}
+.comp-row{margin-bottom:32px}
+.comp-row:last-child{margin-bottom:0}
+.comp-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:680px){.comp-pair{grid-template-columns:1fr}}
+.comp-cell-v2{border-radius:var(--radius-card);padding:26px 24px;transition:transform .25s cubic-bezier(.22,.9,.32,1)}
+.comp-cell-v2:hover{transform:translateY(-3px)}
+.comp-cell-v2 .letter{font-family:var(--serif);font-style:italic;font-size:13px;display:block;margin-bottom:12px}
+.comp-cell-v2 h4{font-family:var(--serif);font-weight:500;font-size:18px;margin-bottom:9px;letter-spacing:-.2px}
+.comp-cell-v2 p{font-size:13.5px;line-height:1.6}
+.comp-cell-work{background:#fff;border:1px solid var(--line-light2)}
+.comp-cell-work .letter{color:var(--bronze-deep)}
+.comp-cell-work h4{color:var(--ink)}
+.comp-cell-work p{color:var(--ink2)}
+.comp-cell-outcome{background:var(--ink);border:1px solid var(--ink)}
+.comp-cell-outcome .letter{color:var(--bronze-light)}
+.comp-cell-outcome h4{color:#f6f2ea}
+.comp-cell-outcome p{color:#cfc9ba}
+.comp-cell-outcome.comp-cell-strategic{border:1px solid var(--bronze-deep)}
+.written-cue{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--bronze-light);margin-top:14px}
+.best-when{display:inline-block;font-size:11px;letter-spacing:.04em;color:var(--bronze-light);font-weight:600;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.comp-cell-work .best-when{color:var(--bronze-deep);border-top-color:var(--line-light2)}
+.comp-note{margin-top:20px;font-size:13px;color:var(--ink2);line-height:1.7;max-width:560px}
+:not(.light) .comp-note{color:var(--mist2)}
+
+/* steps */
+.iap-steps{display:flex;flex-direction:column}
+.iap-step{display:grid;grid-template-columns:100px 1fr;column-gap:32px;align-items:start;padding:30px 0;border-top:1px solid var(--line-dark)}
+.iap-steps .iap-step:last-child{border-bottom:1px solid var(--line-dark)}
+.iap-step .num{font-size:11.5px;font-weight:500;letter-spacing:.16em;color:#f0ede6;opacity:.45;padding:8px 0 0}
+.iap-step h4{font-family:var(--serif);font-weight:500;color:#f5f2ec;font-size:clamp(18px,2vw,22px);line-height:1.2;letter-spacing:-.01em;margin:0 0 8px;max-width:460px}
+.iap-step p{font-size:14px;line-height:1.65;color:var(--mist2);opacity:.78;max-width:480px;margin:0}
+@media(max-width:680px){.iap-step{grid-template-columns:1fr;row-gap:10px;padding:24px 0}.iap-step .num{padding-top:0}}
+
+/* structure — org & reusable infra */
+.infra-tree{margin-top:32px;max-width:420px}
+.infra-root{font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--ink);margin-bottom:10px}
+.infra-tree ul{list-style:none;display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line-light2);margin-left:6px;padding-left:16px}
+.infra-tree li{font-size:13px;color:var(--ink2);line-height:1.4;position:relative}
+.infra-tree li::before{content:"";position:absolute;left:-16px;top:9px;width:10px;height:1px;background:var(--line-light2)}
+.ceiling-block{margin-top:44px;padding:24px 26px;border-radius:var(--radius-card);background:rgba(23,21,15,.035);max-width:600px}
+.ceiling-block .cb-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze-deep);font-weight:700;margin-bottom:12px}
+.ceiling-block p{font-size:13.5px;color:var(--ink2);line-height:1.65}
+.ceiling-list{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.ceiling-list span{font-size:11.5px;color:var(--ink2);padding:5px 10px;border:1px solid var(--line-light2);border-radius:var(--radius-pill)}
+.core-network{margin-top:44px;display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--line-dark);border-left:1px solid var(--line-dark);max-width:640px}
+@media(max-width:600px){.core-network{grid-template-columns:1fr}}
+.core-cell{border-right:1px solid var(--line-dark);border-bottom:1px solid var(--line-dark);padding:24px 22px}
+.core-cell h4{font-family:var(--serif);font-weight:500;font-size:16px;color:#f5f2ec;margin-bottom:6px}
+.core-cell .core-meta{font-size:11.5px;color:var(--bronze-light);letter-spacing:.04em;margin-bottom:12px}
+.core-cell ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.core-cell li{font-size:12.5px;color:var(--mist2);line-height:1.5}
+.mental-model{margin-top:44px;padding:28px 30px;border-left:2px solid var(--bronze);max-width:640px}
+.mental-model .mm-old{font-size:13px;color:var(--mist);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.3);margin-bottom:14px}
+.mental-model .mm-new{font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.55;color:#f5f2ec}
+.mental-model .mm-caveat{margin-top:14px;font-size:12.5px;color:var(--mist2);line-height:1.6}
+.org-diagram-v2{display:flex;flex-direction:column;align-items:center;margin:48px 0 8px}
+.org-node{font-family:var(--sans);font-size:13px;font-weight:600;color:#f5f2ec;background:var(--graphite);border:1px solid var(--line-dark2);border-radius:10px;padding:10px 18px;text-align:center}
+.org-node.emphasis{font-family:var(--serif);font-size:16px;font-style:italic;color:var(--bronze-light);background:transparent;border:none;padding:0}
+.org-node.partner{border-color:var(--bronze-deep);color:var(--bronze-light);margin-top:8px}
+.org-line{width:1px;height:26px;background:var(--line-dark2)}
+.org-hbar{width:100%;max-width:460px;height:1px;background:var(--line-dark2);margin-top:14px}
+.org-products{display:flex;justify-content:space-between;width:100%;max-width:460px;margin-top:0}
+.org-branch{display:flex;flex-direction:column;align-items:center;flex:1}
+.org-shared{margin-top:28px;font-size:13px;color:var(--mist2);line-height:1.6;max-width:480px;text-align:center}
+.org-split{display:flex;gap:0;width:100%;max-width:520px;justify-content:space-between;margin-top:10px}
+@media(max-width:600px){.org-split{flex-direction:column;align-items:center;gap:28px}}
+.org-split-branch{display:flex;flex-direction:column;align-items:center;flex:1}
+.org-split-branch .org-node{font-size:12px}
+.org-split-branch .org-sub{margin-top:8px;font-size:11px;color:var(--mist);text-align:center;letter-spacing:.02em}
+.org-merge-line{width:1px;height:26px;background:linear-gradient(var(--line-dark2),var(--bronze))}
+
+/* good fit list */
+.fit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:16px}
+.fit-card{background:var(--graphite);border-radius:var(--radius-card);padding:22px 22px}
+.fit-card h3{font-family:var(--serif);font-size:16.5px;font-weight:500;color:#f5f2ec;margin-bottom:8px;letter-spacing:-.1px}
+.fit-card p{font-size:13.5px;color:var(--mist2);line-height:1.6}
+
+/* resilience — weak point / solution pairs, grouped by category */
+.risk-group{margin-top:8px}
+.risk-group-label{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--bronze-light);margin:40px 0 18px}
+.risk-group:first-child .risk-group-label{margin-top:0}
+.risk-row{display:grid;grid-template-columns:28px 1fr;column-gap:16px;padding:20px 0;border-top:1px solid var(--line-dark)}
+.risk-list .risk-row:last-child{border-bottom:1px solid var(--line-dark)}
+.risk-num{font-family:var(--sans);font-size:11px;color:var(--mist);opacity:.6;padding-top:2px}
+.risk-point{font-size:13.5px;color:var(--mist2);line-height:1.6;margin-bottom:6px}
+.risk-point strong{color:#f0ede6;font-weight:500}
+.risk-solution{display:flex;gap:8px;font-size:13.5px;line-height:1.6;color:#e8e3d6}
+.risk-solution .arrow{color:var(--bronze-light);flex:none;font-size:12px;padding-top:2px}
+.risk-pending{font-size:12px;font-style:italic;color:var(--mist);opacity:.7;padding:10px 0}
+@media(max-width:560px){.risk-row{grid-template-columns:1fr;row-gap:4px}.risk-num{display:none}}
+
+/* final cta */
+.cta-final{position:relative;overflow:hidden}
+.cta-final::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(700px 420px at 50% 0%,rgba(199,138,77,.14),transparent 65%);animation:pulseGlow 6s ease-in-out infinite}
+@keyframes pulseGlow{0%,100%{opacity:1}50%{opacity:.6}}
+@media(prefers-reduced-motion:reduce){.cta-final::before{animation:none}}
+.cta-block{text-align:center;max-width:600px;margin:0 auto}
+.cta-block .kicker{text-transform:uppercase;letter-spacing:.16em;font-size:12px;color:var(--bronze-light);font-weight:600;margin-bottom:16px}
+.cta-signature{font-family:var(--serif);font-weight:650;font-size:clamp(40px,7vw,72px);letter-spacing:-2px;line-height:1;background:linear-gradient(160deg,var(--bronze-light),var(--bronze-deep));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:20px}
+.cta-block h2{font-family:var(--serif);font-weight:440;font-size:clamp(24px,3.2vw,34px);letter-spacing:-.6px;color:#f6f4ef;line-height:1.22;margin-bottom:16px}
+.cta-block p{font-size:15px;color:var(--mist2);line-height:1.7;margin-bottom:28px}
+.cta-final-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+@media(max-width:480px){.cta-final-actions{flex-direction:column;align-items:stretch}.cta-final-actions .btn{justify-content:center;width:100%}}
+.cta-signoff{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mist);margin-top:36px;display:flex;align-items:center;justify-content:center;gap:9px}
+.cta-signoff .brand-mark{width:16px;height:16px}
+
+.btn{display:inline-flex;align-items:center;gap:9px;background:var(--bronze);color:#100b06;border:none;border-radius:999px;padding:14px 26px;font-family:var(--sans);font-weight:600;font-size:14px;cursor:pointer;transition:background-color .22s,transform .22s,color .22s,border-color .22s;letter-spacing:.1px}
+.btn:hover{background:var(--bronze-light);transform:translateY(-1px)}
+.btn:focus-visible{outline:2px solid var(--bronze-light);outline-offset:3px}
+.btn.ghost{background:transparent;color:#f0ede6;border:1px solid var(--line-dark2);padding:13px 24px}
+.btn.ghost:hover{border-color:var(--bronze);color:var(--bronze-light)}
+
+/* minimal footer */
+.privatefoot{padding:44px 0 40px;border-top:1px solid var(--line-dark);text-align:center}
+.privatefoot p{font-size:12.5px;color:var(--mist);line-height:1.7;max-width:480px;margin:0 auto}
+.privatefoot .pf-links{margin-top:14px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:12.5px}
+.privatefoot .pf-links a{color:var(--mist2);transition:.2s}
+.privatefoot .pf-links a:hover{color:var(--bronze-light)}
+
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.reveal.revealed{opacity:1;transform:none}
+
+/* sidebar nav — private/exclusive chrome */
+.topbar-inner{display:flex;align-items:center;justify-content:space-between}
+.sidebar-toggle{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;width:36px;height:36px;background:var(--graphite);border:1px solid var(--line-dark2);border-radius:var(--radius-tight);cursor:pointer;flex:none;transition:border-color .25s ease,background-color .25s ease}
+.sidebar-toggle:hover{border-color:var(--bronze);background:var(--graphite2)}
+.sidebar-toggle span{display:block;width:15px;height:1.5px;border-radius:1px;background:#f0ede6;transition:transform .3s cubic-bezier(.22,.9,.32,1),opacity .2s ease,background-color .25s ease}
+.sidebar-toggle:hover span{background:var(--bronze-light)}
+.sidebar-toggle[aria-expanded="true"] span:nth-child(1){transform:translateY(5.5px) rotate(45deg)}
+.sidebar-toggle[aria-expanded="true"] span:nth-child(2){opacity:0}
+.sidebar-toggle[aria-expanded="true"] span:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}
+.sidebar-toggle:focus-visible{outline:2px solid var(--bronze-light);outline-offset:2px}
+
+.sidebar{position:fixed;top:0;left:0;height:100vh;width:260px;background:var(--graphite);border-right:1px solid var(--line-dark);padding:30px 24px;display:flex;flex-direction:column;gap:0;z-index:900;transform:translateX(-100%);transition:transform .42s cubic-bezier(.22,.9,.32,1);overflow-y:auto;--progress:0}
+.sidebar::after{content:"";position:absolute;top:0;right:0;width:2px;height:calc(100% * var(--progress));background:linear-gradient(var(--bronze-light),var(--bronze-deep));transition:height .08s linear;z-index:2}
+@media(max-width:960px){
+  .sidebar .sidebar-group,.sidebar-brand,.sidebar-iap,.sidebar-tag,.sidebar-foot{opacity:0;transform:translateY(8px);transition:opacity .35s ease,transform .35s ease}
+  .sidebar.open .sidebar-brand{opacity:1;transform:none;transition-delay:.08s}
+  .sidebar.open .sidebar-iap{opacity:1;transform:none;transition-delay:.12s}
+  .sidebar.open .sidebar-tag{opacity:1;transform:none;transition-delay:.16s}
+  .sidebar.open .sidebar-group:nth-of-type(1){opacity:1;transform:none;transition-delay:.2s}
+  .sidebar.open .sidebar-group:nth-of-type(2){opacity:1;transform:none;transition-delay:.25s}
+  .sidebar.open .sidebar-group:nth-of-type(3){opacity:1;transform:none;transition-delay:.3s}
+  .sidebar.open .sidebar-foot{opacity:1;transform:none;transition-delay:.35s}
+}
+.sidebar-brand{display:flex;align-items:center;gap:10px;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--mist);letter-spacing:.02em}
+.sidebar-brand .brand-mark{width:16px;height:16px}
+.sidebar-iap{padding:16px 0 20px;border-bottom:1px solid var(--line-dark);margin-top:2px}
+.sidebar-iap .iap-mark{font-family:var(--serif);font-weight:650;font-size:36px;letter-spacing:-1.2px;line-height:1;background:linear-gradient(160deg,var(--bronze-light),var(--bronze-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sidebar-iap .iap-mark-sub{margin-top:5px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mist)}
+.sidebar-tag{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze-light);border:1px solid var(--line-dark2);border-radius:999px;padding:5px 11px;width:fit-content;margin-top:16px}
+.sidebar-group{display:flex;flex-direction:column;gap:2px;margin-top:20px}
+.sidebar-group-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mist);opacity:.6;font-weight:700;padding:0 12px;margin-bottom:7px}
+.sidebar-nav{list-style:none;display:flex;flex-direction:column;gap:1px}
+.sidebar-nav a{position:relative;display:block;padding:8px 11px 8px 17px;border-radius:8px;font-size:13.5px;color:var(--mist2);transition:background-color .2s,color .2s}
+.sidebar-nav a::before{content:"";position:absolute;left:0;top:50%;width:2px;height:0;background:var(--bronze-light);border-radius:2px;transform:translateY(-50%);transition:height .25s ease,opacity .25s ease;opacity:0}
+.sidebar-nav a:hover{background:var(--graphite2);color:#f0ede6}
+.sidebar-nav a.active{background:var(--graphite2);color:var(--bronze-light);font-weight:600}
+.sidebar-nav a.active::before{height:16px;opacity:1}
+.sidebar-foot{margin-top:auto;padding-top:20px;font-size:11.5px;color:var(--mist);line-height:1.65}
+.sidebar-scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:850}
+.sidebar-scrim.show{opacity:1;pointer-events:auto}
+@media(min-width:961px){
+  .sidebar{transform:none;position:fixed;background:linear-gradient(180deg,var(--graphite) 0%,var(--obsidian) 100%);border-right:1px solid var(--line-dark)}
+  .sidebar::before{content:"";position:absolute;top:0;left:0;right:0;height:180px;background:radial-gradient(220px 140px at 30% 0%,rgba(199,138,77,.1),transparent 70%);pointer-events:none}
+  body{padding-left:260px}
+  .topbar{display:none}
+  .sidebar-scrim{display:none}
+}
+@media(max-width:960px){
+  .sidebar.open{transform:translateX(0)}
+}
+</style>
+</head>
+<body>
+<svg class="grain" width="0" height="0"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/></filter></svg>
+<div class="grain" style="filter:url(#n)"></div>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <span class="brand"><span class="brand-mark"></span>ArtiBytte<span class="private-tag">Private</span></span>
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Open section menu" aria-expanded="false" aria-controls="sidebar">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+
+<nav class="sidebar" id="sidebar" aria-label="Section navigation">
+  <div class="sidebar-brand"><span class="brand-mark"></span>ArtiBytte</div>
+  <div class="sidebar-iap">
+    <div class="iap-mark">IAP</div>
+    <p class="iap-mark-sub">Independent ArtiBytte Partners</p>
+  </div>
+  <span class="sidebar-tag">Exclusive · Partners only</span>
+
+  <div class="sidebar-group">
+    <p class="sidebar-group-label">Start here</p>
+    <ul class="sidebar-nav">
+      <li><a href="#story">Overview</a></li>
+    </ul>
+  </div>
+
+  <div class="sidebar-group">
+    <p class="sidebar-group-label">The model</p>
+    <ul class="sidebar-nav">
+      <li><a href="#tiers">Tiers</a></li>
+      <li><a href="#categories">Category</a></li>
+      <li><a href="#comp">Engagement</a></li>
+      <li><a href="#how">Process</a></li>
+    </ul>
+  </div>
+
+  <div class="sidebar-group">
+    <p class="sidebar-group-label">Decide</p>
+    <ul class="sidebar-nav">
+      <li><a href="#resilience">Built to hold up</a></li>
+      <li><a href="#fit">Good fit</a></li>
+      <li><a href="#next">Get in touch</a></li>
+    </ul>
+  </div>
+
+  <p class="sidebar-foot">Private link — not indexed, not shared.</p>
+</nav>
+<div class="sidebar-scrim" id="sidebarScrim"></div>
+
+<main>
+
+<section class="hero">
+  <svg class="hero-motif" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="20" width="160" height="160" rx="18" fill="none" stroke="var(--line-dark2)" stroke-width="1"/>
+    <circle cx="95" cy="95" r="46" fill="none" stroke="var(--bronze)" stroke-width="1" opacity=".6"/>
+    <circle cx="150" cy="95" r="18" fill="var(--bronze)" opacity=".22"/>
+  </svg>
+  <div class="wrap">
+    <p class="sys-id"><span class="dot"></span>IAP / 01 — Private invitation</p>
+    <div class="hero-mark">
+      <span class="iap-big">IAP</span>
+      <span class="iap-sub">Independent ArtiBytte Partners</span>
+    </div>
+    <h1>Partner with us, product by product.</h1>
+    <p class="lede"><strong style="color:#f0ede6;font-weight:600">This isn't a job offer.</strong> It's how ArtiBytte works with outside specialists — one product, one written agreement, no full-time seat.</p>
+  </div>
+</section>
+
+<section class="pad reveal" id="story">
+  <div class="wrap">
+    <div class="story">
+      <div class="body">
+        <p>ArtiBytte is a founder-led studio, kept small on purpose, building one family of products — ArtiPlay, ArtiStock, ArtiSnack, ArtiField, VEX AI. IAP is how everything outside that core team gets built.</p>
+      </div>
+      <div class="pull">
+        <p>A partner network that collaborates with ArtiBytte through clearly defined commercial agreements.</p>
+        <span>How we think about IAP internally</span>
+      </div>
+    </div>
+    <div class="pillars">
+      <div class="pillar">
+        <span class="pillar-num">i.</span>
+        <h4>Defined work</h4>
+        <p>Scope and deliverables set before anything starts — never figured out along the way.</p>
+      </div>
+      <div class="pillar">
+        <span class="pillar-num">ii.</span>
+        <h4>Shared standards</h4>
+        <p>One design system, one code standard, across every product a partner touches.</p>
+      </div>
+      <div class="pillar">
+        <span class="pillar-num">iii.</span>
+        <h4>Commercial clarity</h4>
+        <p>How you're paid is written down, agreed, and never assumed.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad light reveal" id="tracks" aria-labelledby="tracks-heading">
+  <div class="wrap">
+    <div class="head">
+      <h2 id="tracks-heading">Where partners plug in.</h2>
+      <p>Most engagements fall into one of three tracks.</p>
+    </div>
+    <div class="iap-tracks">
+      <div class="iap-track">
+        <span class="idx">i.</span>
+        <h3>Engineering</h3>
+        <p>Web, mobile, backend, AI integration and security work on a defined module or product — scoped, reviewed, and shipped alongside the core team's standards.</p>
+      </div>
+      <div class="iap-track">
+        <span class="idx">ii.</span>
+        <h3>Design</h3>
+        <p>UI/UX, brand and motion work for a specific product surface, following the shared ArtiBytte design system rather than starting from a blank page.</p>
+      </div>
+      <div class="iap-track">
+        <span class="idx">iii.</span>
+        <h3>Business &amp; specialist</h3>
+        <p>QA, documentation, domain consulting, or go-to-market support for a launch — sized to the actual scope of the work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad reveal" id="tiers" aria-labelledby="tiers-heading">
+  <div class="wrap">
+    <p class="section-tag"><span class="dot"></span>IAP / 02 — Hierarchy</p>
+    <div class="head">
+      <h2 id="tiers-heading">The IAP hierarchy.</h2>
+      <p>One core progression, four steps deep. Every partner enters as a Specialist and can move up as far as the relationship goes — or stay exactly where it is, on purpose. Category, engagement and process are each set individually within whichever tier applies.</p>
+    </div>
+
+    <div class="tier-path">
+      <div class="tier-node">
+        <div class="tier-node-rail">
+          <div class="tier-node-circle">1</div>
+          <div class="tier-node-line"></div>
+        </div>
+        <div class="tier-node-body">
+          <span class="tier-label">IAP-1</span>
+          <h3>Specialist</h3>
+          <p>Engaged for one specific task or a short-term project — the entry point for almost every new partner.</p>
+        </div>
+      </div>
+      <div class="tier-node">
+        <div class="tier-node-rail">
+          <div class="tier-node-circle">2</div>
+          <div class="tier-node-line"></div>
+        </div>
+        <div class="tier-node-body">
+          <span class="tier-label">IAP-2</span>
+          <h3>Certified Partner</h3>
+          <p>Vetted through delivered work and trusted with recurring engagements across more than one product.</p>
+        </div>
+      </div>
+      <div class="tier-node">
+        <div class="tier-node-rail">
+          <div class="tier-node-circle">3</div>
+          <div class="tier-node-line"></div>
+        </div>
+        <div class="tier-node-body">
+          <span class="tier-label">IAP-3</span>
+          <h3>Lead Partner</h3>
+          <p>Leads an independent product or module team, coordinating other specialists working on that build.</p>
+        </div>
+      </div>
+      <div class="tier-node">
+        <div class="tier-node-rail">
+          <div class="tier-node-circle">4</div>
+        </div>
+        <div class="tier-node-body">
+          <span class="tier-label">IAP-4</span>
+          <h3>Strategic Partner</h3>
+          <p>A long-term relationship with a deeper commercial and IP arrangement, tied closely to a product's ongoing success.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="tier-branch-label">A separate path — not a step up</p>
+    <div class="tier-x-card">
+      <div class="tier-node-circle">X</div>
+      <div>
+        <h3>IAP-X — Expert Network</h3>
+        <p>Not a step to climb toward — a standing pool we call on for a one-off, specific need. No application path, no promotion into it, no ongoing commitment either way.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad reveal" id="categories" aria-labelledby="categories-heading">
+  <div class="wrap">
+    <p class="section-tag"><span class="dot"></span>IAP / 03 — Category</p>
+    <div class="head">
+      <h2 id="categories-heading">Category — your area of contribution.</h2>
+      <p>Whatever tier a partner sits at, the work itself falls into one of four categories.</p>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-cell">
+        <span class="idx">a.</span>
+        <h3>Engineering</h3>
+        <p class="cat-desc">Where products get built.</p>
+        <p class="cat-list">Web · Mobile · Backend · AI · Security · DevOps · Database</p>
+      </div>
+      <div class="cat-cell">
+        <span class="idx">b.</span>
+        <h3>Product</h3>
+        <p class="cat-desc">Where scope and quality stay honest.</p>
+        <p class="cat-list">Product management · Business analysis · QA · Technical writing</p>
+      </div>
+      <div class="cat-cell">
+        <span class="idx">c.</span>
+        <h3>Design</h3>
+        <p class="cat-desc">Where it looks and feels like ArtiBytte.</p>
+        <p class="cat-list">UI/UX · Brand · Motion · Graphics</p>
+      </div>
+      <div class="cat-cell">
+        <span class="idx">d.</span>
+        <h3>Business</h3>
+        <p class="cat-desc">Where products reach the people who'll use them.</p>
+        <p class="cat-list">Sales · Marketing · Customer success · Consulting</p>
+      </div>
+    </div>
+    <p class="cat-link">Category runs independent of tier — <em>every tier, IAP-1 through IAP-4, draws from all four.</em></p>
+  </div>
+</section>
+
+<section class="pad light reveal" id="comp" aria-labelledby="comp-heading">
+  <div class="wrap">
+    <p class="section-tag"><span class="dot"></span>IAP / 04 — Engagement</p>
+    <div class="head">
+      <h2 id="comp-heading">Engagement — the commercial arrangement.</h2>
+      <p>There's no single formula. The arrangement is matched to the tier and the scope of work, and set out in writing before anything begins — discussed and agreed with you directly, not assumed.</p>
+    </div>
+
+    <div class="comp-guarantee">
+      <span class="check">✓</span>
+      <p><strong>Commercial clarity, in practice:</strong> every arrangement below is discussed, defined, and agreed in writing before any work begins — never assumed, never retroactive.</p>
+    </div>
+
+    <div class="comp-row">
+      <p class="comp-section-label">Paid for the work</p>
+      <div class="comp-pair">
+        <div class="comp-cell-v2 comp-cell-work">
+          <span class="letter">a.</span>
+          <h4>Project fee</h4>
+          <p>The straightforward model: a fixed amount for clearly scoped, well-defined work. One agreed price for one agreed deliverable — the default for a single module or feature.</p>
+          <span class="best-when">Best when the task is small and predictable.</span>
+        </div>
+        <div class="comp-cell-v2 comp-cell-work">
+          <span class="letter">b.</span>
+          <h4>Milestones</h4>
+          <p>The staged-delivery model: the same fixed-price logic, broken into agreed checkpoints. Payment released as each stage ships — built for larger or longer-running work.</p>
+          <span class="best-when">Best when the upfront budget is uncertain — sometimes paired with a revenue share.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="comp-row">
+      <p class="comp-section-label">Paid on the outcome</p>
+      <div class="comp-pair">
+        <div class="comp-cell-v2 comp-cell-outcome">
+          <span class="letter">c.</span>
+          <h4>Revenue share or royalty</h4>
+          <p>Tied directly to a specific product's ongoing success rather than the hours put in — both sides share the upside. Every term (gross vs. net, duration, scope) is spelled out in writing, product by product, before work starts.</p>
+          <span class="written-cue">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+            Terms fixed in writing per product
+          </span>
+          <span class="best-when">Best for a contributor who builds something reusable, not a one-off task.</span>
+        </div>
+        <div class="comp-cell-v2 comp-cell-outcome comp-cell-strategic">
+          <span class="letter">d.</span>
+          <h4>Product-specific equity</h4>
+          <p>The deepest link to outcome: a stake in one product's future. Reserved for long-term contributors actually shaping where that product goes.</p>
+          <span class="best-when">Best for a genuinely strategic, long-term role — not ordinary project work.</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="comp-note">Any revenue share or royalty is defined precisely in writing before work begins — gross vs. net, before or after refunds, chargebacks, taxes and payment-processing fees, the term length, and whether it applies to one product or the company as a whole.</p>
+
+    <p class="comp-note" style="margin-top:6px">Not all company equity is on the table for a single module. The more logical default is a <strong>product-specific</strong> revenue share or royalty — for example, a developer on Cygnus 658 earning a defined 5% of net receipts for 24 months, while ArtiBytte ownership itself stays with its founders and shareholders. Exact percentages and terms are negotiated and documented per case.</p>
+  </div>
+</section>
+
+<section class="pad light reveal" id="how" aria-labelledby="how-heading">
+  <div class="wrap">
+    <p class="section-tag"><span class="dot"></span>IAP / 05 — Process</p>
+    <div class="head">
+      <h2 id="how-heading">Process — how collaboration happens.</h2>
+      <p>From this conversation to shipped work, at any tier.</p>
+    </div>
+    <div class="iap-steps">
+      <div class="iap-step"><div class="num">01</div><div><h4>We talk.</h4><p>You reply to the email that brought you here, and we figure out where your skills line up with something we're building.</p></div></div>
+      <div class="iap-step"><div class="num">02</div><div><h4>Scope it, in writing.</h4><p>Defined work, defined pay — written and agreed before you start, not after.</p></div></div>
+      <div class="iap-step"><div class="num">03</div><div><h4>Build it, the ArtiBytte way.</h4><p>Shared standards, not a blank page — one design system, one code bar, across every product in the family.</p></div></div>
+      <div class="iap-step"><div class="num">04</div><div><h4>Deliver, get paid, stay in the network.</h4><p>Strong engagements lead to more work — and occasionally, a seat on the core team.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="pad reveal" id="structure" aria-labelledby="structure-heading">
+  <div class="wrap">
+    <div class="head">
+      <h2 id="structure-heading">Structure — how the core and the network split the work.</h2>
+      <p>A small core, and a network that scales with what's actually being built.</p>
+    </div>
+
+    <div class="core-network">
+      <div class="core-cell">
+        <h4>Core team</h4>
+        <p class="core-meta">Fixed salary + benefits</p>
+        <ul>
+          <li>Owns the platform, the standards, the customers, and the direction</li>
+        </ul>
+      </div>
+      <div class="core-cell">
+        <h4>Independent partners</h4>
+        <p class="core-meta">Variable cost — project fee, revenue share, or royalty</p>
+        <ul>
+          <li>Developers</li>
+          <li>UI/UX</li>
+          <li>QA</li>
+          <li>DevOps</li>
+          <li>Security specialists</li>
+          <li>Researchers</li>
+          <li>Technical writers</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="infra-tree">
+      <p class="infra-root">ArtiBytte Core — reusable, not rebuilt per product</p>
+      <ul>
+        <li>Authentication</li>
+        <li>Billing</li>
+        <li>Licensing</li>
+        <li>Analytics</li>
+        <li>UI system</li>
+        <li>API framework</li>
+        <li>Supabase patterns</li>
+        <li>Deployment</li>
+        <li>QA / release system</li>
+      </ul>
+    </div>
+    <p class="comp-note" style="margin-top:14px">This is the real multiplier: a new product doesn't start from zero — it starts from everything the last one already solved.</p>
+
+    <div class="ceiling-block">
+      <p class="cb-label">But there's a ceiling</p>
+      <p>If one person has to approve every change, every hire, every payment, every release — that's not a system, it's a bottleneck. So the core doesn't just build products; it owns the standards a partner works inside of:</p>
+      <div class="ceiling-list">
+        <span>Standardized contracts</span>
+        <span>Git workflow</span>
+        <span>Coding standards</span>
+        <span>Security access</span>
+        <span>QA gates</span>
+        <span>Documentation</span>
+        <span>Payment rules</span>
+      </div>
+    </div>
+
+    <div class="org-diagram-v2">
+      <div class="org-node emphasis">ArtiBytte</div>
+      <div class="org-line"></div>
+      <div class="org-split">
+        <div class="org-split-branch">
+          <div class="org-node">Core Employees</div>
+          <p class="org-sub">Fixed salary + benefits</p>
+        </div>
+        <div class="org-split-branch">
+          <div class="org-node partner" style="margin-top:0">Partner Network</div>
+          <p class="org-sub">Project fee, revenue share, or royalty</p>
+        </div>
+      </div>
+      <div class="org-merge-line"></div>
+      <div class="org-node">Product Teams</div>
+      <div class="org-hbar" style="margin-top:12px"></div>
+      <div class="org-products">
+        <div class="org-branch"><div class="org-line"></div><div class="org-node">Cygnus 658</div></div>
+        <div class="org-branch"><div class="org-line"></div><div class="org-node">ArtiPlay</div></div>
+        <div class="org-branch"><div class="org-line"></div><div class="org-node">Product C</div></div>
+      </div>
+      <p class="org-shared"><strong>Shared systems</strong> underneath every product — GitHub, CI/CD, QA, design, documentation, legal — so a partner engaged on one product still works inside one standard.</p>
+    </div>
+    <p class="comp-note" style="margin-top:16px">Not all of it full-time. The core stays constant; the network scales up or down with what's actually being built.</p>
+
+    <div class="mental-model">
+      <p class="mm-old">Not: "I'll hire unlimited people without paying them."</p>
+      <p class="mm-new">"A company where specialized contributors participate through the compensation model that fits their contribution — while a small core team owns the platform, the standards, the customers, and the direction."</p>
+      <p class="mm-caveat">That scales well — provided the products actually generate enough revenue to make partner compensation worth it in the first place.</p>
+    </div>
+  </div>
+</section>
+
+<section class="pad reveal" id="resilience" aria-labelledby="resilience-heading">
+  <div class="wrap">
+    <p class="section-tag"><span class="dot"></span>IAP / 07 — Built to hold up</p>
+    <div class="head">
+      <h2 id="resilience-heading">Where this kind of model usually breaks — and how it doesn't, here.</h2>
+      <p>No partner network is risk-free. These are the failure points we've designed around from the start.</p>
+    </div>
+
+    <div class="risk-group">
+      <p class="risk-group-label">A. Business model</p>
+      <div class="risk-list">
+        <div class="risk-row"><span class="risk-num">01</span><div><p class="risk-point"><strong>Risk:</strong> "Work now, get paid later" discourages good developers.</p><p class="risk-solution"><span class="arrow">→</span>Milestone fees plus revenue share, instead of pure deferred pay.</p></div></div>
+        <div class="risk-row"><span class="risk-num">02</span><div><p class="risk-point"><strong>Risk:</strong> Revenue never materializes.</p><p class="risk-solution"><span class="arrow">→</span>A minimum guaranteed payment or milestone fee, wherever it's financially possible.</p></div></div>
+        <div class="risk-row"><span class="risk-num">03</span><div><p class="risk-point"><strong>Risk:</strong> Revenue share becomes a dispute.</p><p class="risk-solution"><span class="arrow">→</span>"Revenue" defined exactly — gross or net, refunds, taxes, payment fees, chargebacks — before anyone signs.</p></div></div>
+        <div class="risk-row"><span class="risk-num">04</span><div><p class="risk-point"><strong>Risk:</strong> Partners expect company equity for every project.</p><p class="risk-solution"><span class="arrow">→</span>Product-specific royalty or revenue share by default; company equity reserved for genuinely strategic, long-term contributors.</p></div></div>
+        <div class="risk-row"><span class="risk-num">05</span><div><p class="risk-point"><strong>Risk:</strong> Too many people can claim ownership of one product.</p><p class="risk-solution"><span class="arrow">→</span>A formal contribution and IP registry, kept from day one.</p></div></div>
+        <div class="risk-row"><span class="risk-num">06</span><div><p class="risk-point"><strong>Risk:</strong> The founder becomes the bottleneck.</p><p class="risk-solution"><span class="arrow">→</span>Product Leads who can make defined decisions without waiting on the founder.</p></div></div>
+        <div class="risk-row"><span class="risk-num">07</span><div><p class="risk-point"><strong>Risk:</strong> Every product turns into a custom, one-off operation.</p><p class="risk-solution"><span class="arrow">→</span>Standardized architecture, UI, auth, deployment, analytics, billing, licensing and documentation.</p></div></div>
+        <div class="risk-row"><span class="risk-num">08</span><div><p class="risk-point"><strong>Risk:</strong> Revenue is unpredictable.</p><p class="risk-solution"><span class="arrow">→</span>A portfolio of products and recurring-revenue contracts, rather than one bet.</p></div></div>
+        <div class="risk-row"><span class="risk-num">09</span><div><p class="risk-point"><strong>Risk:</strong> A product fails after months of work.</p><p class="risk-solution"><span class="arrow">→</span>Validation gates before any large development investment.</p></div></div>
+        <div class="risk-row"><span class="risk-num">10</span><div><p class="risk-point"><strong>Risk:</strong> A partner disappears.</p><p class="risk-solution"><span class="arrow">→</span>Required documentation, GitHub access, handover procedures, and backup maintainers.</p></div></div>
+      </div>
+    </div>
+
+    <div class="risk-group">
+      <p class="risk-group-label">B. People &amp; partners</p>
+      <div class="risk-list">
+        <div class="risk-row"><span class="risk-num">11</span><div><p class="risk-point"><strong>Risk:</strong> Independent developers come in at different skill levels.</p><p class="risk-solution"><span class="arrow">→</span>Defined technical competency levels and standardized acceptance tests.</p></div></div>
+        <div class="risk-row"><span class="risk-num">12</span><div><p class="risk-point"><strong>Risk:</strong> Quality varies dramatically between contributors.</p><p class="risk-solution"><span class="arrow">→</span>Every contribution passes automated tests, code review, and QA.</p></div></div>
+        <div class="risk-row"><span class="risk-num">13</span><div><p class="risk-point"><strong>Risk:</strong> Contractors prioritize other clients over this work.</p><p class="risk-solution"><span class="arrow">→</span>Defined SLAs and delivery milestones.</p></div></div>
+        <div class="risk-row"><span class="risk-num">14</span><div><p class="risk-point"><strong>Risk:</strong> Partner availability changes mid-project.</p><p class="risk-solution"><span class="arrow">→</span>A vetted backup partner pool for every critical capability.</p></div></div>
+        <div class="risk-row"><span class="risk-num">15</span><div><p class="risk-point"><strong>Risk:</strong> A single partner becomes indispensable.</p><p class="risk-solution"><span class="arrow">→</span>No one person is allowed to be the sole holder of critical knowledge.</p></div></div>
+        <div class="risk-row"><span class="risk-num">16</span><div><p class="risk-point"><strong>Risk:</strong> Communication turns chaotic across contributors.</p><p class="risk-solution"><span class="arrow">→</span>One official project channel, one project lead.</p></div></div>
+        <div class="risk-row"><span class="risk-num">17</span><div><p class="risk-point"><strong>Risk:</strong> Partners misunderstand what was asked of them.</p><p class="risk-solution"><span class="arrow">→</span>Every project starts with a requirements document and acceptance criteria.</p></div></div>
+        <div class="risk-row"><span class="risk-num">18</span><div><p class="risk-point"><strong>Risk:</strong> Developers build what they personally prefer, not what's needed.</p><p class="risk-solution"><span class="arrow">→</span>The Product Lead owns requirements and roadmap — not the developer.</p></div></div>
+        <div class="risk-row"><span class="risk-num">19</span><div><p class="risk-point"><strong>Risk:</strong> Designers produce inconsistent interfaces across products.</p><p class="risk-solution"><span class="arrow">→</span>One shared ArtiBytte design system, used by every product.</p></div></div>
+        <div class="risk-row"><span class="risk-num">20</span><div><p class="risk-point"><strong>Risk:</strong> QA gets skipped under deadline pressure.</p><p class="risk-solution"><span class="arrow">→</span>No release ships without passing the release checklist.</p></div></div>
+      </div>
+    </div>
+
+    <div class="risk-group">
+      <p class="risk-group-label">C. Intellectual property</p>
+      <div class="risk-list">
+        <div class="risk-row"><span class="risk-num">21</span><div><p class="risk-point"><strong>Risk:</strong> Code ownership becomes unclear.</p><p class="risk-solution"><span class="arrow">→</span>Every contractor agreement includes explicit IP assignment or licensing terms.</p></div></div>
+        <div class="risk-row"><span class="risk-num">22</span><div><p class="risk-point"><strong>Risk:</strong> A partner reuses proprietary code elsewhere.</p><p class="risk-solution"><span class="arrow">→</span>Proprietary vs. reusable/open-source components, defined contractually.</p></div></div>
+        <div class="risk-row"><span class="risk-num">23</span><div><p class="risk-point"><strong>Risk:</strong> Third-party libraries introduce license problems.</p><p class="risk-solution"><span class="arrow">→</span>A maintained SBOM/dependency and license registry.</p></div></div>
+        <div class="risk-row"><span class="risk-num">24</span><div><p class="risk-point"><strong>Risk:</strong> A developer leaves with critical knowledge.</p><p class="risk-solution"><span class="arrow">→</span>Required architecture documentation and technical handover.</p></div></div>
+        <div class="risk-row"><span class="risk-num">25</span><div><p class="risk-point"><strong>Risk:</strong> Multiple contributors claim the same invention.</p><p class="risk-solution"><span class="arrow">→</span>Contribution records and repository history, kept and maintained.</p></div></div>
+        <div class="risk-row"><span class="risk-num">26</span><div><p class="risk-point"><strong>Risk:</strong> The company doesn't actually own the finished product.</p><p class="risk-solution"><span class="arrow">→</span>Signed IP agreements in place before production work starts.</p></div></div>
+        <div class="risk-row"><span class="risk-num">27</span><div><p class="risk-point"><strong>Risk:</strong> A client owns something ArtiBytte expected to reuse.</p><p class="risk-solution"><span class="arrow">→</span>Client-specific work kept clearly separate from ArtiBytte-owned reusable infrastructure.</p></div></div>
+        <div class="risk-row"><span class="risk-num">28</span><div><p class="risk-point"><strong>Risk:</strong> Open-source components turn into unexpected proprietary obligations.</p><p class="risk-solution"><span class="arrow">→</span>Dependency and license review before every release.</p></div></div>
+        <div class="risk-row"><span class="risk-num">29</span><div><p class="risk-point"><strong>Risk:</strong> Confidential client information ends up in GitHub.</p><p class="risk-solution"><span class="arrow">→</span>Secret scanning, .gitignore rules, and repository policies.</p></div></div>
+        <div class="risk-row"><span class="risk-num">30</span><div><p class="risk-point"><strong>Risk:</strong> Former partners retain access after leaving.</p><p class="risk-solution"><span class="arrow">→</span>Immediate offboarding for accounts, repositories, databases, and credentials.</p></div></div>
+      </div>
+    </div>
+
+    <div class="risk-group">
+      <p class="risk-group-label">D. Security &amp; access</p>
+      <div class="risk-list">
+        <div class="risk-row"><span class="risk-num">40</span><div><p class="risk-point"><strong>Risk:</strong> Old accounts stay active after they're no longer needed.</p><p class="risk-solution"><span class="arrow">→</span>Scheduled or automated access reviews.</p></div></div>
+      </div>
+      <p class="risk-pending">Items 31–39 pending — not yet supplied.</p>
+    </div>
+
+    <div class="risk-group">
+      <p class="risk-group-label">E. Software architecture</p>
+      <div class="risk-list">
+        <div class="risk-row"><span class="risk-num">41</span><div><p class="risk-point"><strong>Risk:</strong> Every product ends up with a different architecture.</p><p class="risk-solution"><span class="arrow">→</span>One ArtiBytte reference architecture, applied across products.</p></div></div>
+        <div class="risk-row"><span class="risk-num">42</span><div><p class="risk-point"><strong>Risk:</strong> Monolithic code becomes difficult to maintain.</p><p class="risk-solution"><span class="arrow">→</span>Modular architecture with clearly defined boundaries.</p></div></div>
+        <div class="risk-row"><span class="risk-num">43</span><div><p class="risk-point"><strong>Risk:</strong> Frontend depends directly on database structure.</p><p class="risk-solution"><span class="arrow">→</span>API/service contracts between UI and backend.</p></div></div>
+        <div class="risk-row"><span class="risk-num">44</span><div><p class="risk-point"><strong>Risk:</strong> Database changes break applications downstream.</p><p class="risk-solution"><span class="arrow">→</span>Versioned migrations and backward-compatible API changes.</p></div></div>
+        <div class="risk-row"><span class="risk-num">45</span><div><p class="risk-point"><strong>Risk:</strong> Modules become tightly coupled to each other.</p><p class="risk-solution"><span class="arrow">→</span>Explicit interfaces and contracts defined between modules.</p></div></div>
+        <div class="risk-row"><span class="risk-num">46</span><div><p class="risk-point"><strong>Risk:</strong> Developers duplicate common features across products.</p><p class="risk-solution"><span class="arrow">→</span>Reusable ArtiBytte Core services, built once.</p></div></div>
+        <div class="risk-row"><span class="risk-num">47</span><div><p class="risk-point"><strong>Risk:</strong> Each product reinvents its own authentication.</p><p class="risk-solution"><span class="arrow">→</span>One shared authentication/identity architecture.</p></div></div>
+        <div class="risk-row"><span class="risk-num">48</span><div><p class="risk-point"><strong>Risk:</strong> Billing becomes inconsistent across products.</p><p class="risk-solution"><span class="arrow">→</span>One shared billing and subscription service.</p></div></div>
+        <div class="risk-row"><span class="risk-num">49</span><div><p class="risk-point"><strong>Risk:</strong> Licensing becomes inconsistent across products.</p><p class="risk-solution"><span class="arrow">→</span>A centralized licensing/entitlement service.</p></div></div>
+        <div class="risk-row"><span class="risk-num">50</span><div><p class="risk-point"><strong>Risk:</strong> Updates break existing customers.</p><p class="risk-solution"><span class="arrow">→</span>Semantic versioning, migrations, and rollback capability.</p></div></div>
+      </div>
+    </div>
+
+    <div class="risk-group">
+      <p class="risk-group-label">F. Development process</p>
+      <div class="risk-list">
+        <div class="risk-row"><span class="risk-num">51</span><div><p class="risk-point"><strong>Risk:</strong> "Vibe coding" introduces hidden bugs.</p><p class="risk-solution"><span class="arrow">→</span>AI-assisted development still runs through tests, review, and acceptance criteria.</p></div></div>
+        <div class="risk-row"><span class="risk-num">52</span><div><p class="risk-point"><strong>Risk:</strong> AI-generated code turns out inconsistent.</p><p class="risk-solution"><span class="arrow">→</span>Defined coding standards and architecture rules.</p></div></div>
+        <div class="risk-row"><span class="risk-num">53</span><div><p class="risk-point"><strong>Risk:</strong> Large codebases become hard for AI tools to work with.</p><p class="risk-solution"><span class="arrow">→</span>Modular repositories and focused files and modules.</p></div></div>
+        <div class="risk-row"><span class="risk-num">54</span><div><p class="risk-point"><strong>Risk:</strong> Developers modify code unrelated to their task.</p><p class="risk-solution"><span class="arrow">→</span>Pull requests with limited, defined scope.</p></div></div>
+        <div class="risk-row"><span class="risk-num">55</span><div><p class="risk-point"><strong>Risk:</strong> Builds aren't reproducible.</p><p class="risk-solution"><span class="arrow">→</span>Locked dependencies and documented build environments.</p></div></div>
+        <div class="risk-row"><span class="risk-num">56</span><div><p class="risk-point"><strong>Risk:</strong> "It works on my computer."</p><p class="risk-solution"><span class="arrow">→</span>Clean-machine testing before anything ships.</p></div></div>
+        <div class="risk-row"><span class="risk-num">57</span><div><p class="risk-point"><strong>Risk:</strong> No regression testing catches what broke.</p><p class="risk-solution"><span class="arrow">→</span>An automated test suite for critical workflows.</p></div></div>
+        <div class="risk-row"><span class="risk-num">58</span><div><p class="risk-point"><strong>Risk:</strong> No staging environment exists before production.</p><p class="risk-solution"><span class="arrow">→</span>Development → staging → production, every time.</p></div></div>
+        <div class="risk-row"><span class="risk-num">59</span><div><p class="risk-point"><strong>Risk:</strong> Releases are done manually.</p><p class="risk-solution"><span class="arrow">→</span>A CI/CD pipeline handles it instead.</p></div></div>
+        <div class="risk-row"><span class="risk-num">60</span><div><p class="risk-point"><strong>Risk:</strong> Nobody knows what actually changed in a release.</p><p class="risk-solution"><span class="arrow">→</span>Release notes and version history, kept for every release.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pad reveal" id="fit" aria-labelledby="fit-heading">
+  <div class="wrap">
+    <p class="section-tag"><span class="dot"></span>IAP / 08 — Fit check</p>
+    <div class="head">
+      <h2 id="fit-heading">This is probably a good fit if —</h2>
+    </div>
+    <div class="fit-grid">
+      <div class="fit-card hover-lift"><h3>You want ownership, not tickets.</h3><p>You'd rather own a real piece of a product than pull tickets off a freelance board.</p></div>
+      <div class="fit-card hover-lift"><h3>You like working lean.</h3><p>Small, self-contained builds appeal more to you than heavy process on a large team.</p></div>
+      <div class="fit-card hover-lift"><h3>You want commercial clarity.</h3><p>A clear, written agreement beats a vague verbal understanding — us too.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="pad cta-final reveal" id="next">
+  <div class="wrap cta-block">
+    <p class="section-tag" style="justify-content:center">IAP / 09 — Get in touch</p>
+    <div class="cta-signature">IAP</div>
+    <h2>Ready? Reply to the email that sent you here.</h2>
+    <p>Not ready yet? Explore what we've built, or see where your skills fit.</p>
+    <div class="cta-final-actions">
+      <a href="https://www.artibytte.com" class="btn ghost">Explore ArtiBytte first</a>
+      <a href="https://career.artibytte.com" class="btn">See where you'd fit →</a>
+    </div>
+    <p class="cta-signoff"><span class="brand-mark"></span>ArtiBytte — Independent ArtiBytte Partners</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="privatefoot">
+  <div class="wrap">
+    <p>This page was sent to you directly and isn't linked from our public site. © 2026 ArtiBytte.</p>
+    <div class="pf-links">
+      <a href="https://www.artibytte.com">artibytte.com</a>
+      <a href="https://career.artibytte.com">career.artibytte.com</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const prefersReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(prefersReducedMotion){
+  document.querySelectorAll('.reveal').forEach(el=>el.classList.add('revealed'));
+}else if('IntersectionObserver' in window){
+  const io=new IntersectionObserver((entries,obs)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('revealed');
+        obs.unobserve(entry.target);
+      }
+    });
+  },{threshold:0.12,rootMargin:'0px 0px -60px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+}else{
+  document.querySelectorAll('.reveal').forEach(el=>el.classList.add('revealed'));
+}
+
+const sidebar=document.getElementById('sidebar');
+const sidebarScrim=document.getElementById('sidebarScrim');
+const sidebarToggle=document.getElementById('sidebarToggle');
+function closeSidebar(){
+  sidebar.classList.remove('open');
+  sidebarScrim.classList.remove('show');
+  sidebarToggle.setAttribute('aria-expanded','false');
+}
+function openSidebar(){
+  sidebar.classList.add('open');
+  sidebarScrim.classList.add('show');
+  sidebarToggle.setAttribute('aria-expanded','true');
+}
+sidebarToggle.addEventListener('click',()=>{
+  sidebar.classList.contains('open')?closeSidebar():openSidebar();
+});
+sidebarScrim.addEventListener('click',closeSidebar);
+sidebar.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeSidebar));
+
+function updateScrollProgress(){
+  const scrollable=document.documentElement.scrollHeight-window.innerHeight;
+  const progress=scrollable>0?Math.min(1,Math.max(0,window.scrollY/scrollable)):0;
+  sidebar.style.setProperty('--progress',progress);
+}
+window.addEventListener('scroll',updateScrollProgress,{passive:true});
+window.addEventListener('resize',updateScrollProgress);
+updateScrollProgress();
+
+const navLinks=[...document.querySelectorAll('.sidebar-nav a')];
+const spySections=navLinks.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+if('IntersectionObserver' in window && spySections.length){
+  const spy=new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        const id='#'+entry.target.id;
+        navLinks.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===id));
+      }
+    });
+  },{rootMargin:'-45% 0px -50% 0px',threshold:0});
+  spySections.forEach(s=>spy.observe(s));
+}
+</script>
+</body>
+</html>
