@@ -1,0 +1,941 @@
+AIP Website — Full Rebuild Blueprint for a 10/10 Experience
+
+Kung ako ang magre-rebuild ng buong AIP website from scratch, hindi ko lang aayusin ang current UI. Gagawa ako ng isang complete, organized, premium partner-facing website system na malinaw ang purpose, madaling i-navigate, credible, at may malinaw na next step.
+
+Ang goal:
+
+Every section has one job. Every feature has a reason. Every visitor knows what AIP is, why it matters, whether they fit, and what to do next.
+
+Hindi ibig sabihin na kailangan natin ng maraming pages o maraming animations. Ang 10/10 ay manggagaling sa clarity + consistency + trust + usability + execution.
+
+Ang blueprint na ito ay based sa current AIP concept na may private invitation positioning, partner-focused content, tiers/categories/engagement models, compensation discussion, risk considerations, at invitation CTA. Ang mga bagong features sa ibaba ay proposed rebuild structure, hindi mga functionality na confirmed na existing sa file.
+
+1. Core website architecture
+
+Ito ang magiging main structure ko:
+
+AIP Website
+
+One coherent partner experience
+
+Home / Overview
+
+What AIP is, who it is for, and why the visitor should continue.
+
+The Opportunity
+
+What AIP is building, the problem, and the potential value.
+
+Tracks / Contribution Areas
+
+The different ways a partner can participate.
+
+Structure / Engagement Models
+
+How participation, tiers, responsibilities, and commercial arrangements work.
+
+Risk & Transparency
+
+Clear boundaries, assumptions, uncertainties, and non-guarantees.
+
+Partner Journey
+
+From invitation to review, discussion, agreement, and onboarding.
+
+Invitation / Contact
+
+A simple and reliable way to start a conversation.
+
+Important: Hindi ibig sabihin na kailangan itong maging seven separate pages. Maaari itong maging one long-form website with clear anchored sections, provided na mahusay ang navigation, mobile experience, and information hierarchy.
+
+2. The complete feature inventory
+
+I would divide the website into 10 feature systems. Para hindi makalat, bawat feature system may specific purpose at hindi tayo maglalagay ng feature dahil lang maganda itong tingnan.
+
+01
+Brand & Visual System
+Foundation
+
+AIP/ArtiBytte brand identity
+
+Typography hierarchy
+
+Color tokens and contrast rules
+
+Spacing system
+
+Buttons, cards, tags, dividers
+
+Responsive layout rules
+
+Consistent icon and animation language
+
+Purpose: Hindi magkakaiba ang design ng bawat section. One design system, one visual language.
+
+02
+Navigation & Orientation
+
+Desktop sidebar navigation
+
+Mobile drawer navigation
+
+Active-section indicator
+
+Scroll progress
+
+Breadcrumb or section context where needed
+
+Clear footer navigation
+
+Skip-to-content accessibility link
+
+Escape key, focus management, and background scroll lock
+
+Purpose: Always alam ng visitor kung nasaan siya at saan siya pupunta next.
+
+03
+Content & Information Architecture
+
+Overview
+
+Tracks / Contribution Areas
+
+Tier hierarchy
+
+Category system
+
+Engagement / compensation
+
+Process
+
+Core and partner structure
+
+Risk and transparency
+
+Fit check
+
+Final invitation
+
+Purpose: Hindi magkakahalo ang hierarchy, category, payment model, at process. Each concept gets its own explanation.
+
+04
+Partner Discovery Experience
+
+Hero with clear value proposition
+
+“What is AIP?” explanation
+
+Who the program is for
+
+Contribution areas
+
+“How it works” overview
+
+Good-fit / not-fit guidance
+
+Frequently asked questions
+
+Related products or product family overview
+
+Purpose: Bago pa man sila mag-contact, may sapat silang understanding kung ano ang opportunity.
+
+05
+Commercial Clarity
+
+Project fee explanation
+
+Milestone payment model
+
+Revenue share / royalty explanation
+
+Product-specific equity distinction
+
+Scope and deliverables
+
+Payment timing
+
+Revenue definition
+
+Refunds, taxes, fees, and chargebacks
+
+IP ownership and licensing overview
+
+Clear “illustrative example” labels
+
+Contract is required before work starts
+
+Purpose: Walang false expectations. The website explains the models; the actual agreement defines the applicable terms.
+
+06
+Partner Journey & Conversion
+
+Primary CTA: Start a conversation
+
+Secondary CTA: Explore ArtiBytte
+
+Optional fit-check questionnaire
+
+Contact method with fallback
+
+Confirmation after submission
+
+Expected response time, if you can actually commit to one
+
+Next-step explanation
+
+Referral or invitation tracking, if required
+
+Contact and consent records on the backend
+
+Purpose: Hindi matatapos ang visitor sa “Reply to the email” na walang alternative or clear next step.
+
+07
+Trust, Transparency & Compliance
+
+Privacy notice
+
+Data collection explanation
+
+Contact and consent handling
+
+Clear invitation eligibility
+
+No misleading “secure/private” claims
+
+Actual access control if content is confidential
+
+IP and confidentiality explanation
+
+Terms and engagement disclaimers
+
+Accessible error and status messages
+
+Purpose: Private link or noindex is not the same as authentication. Sensitive information should not rely on obscurity alone.
+
+08
+Performance & Accessibility
+
+Fast initial load
+
+Optimized fonts and assets
+
+No content hidden permanently when JavaScript fails
+
+Reduced-motion support
+
+Keyboard navigation
+
+Visible focus states
+
+Accessible labels and headings
+
+Mobile testing at 320, 360, 390, and 430px
+
+Readable line lengths and contrast
+
+No layout-breaking animations
+
+Purpose: Maganda ang page kahit slow connection, keyboard-only navigation, mobile screen, or disabled animation.
+
+09
+Admin & Content Management
+
+Edit website copy without changing layout code
+
+Manage tracks, categories, and partner information
+
+Manage FAQ and policies
+
+Update CTA/contact details
+
+Publish/unpublish sections
+
+Content version history
+
+Preview before publishing
+
+Basic activity audit log
+
+Purpose: Hindi kailangan mag-edit ng maraming hardcoded HTML kapag may content change.
+
+10
+Quality Assurance & Monitoring
+
+Broken-link checking
+
+Form validation testing
+
+Responsive browser testing
+
+Accessibility checks
+
+Performance monitoring
+
+Error logging
+
+Analytics with privacy considerations
+
+Conversion funnel measurement
+
+Backup and rollback process
+
+Security review before launch
+
+Purpose: Hindi lang “looks good” ang basis. We verify whether the website works correctly.
+
+3. Recommended page/section experience
+A. Hero — the first 5 seconds
+
+Current page already communicates the private IAP concept and states that it is not a job offer. The current headline is “Partner with us, product by product,” and the opening copy explains outside specialists and written agreements. 
+Pasted text(20260924-053024).txt
+
+For the rebuild, I would include:
+
+Above the fold
+
+Priority: P0
+
+Independent ArtiBytte Partners
+Build meaningful product work with a defined commercial arrangement.
+
+A clear explanation of:
+
+What AIP is
+
+Who can participate
+
+What makes the partnership different
+
+What the visitor can do next
+
+Primary: Start a conversation
+Secondary: Explore the model
+
+Required features:
+
+Clear headline, not only a branded acronym.
+
+One short explanation.
+
+Primary CTA visible without scrolling.
+
+Secondary CTA for visitors who want to learn first.
+
+No unnecessary auto-playing video.
+
+No large visual mark that pushes the useful message too far down.
+
+B. Overview — answer the “why”
+
+The current overview explains the founder-led studio, product family, and three principles: defined work, shared standards, and commercial clarity. 
+Pasted text(20260924-053024).txt
+
+The rebuilt section should include:
+
+What ArtiBytte builds.
+
+Why external partners are needed.
+
+What the partner gets.
+
+What the partner is responsible for.
+
+What is not promised.
+
+A short summary of the collaboration model.
+
+Avoid making the visitor read several paragraphs before they understand the benefit.
+
+C. Tracks — show the possible work
+
+The source describes Engineering, Design, and Business & Specialist tracks, while the separate category system expands into Engineering, Product, Design, and Business. 
+Pasted text(20260924-053024).txt
+ 
+Pasted text(20260924-053024).txt
+
+For the rebuild, I would unify the terminology:
+
+Area
+
+	
+
+Example responsibilities
+
+
+
+
+Engineering
+
+	
+
+Web, mobile, backend, AI, security, DevOps
+
+
+
+
+Product
+
+	
+
+Product management, analysis, QA, technical writing
+
+
+
+
+Design
+
+	
+
+UI/UX, brand, motion, graphics
+
+
+
+
+Business
+
+	
+
+Sales, marketing, customer success, consulting
+
+Each card should have:
+
+Short description
+
+Example tasks
+
+Possible deliverables
+
+Relevant skills
+
+“This may fit you if…” statement
+
+Optional inquiry button
+
+Do not make every card a separate page unless the content genuinely needs its own workflow.
+
+D. Tier system — make it understandable
+
+The current content defines IAP-1 Specialist, IAP-2 Certified Partner, IAP-3 Lead Partner, IAP-4 Strategic Partner, and IAP-X Expert Network. It also states that category, engagement, and process are determined independently. 
+Pasted text(20260924-053024).txt
+
+The website should add a simple visual model:
+
+Three separate dimensions
+
+Tier
+
+Relationship level and scope of responsibility.
+
+Category
+
+The type of work or professional contribution.
+
+Engagement
+
+The commercial arrangement and agreed terms.
+
+This is one of the most important information architecture improvements. Hindi dapat isipin ng visitor na automatic na ang higher tier ay equivalent sa higher payment, ownership, or guaranteed revenue.
+
+E. Commercial model — make it transparent without overpromising
+
+The current page presents project fees, milestones, revenue share/royalty, and product-specific equity. It also discusses defining gross versus net revenue, refunds, taxes, payment fees, duration, and scope in writing. 
+Pasted text(20260924-053024).txt
+
+I would rebuild this as interactive explanation cards, not dense text.
+
+Project fee
+
+Fixed amount for a defined deliverable.
+
+Milestone payment
+
+Payment tied to agreed delivery checkpoints.
+
+Revenue share / royalty
+
+Outcome-linked terms defined by product, scope, and written agreement.
+
+Product-specific equity
+
+A distinct arrangement that needs careful legal and commercial definition.
+
+Required feature: Add a “What this means in practice” expandable explanation for each model.
+
+Do not: Present a hypothetical percentage as if it is already a guaranteed offer. The example in the current page should be clearly labeled as illustrative, or removed until the actual commercial policy is finalized. 
+Pasted text(20260924-053024).txt
+
+F. Process — make the journey visible
+
+The current process has four steps: talk, scope in writing, build according to ArtiBytte standards, then deliver/get paid/stay in the network. 
+Pasted text(20260924-053024).txt
+
+I would make this a more complete journey:
+
+Invitation / discovery
+
+Visitor learns about AIP and the possible contribution area.
+
+Initial conversation
+
+Skills, availability, interests, and potential product fit are discussed.
+
+Scope and assessment
+
+Requirements, deliverables, timeline, responsibilities, and risks are reviewed.
+
+Commercial agreement
+
+Payment, IP, confidentiality, ownership, and acceptance terms are documented.
+
+Onboarding
+
+Access, project channel, tools, documentation, and assigned contact are provided.
+
+Execution and review
+
+Work progresses through agreed milestones, reviews, testing, and approvals.
+
+Delivery and payment
+
+Acceptance, handover, payment, and applicable ongoing obligations are completed.
+
+Continuation or closure
+
+The engagement may end, continue, or lead to another defined arrangement based on mutual agreement.
+
+This gives the visitor a more realistic expectation than simply “reply to the email.”
+
+4. Features I would include in the actual website
+Public-facing features
+
+Feature
+
+	
+
+Priority
+
+	
+
+Reason
+
+
+
+
+Responsive layout
+
+	
+
+P0
+
+	
+
+Must work on mobile and desktop
+
+
+
+
+Hero and value proposition
+
+	
+
+P0
+
+	
+
+Explains the purpose immediately
+
+
+
+
+Complete section navigation
+
+	
+
+P0
+
+	
+
+Prevents visitors from missing content
+
+
+
+
+Clear primary CTA
+
+	
+
+P0
+
+	
+
+Provides an obvious next action
+
+
+
+
+Tracks / contribution areas
+
+	
+
+P0
+
+	
+
+Helps visitors understand where they fit
+
+
+
+
+Tier/category/engagement explanation
+
+	
+
+P0
+
+	
+
+Prevents concept confusion
+
+
+
+
+Process timeline
+
+	
+
+P0
+
+	
+
+Sets realistic expectations
+
+
+
+
+Commercial clarity section
+
+	
+
+P0
+
+	
+
+Reduces misunderstanding
+
+
+
+
+Fit / eligibility section
+
+	
+
+P1
+
+	
+
+Helps visitors self-assess
+
+
+
+
+FAQ
+
+	
+
+P1
+
+	
+
+Reduces repetitive questions
+
+
+
+
+Risk and transparency section
+
+	
+
+P1
+
+	
+
+Builds trust through specific explanations
+
+
+
+
+Contact fallback
+
+	
+
+P1
+
+	
+
+Prevents dead ends if email is unavailable
+
+
+
+
+Privacy and terms links
+
+	
+
+P1
+
+	
+
+Establishes proper disclosure
+
+
+
+
+Reduced-motion support
+
+	
+
+P1
+
+	
+
+Accessibility and usability
+
+
+
+
+Loading/error states
+
+	
+
+P1
+
+	
+
+Prevents confusing broken interactions
+
+
+
+
+Analytics
+
+	
+
+P2
+
+	
+
+Understands usage, subject to privacy requirements
+
+Admin-side features
+
+I would not leave all content hardcoded in the HTML if the website is intended to evolve.
+
+AIP Admin Panel
+Recommended
+
+Content editor
+
+Edit headings, descriptions, and section copy.
+
+Model manager
+
+Manage tracks, tiers, and engagement descriptions.
+
+Inquiry inbox
+
+Review and track partner inquiries.
+
+Version history
+
+Track changes and restore prior content.
+
+Preview mode
+
+Review edits before publishing.
+
+Access control
+
+Restrict who can edit or publish.
+
+Important distinction
+
+Hindi kailangan na lahat ng admin features ay kasama agad sa first launch. But if you already know that the site will change frequently, design the content structure properly from the beginning.
+
+5. Recommended technical structure
+
+Kung gagawa ka ulit, I would avoid one giant HTML file containing all styling, content, navigation logic, and future functionality.
+
+Suggested architecture
+AIP Website
+│
+├── Frontend
+│   ├── Layout
+│   ├── Navigation
+│   ├── Hero
+│   ├── Overview
+│   ├── Tracks
+│   ├── Tiers
+│   ├── Categories
+│   ├── Engagement
+│   ├── Process
+│   ├── Structure
+│   ├── Transparency
+│   ├── Fit Check
+│   └── Contact / CTA
+│
+├── Shared Design System
+│   ├── Colors
+│   ├── Typography
+│   ├── Spacing
+│   ├── Buttons
+│   ├── Cards
+│   ├── Forms
+│   └── Accessibility rules
+│
+├── Content Layer
+│   ├── Page sections
+│   ├── FAQ
+│   ├── Tracks
+│   ├── Engagement models
+│   └── Policies
+│
+├── Backend
+│   ├── Contact / inquiry endpoint
+│   ├── Validation
+│   ├── Database
+│   ├── Admin authentication
+│   └── Audit log
+│
+└── Quality & Operations
+    ├── Error logging
+    ├── Testing
+    ├── Deployment
+    ├── Backups
+    └── Monitoring
+
+The exact framework can depend on your hosting and existing infrastructure. The key is the separation of presentation, content, business logic, and access control.
+
+6. What I would NOT add
+
+Para hindi maging makalat, ito ang mga bagay na iiwasan ko sa first version:
+
+Random animations on every card.
+
+Too many gradients and decorative motifs.
+
+Unnecessary popup invitations.
+
+Auto-playing background video.
+
+A separate page for every short section.
+
+Fake counters, fake testimonials, or invented partner logos.
+
+A complicated registration system before the partner journey is validated.
+
+Publicly exposing sensitive partner information.
+
+A chat widget that has no actual support process behind it.
+
+A “dashboard” that does not yet have a real use case.
+
+Overly detailed legal claims without reviewed and approved wording.
+
+A huge risk section before the visitor understands the actual opportunity.
+
+Multiple competing primary buttons.
+
+Hidden content that requires JavaScript to be visible.
+
+Rule: If a feature does not improve understanding, trust, conversion, accessibility, or operations, it should not be included just for visual impact.
+
+7. The 10/10 quality checklist
+
+Use this as your acceptance checklist before launch.
+
+Launch readiness
+0/16
+The visitor understands AIP within 5–10 seconds.
+The primary CTA is visible and clear.
+All major sections are reachable through navigation.
+Tier, category, and engagement are clearly separated.
+All commercial examples are labeled accurately.
+The process explains what happens after the first contact.
+Mobile drawer supports keyboard and focus accessibility.
+Content remains visible if reveal JavaScript fails.
+Text contrast and font sizes pass accessibility review.
+The page works at small mobile widths.
+No broken links or missing section anchors.
+Forms have validation, error, and success states.
+Privacy and confidentiality claims are accurate.
+Admin changes do not require manual edits throughout the frontend.
+The website has a tested backup and rollback process.
+Critical user journeys have been tested on real browsers.
+Copy checklist
+8. My recommended build sequence
+
+Hindi ko sabay-sabay gagawin lahat. Ito ang sequence na magbibigay ng mas controlled na development.
+
+Phase 1 — Content and architecture
+
+Finalize the message, section order, terminology, CTA, and commercial boundaries.
+
+Phase 2 — Design system and responsive shell
+
+Build the typography, colors, navigation, layout, mobile drawer, and reusable components.
+
+Phase 3 — Main website content
+
+Implement Hero, Overview, Tracks, Tiers, Categories, Engagement, Process, Structure, and Fit.
+
+Phase 4 — Trust and conversion
+
+Add FAQ, accurate policy links, contact workflow, validation, success states, and fallback contact options.
+
+Phase 5 — Backend and admin
+
+Add content management, inquiry records, access control, audit logs, and publishing workflow only where needed.
+
+Phase 6 — QA and launch
+
+Test accessibility, responsive layouts, performance, browser compatibility, security, and all primary user journeys.
+
+My final recommendation
+
+For your AIP website, I would build one premium, long-form partner experience with a reusable design system, clear information architecture, reliable CTA, and a lightweight admin/content layer.
+
+The essential launch scope would be:
+
+Brand system
+
+Responsive navigation
+
+Hero and value proposition
+
+Overview
+
+Contribution areas
+
+Tier hierarchy
+
+Category explanation
+
+Commercial models
+
+Partner process
+
+Structure
+
+Transparency and risk
+
+Fit check
+
+Contact workflow
+
+Privacy/accessibility
+
+QA and monitoring
+
+Then add advanced features only after the core experience is working.
+
+The most important principle: Huwag nating gawing “10/10” dahil maraming sections, effects, or technology. Gawin natin itong 10/10 dahil clear ang message, organized ang system, trustworthy ang claims, usable sa mobile, and functional ang journey from discovery to actual partnership.
