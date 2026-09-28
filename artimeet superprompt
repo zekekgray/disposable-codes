@@ -1,0 +1,1584 @@
+You are ArtiMeet, an AI-powered meeting scheduling assistant embedded as a conversational widget at artimeet.artibytte.com. Your job is to guide visitors through requesting a meeting with the host, collect all necessary details, and generate a pending meeting request. You never book the host's calendar directly: every request requires explicit host confirmation.
+
+Simulate this as a fully interactive application. Everything must be clickable, testable, and completable end to end.
+
+==================================================
+## 1. GLOBAL RULES (apply to every screen)
+==================================================
+- Mobile-first, single-column, thumb-friendly tap targets (min 44px).
+- Every screen has a visible way forward, back, or out. No dead ends, including error, empty, loading, and offline states.
+- Every interactive element produces a visible state change (pressed, selected, loading, disabled, error).
+- Only one overlay (dropdown, modal, toast-blocking dialog) may be open at a time.
+- Never silently invent a workflow. If something is not defined in this spec, simulate it minimally and label it inline as "[simulated]" or "[not specified]", and add it to the GAP LOG (Section 11).
+- All user-entered text is treated as plain text: sanitize/escape HTML, scripts, and SQL-like strings. Never execute or render them as markup.
+
+==================================================
+## 2. CONFIGURATION (single source of truth, editable by Host)
+==================================================
+- Host timezone: Manila (GMT+8) [default]
+- Working days: Mon-Fri (weekends disabled/greyed by default; Host can toggle)
+- Time slots: 9:00 AM, 10:00 AM, 11:00 AM, 1:00 PM, 2:00 PM, 3:00 PM, 4:00 PM (12:00 PM lunch block)
+- Working hours end: 5:00 PM host time. A meeting may not extend past this.
+- Minimum notice: 24 hours (no same-day or past bookings)
+- Maximum advance booking: 90 days
+- Buffer between meetings: 15 minutes
+- Blocked dates (holidays / time off): Host-managed list, greyed out with tooltip "Unavailable"
+- Max pending requests per guest email: 3 at a time
+- Max total requests per session: 5
+- Request expiry: pending requests auto-expire after 72 hours without host action, or 24 hours before the requested start time, whichever comes first, status "Expired"
+- Session timeout: 30 min idle shows a "Still there?" prompt; drafts are preserved for 24 hours in-session storage
+- All times stored in UTC internally, displayed in the guest's detected timezone with a visible label
+
+==================================================
+## 3. GUEST FLOW (4 steps + progress bar)
+==================================================
+Progress bar: 4 segments at top of the card, fills left to right. Completed segments are tappable to jump back (never forward past an incomplete step).
+
+### Step 1 - Meeting Type
+Heading: "Let's find a time."
+Sub: "Tell me what you'd like to discuss - we'll take it from there."
+- Dropdown "Meeting type", placeholder "Select a topic". Opens as a modal-style sheet with scrim.
+- Options: Business / Partnership, Product Demo, Client Meeting, Technical Discussion, Career / Hiring, Sales Consultation, Project Kickoff, Project Status Update, Contract / Proposal Review, Investor Pitch, Vendor / Supplier, Other (reveals a required "Briefly describe" text field, max 100 chars)
+- Selected item shows a checkmark. Tapping outside closes without changing the selection.
+- Optional live search inside the sheet when the list has more than 8 items: filters as you type, shows "No topics match - choose Other" if empty, clears with an X.
+- "Continue" is disabled until a topic is selected. On tap: 600-800 ms loading spinner, then advance.
+- Changing the topic later never wipes date/time. Exception: see Section 6 (Dependency Rules).
+
+### Step 2 - Date & Time
+Heading: "When would you like to meet?"
+Sub: "Propose a date and time - we'll confirm and get back to you."
+- Calendar: current month by default, arrows to navigate (previous arrow disabled on the current month, next arrow disabled beyond 90 days).
+- Disabled (greyed, non-tappable): past dates, dates inside minimum notice, weekends/non-working days, blocked dates, dates beyond 90 days. Tapping a disabled date shows a small inline reason ("Weekends unavailable", "Needs 24h notice", etc.).
+- Selecting a date loads the "Preferred time" grid (300-500 ms skeleton loader).
+- Preferred time grid: 2-column pill layout. Booked/held slots appear disabled with a "Taken" label. Only one slot selectable at a time.
+- Minute refinement: after choosing an hour slot, show "at :00 / :15 / :30 / :45" dropdown (default :00). Options that would overlap a booked/buffered period are disabled.
+- EMPTY STATE: if no slots are available for the date, show "No available times for this date - try another date" plus a "Next available date" button that jumps the calendar to the nearest date with availability.
+- Duration pills: 30 min (default) / 45 min / 60 min / Flexible. Options that would run past working hours or overlap the next booking are disabled with tooltip "Doesn't fit this slot". "Flexible" is stored as "Flexible (host decides, 30-60 min)" and blocks a 60 min window for conflict checks.
+- Repeats pills: One-time (default) / Weekly / Monthly / Quarterly. When not One-time, show helper text "This repeats [weekly/monthly/quarterly] directly on the calendar event once confirmed." plus a required "Ends after" selector (4 / 8 / 12 occurrences, default 4). Recurring requests are confirmed or declined as a whole series (see Section 7).
+- Meeting location icon toggles (single select):
+- Video call: label "Videocall / Virtual Call", note "We'll send the video call link separately once confirmed."
+- Phone call: label "Phone Call", note "We'll call the number you provide." Phone number becomes REQUIRED in Step 3 when this is selected.
+- In Person: label "In Person", reveals required field "Where should we meet?" (placeholder "e.g. Greenbelt 3, Makati City", 5-150 chars), plus "Google Maps" and "Waze" quick-launch buttons (open externally in a new tab using the typed text as the search query; disabled with hint if the field is empty).
+- Switching locations hides the irrelevant fields AND clears their data after a one-time toast "Location details cleared" with an Undo action for 5 seconds.
+- Footer note always visible: "Times shown in your timezone: [detected timezone]". If the guest's timezone differs from the host's, also show "Host time: [converted time]".
+- Continue is disabled until date, time, duration, and any required location detail are complete. Show a short checklist of what's missing on tap of the disabled button.
+- Slot re-check on Continue: before advancing, re-validate the slot against current bookings (loading spinner). If taken, show an inline error "That time was just taken - please pick another" and refresh the grid. Selections other than the slot are preserved.
+
+### Step 3 - Contact Details
+Heading: "Almost there."
+Sub: "Just a few details so we can get back to you with a confirmation."
+- Full name (required, 2-80 chars, must contain at least one letter, whitespace-only rejected, trimmed). Placeholder "Juan Dela Cruz".
+- Organization / company (optional, max 80). Placeholder "ABC Company".
+- Email (required, RFC-style format check, lowercase-normalized, trimmed). Placeholder "juan@email.com". Common typo hint (e.g. "gmial.com" -> "Did you mean gmail.com?") is tappable to autocorrect.
+- Phone (optional, required if Phone call selected). Accepts +, digits, spaces, dashes; 7-15 digits. Placeholder "+63 912 345 6789".
+- Notes (optional, multiline, max 500 chars, live counter shows at 400+). Placeholder "Tell me anything I should know." No file uploads (attachment attempts show "Attachments aren't supported - paste a link instead").
+- Consent checkbox (required): "I agree to be contacted about this request." [simulated privacy consent]
+- Validation runs on blur and on submit. Inline error text sits under the field in red with an icon. Focus jumps to the first invalid field on submit.
+- Button "Request Meeting": disabled until valid. On tap: confirmation summary modal ("Review & submit": type, date, time, duration, repeat, location, contact) with "Confirm" and "Edit". Confirm triggers a 1-2 second loading spinner. The button locks immediately on first tap (double-submit protection using an idempotency token per draft).
+- Simulated failure path: if a network error occurs, show the toast "Something went wrong. Your details are saved - try again." with a Retry button. The draft is never lost.
+
+### Step 4 - Confirmation
+- Green checkmark, heading "Meeting Requested".
+- Subtext: "Reference [ABM-YYYY-XXXX]. We'll email you once it's confirmed." Reference is unique per request (4-char alphanumeric suffix, collision-checked against all existing IDs) with a "Copy" button.
+- Summary card rows: Date, Time (range + timezone), Type, Repeat, Location, Guest, Status.
+- Status badge: "Pending Host Confirmation" (amber pill).
+- Note if virtual: "We'll send the video call link separately once confirmed."
+- Actions: "Add to my calendar (.ics)" [simulated], "Request another meeting", "View my requests", "Withdraw request" (see Section 7).
+- Back navigation after submission never resubmits. The browser back button returns to the confirmation/My Requests view, not a blank or duplicate form.
+
+==================================================
+## 4. MY REQUESTS (Guest view, no dead-end)
+==================================================
+- Reachable from the confirmation screen and a persistent link in the widget header.
+- Lists all requests made in this session (or by the email used), newest first, each with reference ID, date/time, type, and status badge.
+- Statuses and colors: Pending (amber), Confirmed (green), Declined (red), Cancelled (grey), Expired (grey outline), Reschedule Proposed (blue).
+- EMPTY STATE: "No requests yet - start one" with a primary button to Step 1.
+- Tapping a request opens its detail with the available actions for its status (Section 7).
+- Lookup by reference ID + email is available [simulated] for guests returning in a new session.
+
+==================================================
+## 5. HOST VIEW (role-gated)
+==================================================
+- Access via a "Host login" link in the footer. Simulated PIN gate [simulated - no real authentication]. Wrong PIN shows an error and allows retry, with a 3-attempt lockout for 30 seconds. Guests cannot reach Host screens by URL or state manipulation; unauthorized access shows "Host access only" with a "Back to booking" button.
+- Dashboard: counters (Pending, Confirmed, Declined, Expired), pending-requests list with pagination or infinite scroll (20 per page), sort (Newest / Soonest meeting), filter (status, meeting type, date range), and live search by guest name, email, or reference ID. "No results" state with a Clear filters button.
+- Request detail: all submitted fields, conflict indicator, and actions:
+- Confirm: opens a modal with optional message and (for Video call) a required "Meeting link" field [simulated link generator available]. On confirm: status becomes Confirmed, guest notification fires, calendar event created [simulated], series expanded if recurring.
+- Decline: opens a modal with a reason dropdown + optional note. On confirm: status becomes Declined, polite decline email triggered with a "Propose a new time" link [simulated].
+- Propose new time: host picks an alternate slot, status becomes "Reschedule Proposed", guest can Accept (becomes Confirmed) or Decline (becomes Declined).
+- Bulk actions: multi-select with "Decline selected" (with confirmation).
+- Host settings screen: edit the Section 2 configuration (working days, slots, buffers, blocked dates, max advance). Changes apply to new requests only and never silently alter existing confirmed meetings. If a change conflicts with existing requests, show a list of affected requests and require confirmation.
+- Host can manually mark a confirmed meeting as Cancelled with a reason; guest is notified.
+
+==================================================
+## 6. DEPENDENCY RULES (resolves cross-field conflicts)
+==================================================
+- Changing Meeting Type after a slot is chosen: keep the slot. Types can have optional minimum durations (e.g. Investor Pitch min 45 min, Product Demo min 45 min). If the current duration is below the minimum, show an inline notice "Investor Pitch needs at least 45 min" and auto-upgrade the duration with an Undo option.
+- Changing Duration after a slot is chosen: re-validate the slot. If it no longer fits, keep the date, clear only the time, and show "That duration doesn't fit [time] - pick another."
+- Changing Date after a slot is chosen: clear the time and minute refinement (times differ per date), keep everything else, and show a subtle toast "Pick a time for [new date]".
+- Changing Location: clears only location-specific fields (with Undo), keeps everything else.
+- Going Back never wipes data. Only the specific dependency above may clear a field, and it always tells the user.
+
+==================================================
+## 7. STATUS RULES, CANCELLATION & RESCHEDULING
+==================================================
+- Pending: guest may Edit (returns to Steps 1-3 with data prefilled; re-runs slot validation and resets the 72h expiry) or Withdraw (confirmation modal, then status Cancelled, slot released, host notified).
+- Confirmed: guest may Request Reschedule or Request Cancellation (never instantly self-cancels). Both create a request the host must approve. Direct edits are blocked with the message "This meeting is confirmed - request a change instead."
+- Declined / Expired / Cancelled: read-only, with a "Book again" button that clones details into a fresh draft.
+- Recurring series: Confirm/Decline applies to the whole series by default. Host may choose "This occurrence only" or "This and following" when cancelling. Guest withdrawal of a pending series withdraws all occurrences.
+- Race handling: if the guest withdraws while the host is confirming (or vice versa), the last valid state wins and the other party sees "This request was already [status]" with a refresh action. Never show a false success.
+- Slot contention: first submitted Pending request holds the slot for its 72h lifetime. Later guests see the slot as "Taken". If a Pending request is declined/expired/withdrawn, the slot is released instantly.
+- Duplicate protection: the same email + same date/time within an active status is blocked with "You already have a request for this time" and a link to it.
+
+==================================================
+## 8. NOTIFICATIONS (each dismissible, auto-dismiss after 5s, no stacking beyond 3)
+==================================================
+- Guest toasts: request submitted, validation error summary, network/save error (with Retry), request withdrawn, changes saved, draft restored, location details cleared (with Undo).
+- Guest simulated emails/logs: request received, confirmed (with link/address), declined (with propose-new-time link), reschedule proposed, request expired, reminder 24 hours before a confirmed meeting.
+- Host indicators: new-request badge counter, "conflict detected" warning, expiring-soon warning (under 12 hours left).
+- Repeated identical errors replace the previous toast rather than stacking.
+- Show a "Notification log [simulated]" panel where every triggered email/toast is listed with a timestamp, so the triggers can be verified during testing.
+
+==================================================
+## 9. LOADING, EMPTY, ERROR & OFFLINE STATES
+==================================================
+- Loading: spinner on Continue/Submit (600-2000 ms), skeleton for the time grid and host lists, buttons show a busy state and lock against double taps.
+- Empty: no slots for a date, no requests yet, no search results, no host requests, no notifications. Each has an explanatory line and a working action.
+- Errors: inline field errors, slot-taken conflict, network failure, session expired ("Your session timed out - your draft was saved" with a Resume button), unauthorized Host access.
+- Offline: if the connection is lost, show a top banner "You're offline - changes will be saved when you're back"; disable submit only, allow browsing and editing.
+- Every error state has a Retry, Back, or Home action.
+
+==================================================
+## 10. SESSION, PERSISTENCE & CONCURRENCY
+==================================================
+- Drafts and submitted requests persist for the session and survive refresh (use in-memory/session state appropriate to the environment; never use browser storage APIs if the platform forbids them, and note that limitation as "[simulated persistence]").
+- Multi-tab: last write wins per draft; submitted requests are independent records with separate IDs.
+- Idle timeout per Section 2. On timeout, drafts remain, and a Resume prompt appears.
+- Timezone change mid-session: recompute displayed times from the stored UTC values and show a notice "Times updated to your new timezone".
+- Day rollover mid-session: re-validate the selected date on Continue and show an explicit error if it is now past or within the notice window.
+- Rate limiting [simulated]: more than 5 submissions per session or 3 rapid submissions within 60 seconds triggers "Too many requests - please wait a minute", with a visible countdown. Never a silent block.
+
+==================================================
+## 11. GAP LOG (expose, don't invent)
+==================================================
+Maintain a visible "Simulation notes" panel (toggle in footer) listing every [simulated] or [not specified] behavior encountered. Pre-populated with:
+1. Real authentication for Host (PIN gate is a stand-in)
+2. Real email delivery (log only)
+3. Real calendar sync and .ics validity (mock)
+4. Email ownership verification for guests (not specified; format check only)
+5. Payments or deposits (out of scope; any attempt shows "Not supported")
+6. File attachments (out of scope)
+7. Multi-host / team scheduling (not specified; single host assumed)
+8. Real video link generation (mock link)
+9. Data privacy, retention, and consent legalities (placeholder consent only)
+10. No-JavaScript fallback (out of scope, widget requires JS)
+11. Localization/translation (English only)
+When a user hits an unsupported action, respond with a friendly "That isn't supported yet" message and a working exit, never a dead end or a fake success.
+
+==================================================
+## 12. ACCESSIBILITY & UX POLISH
+==================================================
+- Keyboard: full tab order, Enter/Space activation, Escape closes overlays, focus is trapped in modals and returned on close.
+- Screen reader: labels on all inputs, aria-live for toasts/errors, role=dialog on modals, calendar dates labeled "Monday, September 28, 2026, available/unavailable".
+- Contrast AA minimum, error states never rely on color alone (icon + text).
+- Layout holds down to 320px width. Long names/notes wrap without breaking cards. RTL and non-Latin names render correctly.
+- Respect reduced-motion preferences (no shake animation; use a static error outline).
+
+==================================================
+## 13. TONE & VISUAL STYLE
+==================================================
+- Minimal, friendly, low-copy microcopy (one short sentence per screen).
+- Black-and-white rounded pill buttons/selectors; selected state = solid black fill, white text.
+- Card layout, soft rounded corners, light warm-grey border, subtle shadows.
+- Amber for pending, green for success, red for errors, blue for proposals. Use sparingly.
+- Progress bar: 4 segments, filling left to right.
+
+==================================================
+## 14. SELF-TEST MODE
+==================================================
+Include a "Test scenarios" drawer (toggle in footer) with one-tap triggers to simulate: slot taken by another client, network failure, session timeout, host confirm, host decline, host proposes new time, double-submit, rate limit, and 100-client load (populates the Host list with 100 sample requests to verify pagination, search, and filtering). Each trigger logs its result in the Notification log so the behavior can be verified against this spec.
+
+
+
+
+
+
+
+
+Yes. If that specification is translated as-is into the app, the resulting ArtiMeet app should contain the following chronologically, from opening the widget through the complete guest and host workflows.
+
+ArtiMeet — Complete App Feature & Button Sequence
+0. APP ENTRY
+ArtiMeet conversational widget
+Visible:
+
+ArtiMeet branding/name
+Conversational booking interface
+Persistent My Requests access
+Footer:
+Host login
+Simulation notes
+Test scenarios
+Global behavior:
+
+Mobile-first
+Single column
+44px+ tap targets
+Progress indicator where applicable
+Back/exit always available
+Keyboard accessibility
+Screen-reader labels
+Reduced-motion support
+Offline banner when disconnected
+1. STEP 1 — MEETING TYPE
+Header
+Progress:
+
+[ 1 ] [ 2 ] [ 3 ] [ 4 ]
+
+Step 1 active.
+
+Content
+Heading
+
+Let's find a time.
+
+Subtext
+
+Tell me what you'd like to discuss - we'll take it from there.
+
+Button / control
+Meeting type
+
+Placeholder:
+
+Select a topic
+
+Tap → opens modal-style selection sheet.
+
+Meeting-type sheet
+Options:
+
+Business / Partnership
+Product Demo
+Client Meeting
+Technical Discussion
+Career / Hiring
+Sales Consultation
+Project Kickoff
+Project Status Update
+Contract / Proposal Review
+Investor Pitch
+Vendor / Supplier
+Other
+Because there are more than 8:
+
+Search field
+
+Search topics
+
+and:
+
+Clear X
+
+Each option:
+
+tappable
+selected option receives checkmark
+tapping outside closes
+selection is retained
+If search produces nothing:
+
+No topics match - choose Other
+
+If "Other"
+Required field appears:
+
+Briefly describe
+
+maximum 100 characters
+Bottom
+Continue
+
+Initially disabled.
+
+After valid topic:
+
+Continue → loading → Step 2
+
+Loading duration:
+
+600–800ms
+
+2. STEP 2 — DATE & TIME
+Progress:
+
+[✓] [ 2 ] [ 3 ] [ 4 ]
+
+Completed Step 1 is tappable.
+
+Header
+When would you like to meet?
+
+Subtext:
+
+Propose a date and time - we'll confirm and get back to you.
+
+2.1 Calendar
+Current month displayed.
+
+Controls:
+
+Previous month
+Next month
+Previous disabled at current month.
+
+Next disabled beyond 90 days.
+
+Calendar dates
+Selectable:
+
+working day
+within notice period
+within 90-day window
+not blocked
+not already past
+Disabled:
+
+past
+<24h notice
+weekends
+non-working days
+blocked dates
+90 days
+
+Tap disabled date:
+
+Inline explanation appears:
+
+Weekends unavailable
+
+or:
+
+Needs 24h notice
+
+or:
+
+Unavailable
+
+2.2 SELECT DATE
+Once date is selected:
+
+Preferred time
+
+Skeleton loading:
+
+300–500ms
+
+Then time grid appears.
+
+Two-column layout.
+
+Default configured times:
+
+9:00 AM
+10:00 AM
+11:00 AM
+1:00 PM
+2:00 PM
+3:00 PM
+4:00 PM
+12:00 PM is blocked as lunch.
+
+Unavailable slot:
+
+Taken
+
+and disabled.
+
+Available slot:
+
+Selectable.
+
+Only one hour slot at a time.
+
+2.3 MINUTE REFINEMENT
+After selecting a time:
+
+Dropdown appears:
+
+at :00
+
+Options:
+
+:00
+:15
+:30
+:45
+Unavailable refinements are disabled.
+
+2.4 DURATION
+Pills:
+
+30 min
+45 min
+60 min
+Flexible
+Default:
+
+30 min
+
+Flexible means:
+
+Flexible (host decides, 30-60 min)
+
+and reserves a 60-minute conflict window.
+
+Invalid durations:
+
+Doesn't fit this slot
+
+2.5 REPEAT
+Pills:
+
+One-time
+Weekly
+Monthly
+Quarterly
+Default:
+
+One-time
+
+If recurring:
+
+Helper text:
+
+This repeats [weekly/monthly/quarterly] directly on the calendar event once confirmed.
+
+Required selector:
+
+Ends after
+
+Options:
+
+4
+8
+12 occurrences
+Default:
+
+4
+
+2.6 LOCATION
+Single-select location controls:
+
+Video call
+Videocall / Virtual Call
+
+Note:
+
+We'll send the video call link separately once confirmed.
+
+Phone call
+Phone Call
+
+Note:
+
+We'll call the number you provide.
+
+This causes phone number to become required in Step 3.
+
+In Person
+In Person
+
+Reveals:
+
+Where should we meet?
+
+Placeholder:
+
+e.g. Greenbelt 3, Makati City
+
+5–150 characters.
+
+Buttons:
+
+Google Maps
+Waze
+Buttons are disabled until location text exists.
+
+Opening either launches an external search using the entered location.
+
+2.7 LOCATION CHANGE
+If location is switched:
+
+Relevant location-specific data is cleared.
+
+Toast:
+
+Location details cleared
+
+Action:
+
+Undo
+
+Undo available for 5 seconds.
+
+2.8 TIMEZONE
+Always visible:
+
+Times shown in your timezone: [detected timezone]
+
+If guest timezone differs from host:
+
+Host time: [converted time]
+
+2.9 EMPTY TIME STATE
+If selected date has no available slots:
+
+No available times for this date - try another date
+
+Button:
+
+Next available date
+
+Tapping it jumps to nearest available date.
+
+2.10 CONTINUE VALIDATION
+Continue
+
+Disabled until:
+
+date selected
+time selected
+duration selected
+required location information complete
+Tap disabled button:
+
+Checklist shows missing information.
+
+Example:
+
+Please select a time.
+
+2.11 SLOT RE-CHECK
+When Continue is tapped:
+
+Loading spinner.
+
+Backend/current availability re-check occurs.
+
+If still available
+→ Step 3.
+
+If taken
+Inline error:
+
+That time was just taken - please pick another
+
+Time grid refreshes.
+
+Date and other selections remain.
+
+3. STEP 3 — CONTACT DETAILS
+Progress:
+
+[✓] [✓] [ 3 ] [ 4 ]
+
+Header
+Almost there.
+
+Subtext:
+
+Just a few details so we can get back to you with a confirmation.
+
+3.1 FULL NAME
+Required.
+
+Label:
+
+Full name
+
+Placeholder:
+
+Juan Dela Cruz
+
+Rules:
+
+2–80 characters
+at least one letter
+whitespace-only rejected
+trimmed
+3.2 ORGANIZATION
+Optional.
+
+Organization / company
+
+Placeholder:
+
+ABC Company
+
+Maximum:
+
+80 characters.
+
+3.3 EMAIL
+Required.
+
+Email
+
+Placeholder:
+
+juan@email.com
+
+Validation:
+
+trimmed
+lowercase-normalized
+RFC-style format
+Potential typo:
+
+Did you mean gmail.com?
+
+Clickable correction.
+
+3.4 PHONE
+Optional unless Phone Call selected.
+
+Phone
+
+Placeholder:
+
++63 912 345 6789
+
+Accepted:
+
++
+digits
+spaces
+dashes
+7–15 digits.
+
+3.5 NOTES
+Optional.
+
+Notes
+
+Multiline.
+
+Placeholder:
+
+Tell me anything I should know.
+
+Maximum:
+
+500 characters.
+
+At 400+ characters:
+
+Live character counter.
+
+Attachment attempt:
+
+Attachments aren't supported - paste a link instead.
+
+3.6 CONSENT
+Checkbox:
+
+I agree to be contacted about this request.
+
+Required.
+
+3.7 VALIDATION
+Validation occurs:
+
+on blur
+on submit
+Errors appear directly below fields.
+
+Error includes:
+
+icon
+text
+red styling
+Submit focuses first invalid field.
+
+3.8 REQUEST MEETING
+Button:
+
+Request Meeting
+
+Disabled until all required fields are valid.
+
+Tap:
+
+Review & submit modal
+Summary:
+
+Meeting type
+Date
+Time
+Duration
+Repeat
+Location
+Contact
+Buttons:
+
+Edit
+
+and
+
+Confirm
+
+3.9 CONFIRM SUBMISSION
+Tap Confirm.
+
+Immediately:
+
+button locks
+idempotency token used
+duplicate taps ignored
+loading spinner
+Duration:
+
+1–2 seconds
+
+Successful submission
+→ Step 4.
+
+Network failure
+Toast:
+
+Something went wrong. Your details are saved - try again.
+
+Button:
+
+Retry
+
+Draft remains intact.
+
+4. STEP 4 — CONFIRMATION
+Progress:
+
+[✓] [✓] [✓] [✓]
+
+Large green checkmark.
+
+Heading
+Meeting Requested
+
+Subtext
+Reference ABM-YYYY-XXXX. We'll email you once it's confirmed.
+
+Reference includes:
+
+ABM
+year
+4-character alphanumeric suffix
+collision check
+Button:
+
+Copy
+
+4.1 SUMMARY CARD
+Rows:
+
+Date
+
+Time
+
+Time range + timezone.
+
+Type
+
+Repeat
+
+Location
+
+Guest
+
+Status
+
+4.2 STATUS
+Amber badge:
+
+Pending Host Confirmation
+
+If virtual:
+
+We'll send the video call link separately once confirmed.
+
+4.3 CONFIRMATION ACTIONS
+Buttons:
+
+Add to my calendar (.ics)
+
+Simulated.
+
+Request another meeting
+
+Returns to Step 1 with a new draft.
+
+View my requests
+
+Opens My Requests.
+
+Withdraw request
+
+Opens withdrawal confirmation.
+
+5. MY REQUESTS
+Accessible from:
+
+Confirmation screen
+persistent widget header
+Request list
+Newest first.
+
+Each request displays:
+
+Reference ID
+Date/time
+Meeting type
+Status
+Status badges:
+
+Pending — amber
+Confirmed — green
+Declined — red
+Cancelled — grey
+Expired — grey outline
+Reschedule Proposed — blue
+5.1 EMPTY STATE
+If none:
+
+No requests yet - start one
+
+Button:
+
+Start one
+
+→ Step 1.
+
+5.2 REQUEST DETAIL
+Tap a request.
+
+Detail screen shows submitted information.
+
+Available actions depend on status.
+
+5.3 RETURNING GUEST LOOKUP
+Simulated lookup:
+
+Fields:
+
+Reference ID
+
+Email
+
+Button:
+
+Find my request
+
+6. PENDING REQUEST DETAIL
+Actions:
+
+Edit
+
+Withdraw
+
+Edit
+Returns to Steps 1–3 with existing data.
+
+Revalidates availability.
+
+Resets 72-hour expiry.
+
+Withdraw
+Confirmation modal.
+
+Confirm:
+
+request becomes Cancelled
+slot released
+host notified
+Toast:
+
+Request withdrawn
+
+7. CONFIRMED REQUEST
+Direct editing is blocked.
+
+Message:
+
+This meeting is confirmed - request a change instead.
+
+Actions:
+
+Request Reschedule
+
+Request Cancellation
+
+Neither immediately changes the meeting.
+
+Both create host-review requests.
+
+8. DECLINED / EXPIRED / CANCELLED
+Read-only.
+
+Button:
+
+Book again
+
+Clones previous details into a new draft.
+
+9. RESCHEDULE PROPOSED
+Guest sees:
+
+original meeting
+proposed new time
+proposed details
+Buttons:
+
+Accept
+
+→ Confirmed.
+
+Decline
+
+→ Declined.
+
+10. WITHDRAWAL / CANCELLATION / RACE CONDITIONS
+If two actions happen simultaneously:
+
+System determines last valid state.
+
+Other participant sees:
+
+This request was already [status]
+
+Button:
+
+Refresh
+
+No false success is displayed.
+
+11. RECURRING REQUESTS
+Recurring request shows:
+
+recurrence type
+number of occurrences
+series status
+Host confirmation/decline applies to entire series by default.
+
+Host cancellation choices:
+
+This occurrence only
+This and following
+Guest withdrawal of pending recurring request:
+
+→ withdraws entire series.
+
+12. HOST LOGIN
+Footer:
+
+Host login
+
+Tap → PIN gate.
+
+Host PIN
+Field:
+
+Enter host PIN
+
+Button:
+
+Continue
+
+Wrong PIN:
+
+Error.
+
+Retry allowed.
+
+After 3 failed attempts:
+
+30-second lockout
+
+Countdown visible.
+
+13. UNAUTHORIZED HOST ACCESS
+If guest tries to access host interface directly:
+
+Screen:
+
+Host access only
+
+Button:
+
+Back to booking
+
+14. HOST DASHBOARD
+Dashboard counters:
+
+Pending
+Confirmed
+Declined
+Expired
+Pending-request list.
+
+New-request badge counter.
+
+15. HOST REQUEST LIST
+20 requests per page or infinite scrolling.
+
+Controls:
+
+Sort
+Newest
+Soonest meeting
+Filter
+Status
+Meeting type
+Date range
+Search
+Search by:
+
+Guest name
+Email
+Reference ID
+Bulk selection
+Checkbox per request.
+
+Button:
+
+Decline selected
+
+Confirmation required.
+
+16. HOST EMPTY SEARCH
+If no matches:
+
+No results
+
+Button:
+
+Clear filters
+
+17. HOST REQUEST DETAIL
+Displays all submitted information.
+
+Also:
+
+Conflict indicator
+
+Potential warning:
+
+Conflict detected
+
+and/or:
+
+Expiring soon
+
+when under 12 hours remain.
+
+18. HOST CONFIRM
+Button:
+
+Confirm
+
+Opens confirmation modal.
+
+Optional:
+
+Message
+
+For Video Call:
+
+Required:
+
+Meeting link
+
+Button:
+
+Generate meeting link
+
+Simulated.
+
+Then:
+
+Confirm meeting
+
+Result:
+
+Status → Confirmed
+guest notification
+simulated calendar event
+recurring series expanded if applicable
+19. HOST DECLINE
+Button:
+
+Decline
+
+Modal:
+
+Reason
+
+Dropdown.
+
+Optional:
+
+Note
+
+Button:
+
+Decline request
+
+Result:
+
+Status → Declined
+guest notification
+simulated Propose a new time link
+20. HOST PROPOSE NEW TIME
+Button:
+
+Propose new time
+
+Host selects:
+
+date
+time
+applicable meeting information
+Button:
+
+Send proposal
+
+Status:
+
+Reschedule Proposed
+
+Guest receives notification.
+
+21. HOST CANCEL CONFIRMED MEETING
+Host action:
+
+Cancel meeting
+
+Modal requires reason.
+
+Button:
+
+Confirm cancellation
+
+Result:
+
+Confirmed → Cancelled
+guest notified.
+For recurring series:
+
+This occurrence only
+This and following
+22. HOST BULK DECLINE
+Host selects multiple requests.
+
+Button:
+
+Decline selected
+
+Confirmation modal.
+
+Button:
+
+Confirm
+
+All selected requests become Declined.
+
+Notifications fire.
+
+23. HOST SETTINGS
+Button/location:
+
+Settings
+
+Editable configuration:
+
+Timezone
+Default:
+
+Manila (GMT+8)
+
+Working days
+Monday
+Tuesday
+Wednesday
+Thursday
+Friday
+Saturday
+Sunday
+Weekend disabled by default.
+
+Time slots
+9:00 AM
+10:00 AM
+11:00 AM
+1:00 PM
+2:00 PM
+3:00 PM
+4:00 PM
+12:00 PM lunch block.
+
+Working-hours end
+5:00 PM
+
+Minimum notice
+24 hours
+
+Maximum advance
+90 days
+
+Buffer
+15 minutes
+
+Blocked dates
+Host-managed list.
+
+Dates display as unavailable.
+
+24. HOST CONFIGURATION CONFLICT
+If changing configuration affects existing requests:
+
+System shows:
+
+Affected requests
+
+List of affected meetings.
+
+Host must explicitly confirm.
+
+No silent modification of existing confirmed meetings.
+
+25. NOTIFICATION SYSTEM
+Guest notifications:
+
+Request submitted
+Validation error summary
+Network/save error
+Retry
+Request withdrawn
+Changes saved
+Draft restored
+Location details cleared
+Undo
+Auto-dismiss:
+
+5 seconds
+
+Maximum:
+
+3 simultaneously
+
+Identical notifications replace previous copy.
+
+26. SIMULATED EMAIL LOG
+Notification log contains:
+
+Guest
+Request received
+Confirmed
+Declined
+Reschedule proposed
+Request expired
+24-hour reminder
+Host
+New request
+Conflict warning
+Expiring-soon warning
+Every item contains:
+
+timestamp
+notification type
+trigger result
+27. NOTIFICATION LOG
+Footer:
+
+Notification log
+
+Opens panel.
+
+Displays all simulated notification events.
+
+Useful for testing whether each action actually triggered the expected event.
+
+28. SIMULATION NOTES
+Footer:
+
+Simulation notes
+
+Panel contains:
+
+Real Host authentication — simulated PIN
+Real email delivery — simulated log
+Real calendar sync/.ics validity — simulated
+Guest email ownership verification — not specified
+Payments/deposits — unsupported
+File attachments — unsupported
+Multi-host scheduling — not specified
+Video link generation — simulated
+Privacy/retention/legal consent — placeholder
+No-JavaScript fallback — unsupported
+Localization — English only
+Unsupported action:
+
+That isn't supported yet.
+
+with a working exit/back action.
+
+29. OFFLINE STATE
+Top banner:
+
+You're offline - changes will be saved when you're back
+
+Allowed:
+
+browsing
+editing
+navigating
+Disabled:
+
+Submit
+
+Once connectivity returns:
+
+editing remains intact
+submission becomes available again.
+30. SESSION TIMEOUT
+After:
+
+30 minutes idle
+
+Prompt:
+
+Still there?
+
+Actions:
+
+Resume
+
+or exit.
+
+Draft preserved for 24 hours.
+
+If session actually expires:
+
+Your session timed out - your draft was saved
+
+Button:
+
+Resume
+
+31. TIMEZONE CHANGE
+If timezone changes during session:
+
+System recomputes displayed times from stored UTC.
+
+Notice:
+
+Times updated to your new timezone
+
+32. DAY ROLLOVER
+If midnight/day boundary causes selected date to become invalid:
+
+Continue triggers revalidation.
+
+If now invalid:
+
+Explicit error explains that the date is now past or inside the notice window.
+
+User chooses another date.
+
+33. RATE LIMIT
+If:
+
+5 submissions/session
+
+OR 3 rapid submissions within 60 seconds
+Display:
+
+Too many requests - please wait a minute
+
+Visible countdown.
+
+No silent blocking.
+
+34. DUPLICATE REQUEST
+If same email + same date/time already has active request:
+
+You already have a request for this time
+
+Link:
+
+View request
+
+35. SLOT CONTENTION
+First submitted pending request:
+
+→ holds slot.
+
+Later guest:
+
+Slot displays:
+
+Taken
+
+If first request is:
+
+declined
+expired
+withdrawn
+slot becomes available again.
+
+36. TEST SCENARIOS DRAWER
+Footer:
+
+Test scenarios
+
+One-tap tests:
+
+Slot taken
+Network failure
+Session timeout
+Host confirm
+Host decline
+Host proposes new time
+Double-submit
+Rate limit
+100-client load
+37. 100-CLIENT LOAD TEST
+Tap:
+
+100-client load
+
+System populates Host dashboard with:
+
+100 sample requests
+
+Then tester can verify:
+
+pagination
+search
+filtering
+sorting
+selection
+bulk actions
+request detail
+status changes
+Every test action logs its result.
+
+38. GLOBAL ACCESSIBILITY BEHAVIOR
+Every screen supports:
+
+keyboard Tab
+Enter
+Space
+Escape
+focus trapping in modal
+focus return after modal closes
+screen-reader labels
+aria-live notifications/errors
+role="dialog"
+calendar accessibility labels
+AA contrast
+icons + text for errors
+RTL
+non-Latin names
+320px minimum width
+reduced motion
+39. GLOBAL SECURITY / INPUT BEHAVIOR
+Every entered value is treated as plain text.
+
+The app:
+
+trims where specified
+validates formats
+escapes HTML
+does not render user input as markup
+does not execute scripts
+does not treat SQL-like strings as executable instructions
+40. COMPLETE END-TO-END PATH
+The entire normal path therefore becomes:
+
+OPEN ARTIMEET
+      ↓
+STEP 1
+Meeting Type
+      ↓
+Select Topic
+      ↓
+Continue
+      ↓
+STEP 2
+Calendar
+      ↓
+Date
+      ↓
+Time
+      ↓
+Minute
+      ↓
+Duration
+      ↓
+Repeat
+      ↓
+Location
+      ↓
+Continue
+      ↓
+Slot Re-check
+      ↓
+STEP 3
+Name
+Organization
+Email
+Phone
+Notes
+Consent
+      ↓
+Request Meeting
+      ↓
+Review & Submit
+      ↓
+Confirm
+      ↓
+Idempotency / Submission
+      ↓
+STEP 4
+Meeting Requested
+      ↓
+Reference ID
+      ↓
+Pending Host Confirmation
+      ↓
+HOST DASHBOARD
+      ↓
+Request Detail
+      ↓
+       ┌───────────────┬──────────────────┬────────────────────┐
+       ↓               ↓                  ↓
+    CONFIRM          DECLINE         PROPOSE NEW TIME
+       ↓               ↓                  ↓
+   CONFIRMED        DECLINED       RESCHEDULE PROPOSED
+       ↓                                  ↓
+   Calendar                         ACCEPT / DECLINE
+       ↓                                  ↓
+   Reminder                    CONFIRMED / DECLINED
+And separately:
+
+MY REQUESTS
+   ↓
+Request Detail
+   ↓
+Pending → Edit / Withdraw
+Confirmed → Reschedule / Cancellation Request
+Declined → Book Again
+Expired → Book Again
+Cancelled → Book Again
+Reschedule Proposed → Accept / Decline
+So if the specification is implemented literally, these are the screens, controls, actions, states, transitions, validation behaviors, host tools, test tools, and simulated infrastructure that belong in the app. Nothing from the original specification needs to be omitted to produce this flow.
