@@ -2204,6 +2204,17 @@ font-weight:800;
 font-size:13px;
 cursor:pointer;
 }
+.chat-row{display:flex;flex-direction:column;max-width:80%}
+.chat-row.parent{align-self:flex-end;align-items:flex-end}
+.chat-row.admin{align-self:flex-start;align-items:flex-start}
+.chat-row .chat-bubble{max-width:100%}
+.chat-bubble.pending{opacity:.7}
+.chat-bubble.failed{opacity:.6;outline:1.5px solid var(--red)}
+.chat-meta{font-size:10.5px;color:var(--muted);margin:3px 4px 0}
+.chat-meta.fail{color:var(--red);font-weight:700}
+.chat-act{background:none;border:0;padding:0;font:inherit;font-weight:800;color:var(--royal);cursor:pointer;text-decoration:underline}
+.livity-ball.has-unread{opacity:.9}
+.livity-ball.has-unread:after{content:"";position:absolute;top:8px;right:8px;width:14px;height:14px;border-radius:50%;background:var(--red);border:2px solid #fff}
 /* === END: ASK ADMIN JA CHAT — STYLES === */
 /* === END: ANYTIME LIVITY BALL — STYLES === */
 
@@ -2836,6 +2847,18 @@ html.sw-busy .view.active{animation:none}
 /* === START: HD-NEW HIDE RULE REMOVED (welcome block is now inside the drawer) === */
 /* === END: HD-NEW HIDE RULE REMOVED === */
 /* === END: HOME DASHBOARD — STYLES === */
+/* === START: STAFF BOUNDARY — STYLES === */
+.bottom { grid-template-columns:repeat(4,1fr); }
+.bottom button[data-v="scan"] { display:none; }
+body.is-staff .bottom { grid-template-columns:repeat(5,1fr); }
+body.is-staff .bottom button[data-v="scan"] { display:flex; }
+.staff-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:12px;padding:10px 12px;margin:2px 0 10px}
+.staff-bar b{display:block;font-size:13px;color:#fff}
+.staff-bar span{font-size:11px;color:#a8a49a}
+.staff-bar .sc-link{margin:0;flex-shrink:0}
+.ver-dot{display:none;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:6px;vertical-align:middle}
+.ver-dot.on{display:inline-block}
+/* === END: STAFF BOUNDARY — STYLES === */
 /* === END: MORE / LIVITY REDESIGN — STYLES === */
 </style>
 </head>
@@ -3059,6 +3082,7 @@ Not sure which is right for your child?
 <h2>Weekly Schedule</h2>
 </div>
 
+<div id="schedBanner"></div>
 <div data-ctx="schedule"></div>
 
 <div class="sched-view-toggle">
@@ -3522,21 +3546,6 @@ Trained with Livity
 <div class="panel">
 
 <h3>
-Academy Gallery
-</h3>
-
-<p style="color:var(--muted);font-size:12px;margin:-4px 0 12px">
-Photos and videos from training and events.
-</p>
-
-<div id="galleryGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"></div>
-
-</div>
-
-
-<div class="panel">
-
-<h3>
 Meet the Team
 </h3>
 
@@ -3937,10 +3946,10 @@ Coach Sam — Advanced Assessment
 </div>
 <!-- === START: DRAWER SECONDARY MENU === -->
 <button type="button" class="lb-pkg" onclick="show('enroll')"><b>Enroll a New Player</b><span>›</span></button>
-<button type="button" class="lb-pkg" onclick="moChat_()"><b>Ask Admin</b><span>›</span></button>
-<button type="button" class="lb-pkg" onclick="openTutorial()"><b>Help &amp; Tour</b><span>›</span></button>
+<button type="button" class="lb-pkg" onclick="openTutorial()"><b>Help</b><span>›</span></button>
 <button type="button" class="lb-pkg" onclick="moShare_()"><b>Share App</b><span>›</span></button>
-<button type="button" class="lb-pkg" onclick="pfWhatsNew_()"><b>What's New</b><span>›</span></button>
+<button type="button" class="lb-pkg" onclick="pfWhatsNew_()"><b>What's New<span class="ver-dot" id="hdVerDot"></span></b><span>›</span></button>
+<button type="button" class="pf-photo-rm" id="staffEntryBtn" style="display:block;margin:18px auto 0" onclick="openScan_()">Staff sign-in</button>
 <!-- === END: DRAWER SECONDARY MENU === -->
 </aside>
 <!-- === END: HOME DRAWER — MARKUP === -->
@@ -4369,6 +4378,7 @@ return null;
 }
 
 let lbCurrentDaySessions = [];
+let lbCurrentDayName_ = '';
 
 function openSessionDetail_(index) {
 const s = lbCurrentDaySessions[index];
@@ -4381,12 +4391,13 @@ const detailsHtml = parts.length
 
 document.getElementById('sessionDetailBody').innerHTML = `
 <h4 style="margin:0 0 4px;font-size:16px;color:var(--text)">${lbShortProgramName_(s.programName)}</h4>
-<p class="lb-text" style="color:var(--muted);margin:0 0 2px">${lbFormatTimeRange_(s.startTime, s.endTime)}</p>
+<p class="lb-text" style="color:var(--muted);margin:0 0 2px">${lbCurrentDayName_ === WEEK_DAY_ORDER[getTodayIndex_()] ? 'Today' : lbCurrentDayName_} · ${lbFormatTimeRange_(s.startTime, s.endTime)}</p>
+${lbSessionStatusHtml_(s)}
 <p class="lb-text" style="color:var(--muted);margin:0 0 4px">${s.venue}</p>
 <a href="${lbMapsLink_(s.venue)}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--royal);text-decoration:none;margin-bottom:6px">📍 Get Directions →</a>
 <div class="session-detail-label">Details</div>
 ${detailsHtml}
-${lbSessionActionHtml_(s)}
+${lbSessionLifecycleHtml_(s, index)}
 <button class="btn outline" style="width:100%;margin-top:8px" onclick="closeSessionDetail_()">Close</button>
 `;
 
@@ -4414,6 +4425,149 @@ return `<button class="btn primary" style="width:100%;margin-top:10px" onclick="
 
 return '';
 }
+
+/* === START: SESSION DETAIL — FULL LIFECYCLE === */
+const LB_RESERVE_API = false;        // true kapag may 'reserveSpot' / 'cancelReservation' na sa GAS
+const LB_RESERVE_CUTOFF_H = 2;       // reserve at least 2 hours before (galing sa tutorial/policy)
+const LB_RESV_KEY = 'livity_resv_v1';
+
+function lbResvLoad_() { try { return JSON.parse(localStorage.getItem(LB_RESV_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function lbResvSave_(o) { try { localStorage.setItem(LB_RESV_KEY, JSON.stringify(o)); } catch (e) {} }
+function lbSessionKey_(s, day) { return [lbSessionProgramId_(s), day, s.startTime].join('|'); }
+
+/** Totoong petsa/oras ng susunod na occurrence ng session ngayong linggo. */
+function lbSessionWhen_(day, startTime, endTime) {
+  const di = WEEK_DAY_ORDER.indexOf(day);
+  if (di < 0) return null;
+  const now = new Date();
+  const off = (di - getTodayIndex_() + 7) % 7;
+  const mk = function (t) {
+    const a = String(t || '0:0').split(':');
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() + off, +a[0] || 0, +a[1] || 0, 0);
+  };
+  return { start: mk(startTime), end: mk(endTime), now: now };
+}
+
+function lbFmtLeft_(ms) {
+  const m = Math.max(1, Math.round(ms / 60000));
+  if (m < 60) return m + ' min';
+  if (m < 1440) return Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+  return Math.floor(m / 1440) + 'd ' + Math.floor((m % 1440) / 60) + 'h';
+}
+
+/** Status ng session: Open / Closed / In progress / Ended / Cancelled. */
+function lbSessionPhase_(s, w) {
+  if (s.status === 'Cancelled') return { k:'cancelled', cls:'overdue', label:'Cancelled', note: s.statusNote || '' };
+  if (!w) return { k:'open', cls:'pending', label:'Scheduled', note:'' };
+  const n = w.now.getTime(), st = w.start.getTime(), en = w.end.getTime(), cut = st - LB_RESERVE_CUTOFF_H * 3600000;
+  if (n >= en) return { k:'ended', cls:'pending', label:'Ended', note:'This session has finished.' };
+  if (n >= st) return { k:'ongoing', cls:'pending', label:'In progress', note:'Training is ongoing.' };
+  if (n >= cut) return { k:'closed', cls:'pending', label:'Reservations closed', note:'Reservations close ' + LB_RESERVE_CUTOFF_H + ' hours before start. Starts in ' + lbFmtLeft_(st - n) + '.' };
+  return { k:'open', cls:'paid', label:'Open for reservation', note:'Reserve within ' + lbFmtLeft_(cut - n) + ' (closes ' + LB_RESERVE_CUTOFF_H + ' hours before start).' };
+}
+
+function lbSessionLifecycleHtml_(s, idx) {
+  return '<div id="sessLife">' + lbSessionLifeInner_(s, idx) + '</div>';
+}
+
+function lbSessionLifeInner_(s, idx) {
+  const esc = lbEscapeHtml_;
+  const day = lbCurrentDayName_;
+  const pid = lbSessionProgramId_(s);
+  const w = lbSessionWhen_(day, s.startTime, s.endTime);
+  const ph = lbSessionPhase_(s, w);
+  const p = pfSnapPlayer_();
+  const key = lbSessionKey_(s, day);
+  const resv = (p && LB_RESERVE_API) ? lbResvLoad_()[p.playerId + '|' + key] : null;
+  const row = function (label, html) {
+    return '<div class="session-detail-label">' + label + '</div>' + html;
+  };
+  const txt = function (t) { return '<p class="lb-text">' + t + '</p>'; };
+
+  const elig = lbShortEligibility_(s.notes) || (pid === 'PRG-ACAD' ? 'Academy players · U5–U13' : (pid === 'PRG-ADV' ? 'U11+ · by assessment' : 'All levels'));
+  const who = (p ? '<b>' + esc(p.fullName) + '</b> · ' : '') + esc(elig);
+
+  /* Status */
+  let out = row('Status', '<div class="pay-badge ' + ph.cls + '" style="margin:0 0 4px">' + esc(ph.label) + '</div>' + (ph.note ? txt(esc(ph.note)) : '')
+    + (resv ? '<div class="pay-badge paid" style="margin:2px 0 4px">✓ You are reserved</div>' : ''));
+
+  /* Who + Can I attend */
+  out += row('Who can attend', txt(who));
+
+  /* Actions */
+  const wa = function (msg) { return 'https://wa.me/639762675397?text=' + encodeURIComponent(msg); };
+  const base = (p ? p.fullName + (p.playerId ? ' (' + p.playerId + ')' : '') : 'my player') + ' — ' + lbShortProgramName_(s.programName) + ', ' + day + ' ' + lbFormatTimeRange_(s.startTime, s.endTime) + ' · ' + s.venue;
+  let actions = '';
+
+  if (ph.k === 'cancelled' || ph.k === 'ended') {
+    actions = '';
+  } else if (pid === 'PRG-ACAD') {
+    actions = txt('Academy players are automatically expected to attend — no booking needed.')
+      + '<a href="' + wa('Hi Admin JA, ' + base + ' — we cannot attend this session.') + '" target="_blank" rel="noopener" class="btn outline" style="width:100%;display:block;text-align:center;box-sizing:border-box;text-decoration:none;margin-top:6px">Can\'t make it? Notify Admin →</a>';
+  } else if (pid === 'PRG-PRIV') {
+    actions = '<a href="' + wa('Hi Admin JA, I would like to book a private session: ' + base) + '" target="_blank" rel="noopener" class="btn primary" style="width:100%;display:block;text-align:center;box-sizing:border-box;text-decoration:none">Message to Book →</a>';
+  } else if (pid === 'PRG-REG' || pid === 'PRG-ADV') {
+    if (!p) {
+      actions = '<button class="btn primary" style="width:100%" onclick="closeSessionDetail_();lbGateThenEnroll_(\'' + pid + '\')">Reserve Spot →</button>';
+    } else if (resv) {
+      actions = '<button class="btn outline" style="width:100%" id="sessCancelBtn" onclick="lbResvAct_(\'cancel\',' + idx + ')">Cancel Reservation</button>';
+    } else if (ph.k === 'open') {
+      actions = '<button class="btn primary" style="width:100%" id="sessReserveBtn" onclick="lbResvAct_(\'reserve\',' + idx + ')">Reserve Spot →</button>'
+        + (LB_RESERVE_API ? '' : '<a href="' + wa('Hi Admin JA, I would like to cancel my reservation: ' + base) + '" target="_blank" rel="noopener" class="btn outline" style="width:100%;display:block;text-align:center;box-sizing:border-box;text-decoration:none;margin-top:8px;background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)">Need to cancel? Message Admin →</a>');
+    } else {
+      actions = '<button class="btn primary" style="width:100%;opacity:.5" disabled>Reservations closed</button>'
+        + txt('Still want to join? Message Admin JA for a walk-in (max 2 per month; the 3rd onward is charged 1.5×).');
+    }
+  }
+  if (actions) out += row('Actions', actions + '<div class="lb-err" id="sessErr"></div>');
+
+  /* If I miss it */
+  out += row('If you miss it', txt('Packages are non-transferable and non-refundable, so missed sessions aren\'t refunded or moved. Message Admin JA as early as you can.'));
+
+  /* Weather */
+  out += row('Weather', txt('If weather cancels within the first 45 minutes, the session is not deducted. If training runs more than 45 minutes, it counts as completed.'));
+
+  /* Contact */
+  out += '<a href="' + wa('Hi Admin JA, question about: ' + base) + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:var(--royal);text-decoration:none;margin:6px 0 4px">💬 Contact Admin JA →</a>';
+
+  return out;
+}
+
+async function lbResvAct_(op, idx) {
+  const s = lbCurrentDaySessions[idx];
+  const p = pfSnapPlayer_();
+  if (!s || !p) return;
+  const day = lbCurrentDayName_;
+  const base = p.fullName + ' (' + p.playerId + ') — ' + lbShortProgramName_(s.programName) + ', ' + day + ' ' + lbFormatTimeRange_(s.startTime, s.endTime) + ' · ' + s.venue;
+
+  /* walang backend pa: WhatsApp muna */
+  if (!LB_RESERVE_API) {
+    const msg = (op === 'reserve' ? 'Hi Admin JA, I would like to reserve a spot: ' : 'Hi Admin JA, I would like to cancel my reservation: ') + base;
+    window.open('https://wa.me/639762675397?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    return;
+  }
+
+  const btn = document.getElementById(op === 'reserve' ? 'sessReserveBtn' : 'sessCancelBtn');
+  const err = document.getElementById('sessErr');
+  if (err) err.textContent = '';
+  if (btn) { btn.disabled = true; btn.textContent = op === 'reserve' ? 'Reserving…' : 'Cancelling…'; }
+  try {
+    await doFetch(op === 'reserve' ? 'reserveSpot' : 'cancelReservation', {
+      playerId: p.playerId, programId: lbSessionProgramId_(s), day: day,
+      startTime: s.startTime, endTime: s.endTime
+    });
+    const m = lbResvLoad_(), k = p.playerId + '|' + lbSessionKey_(s, day);
+    if (op === 'reserve') m[k] = Date.now(); else delete m[k];
+    lbResvSave_(m);
+    const slot = document.getElementById('sessLife');
+    if (slot) slot.innerHTML = lbSessionLifeInner_(s, idx);
+    appToast_(op === 'reserve' ? 'Spot reserved ✓' : 'Reservation cancelled');
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = op === 'reserve' ? 'Reserve Spot →' : 'Cancel Reservation'; }
+    if (err) err.textContent = "We couldn't complete that (" + e.message + "). Please try again.";
+  }
+}
+/* === END: SESSION DETAIL — FULL LIFECYCLE === */
 
 function closeSessionDetail_() {
 document.getElementById('sessionDetailModal').classList.remove('open');
@@ -4633,6 +4787,7 @@ return;
 }
 
 lbCurrentDaySessions = dayData.sessions;
+lbCurrentDayName_ = day;
 
 body.innerHTML = dayData.sessions.map(function (s, i) {
 const isPrivate = /private/i.test(s.programName);
@@ -4822,6 +4977,12 @@ body.scrollTop = 0;
 
 }
 
+/* === START: BALL TOP UP — DIRECT TO SESSIONS === */
+function lbBallTopup_() {
+if (pfSnapLoad_()) hdOpenSessions_(); // may saved player: diretso sa Sessions & Top Up
+else lbGoTo('topupFind');             // wala pa: hanapin muna ang player
+}
+/* === END: BALL TOP UP — DIRECT TO SESSIONS === */
 /* === START: ANYTIME LIVITY — ASSISTANT MENU === */
 function lbMenuItem_(key, ico, title, sub, action, extraStyle) {
 return `<button class="lb-item" data-lb="${key}" onclick="${action}"${extraStyle ? ` style="${extraStyle}"` : ''}>
@@ -4834,8 +4995,8 @@ function lbScreenMenu() {
 /* === START: BALL MENU TRIMMED — My Player / Schedule / Help moved to Profile & tabs === */
 return `<p class="lb-sub">What would you like to do?</p>`
 + lbMenuItem_('enroll', pfIco_('edit', 20), 'Enroll', 'Register a new player', "lbGateThenEnroll_('')")
-+ lbMenuItem_('topup', pfIco_('card', 20), 'Top Up', 'Add training sessions', "lbGoTo('topupFind')")
-+ lbMenuItem_('askadmin', pfIco_('chat', 20), 'Ask Admin', 'Get help', "lbGoTo('askadmin')");
++ lbMenuItem_('topup', pfIco_('card', 20), 'Top Up', 'Add training sessions', "lbBallTopup_()")
++ lbMenuItem_('askadmin', pfIco_('chat', 20), 'Ask Admin', (lbChatUnreadN_ > 0 ? lbChatUnreadN_ + ' new repl' + (lbChatUnreadN_ === 1 ? 'y' : 'ies') : 'Get help'), "lbGoTo('askadmin')");
 /* === END: BALL MENU TRIMMED === */
 }
 /* === END: ANYTIME LIVITY — ASSISTANT MENU === */
@@ -6215,14 +6376,16 @@ lbLoadChatMessages_();
 }
 
 function lbRenderChatScreen_() {
+lbChatLoaded_ = false; lbChatLoadFailed_ = false;
 lbBody().innerHTML = `
 <div class="chat-header">
 <div class="chat-avatar">A</div>
 <div>
 <b>Academy Admin</b>
-<span>Academy Support</span>
+<span id="chatStatus">Academy Support</span>
 </div>
 </div>
+<div id="chatBanner"></div>
 <div class="chat-quick">
 <button onclick="lbSendQuickPrompt_('Ask about my schedule')">Ask about my schedule</button>
 <button onclick="lbSendQuickPrompt_('Ask about payment')">Ask about payment</button>
@@ -6231,7 +6394,7 @@ lbBody().innerHTML = `
 <div class="chat-messages" id="chatMessages">
 ${lbLoadingHtml_('Loading conversation…')}
 </div>
-<div class="chat-input-row">
+<div class="chat-input-row" id="chatInputRow">
 <input type="text" id="chatInput" placeholder="Type your message…" onkeydown="if(event.key==='Enter')lbSendChatMessage_()">
 <button class="chat-send-btn" onclick="lbSendChatMessage_()">Send</button>
 </div>
@@ -6242,33 +6405,211 @@ Prefer WhatsApp? <a href="https://wa.me/639762675397" target="_blank" rel="noope
 }
 
 async function lbLoadChatMessages_() {
+if (!lbChatContact) return;
+const w = lbChatContact.whatsapp;
 try {
-const res = await fetch(LIVITY_API_URL + '?action=messages&contact=' + encodeURIComponent(lbChatContact.whatsapp));
+const res = await fetch(LIVITY_API_URL + '?action=messages&contact=' + encodeURIComponent(w));
 const json = await res.json();
-lbChatMessages = (json.success && json.messages) ? json.messages : [];
+if (!json.success) throw new Error('bad messages payload');
+if (!lbChatContact || lbChatContact.whatsapp !== w) return;
+const prevAdmin = lbChatAdminCount_();
+lbChatMessages = (json.messages || []).map(function (m) { return Object.assign({ status:'sent' }, m); });
+lbChatClosed_ = !lbChatReopen_ && (json.closed === true || /closed/i.test(String(json.status || '')));
+lbChatLoadFailed_ = false;
+if (lbChatLoaded_ && lbChatAdminCount_() > prevAdmin) appToast_('Admin replied');
+lbChatLoaded_ = true;
 } catch (e) {
-lbChatMessages = [];
+lbChatLoadFailed_ = true; // keep what's on screen
 }
-lbRenderChatMessages_();
+lbChatPaint_();
 }
 
 function lbRenderChatMessages_() {
 const box = document.getElementById('chatMessages');
 if (!box) return;
-if (lbChatMessages.length === 0) {
+const list = lbChatMsgs_();
+
+const st = document.getElementById('chatStatus'); if (st) st.textContent = lbChatStatusLine_();
+const bn = document.getElementById('chatBanner'); if (bn) bn.innerHTML = lbChatBannerHtml_();
+const row = document.getElementById('chatInputRow'); if (row) row.style.display = lbChatClosed_ ? 'none' : 'flex';
+const qk = document.querySelector('#lbBody .chat-quick'); if (qk) qk.style.display = lbChatClosed_ ? 'none' : 'flex';
+
+if (list.length === 0) {
+if (!lbChatLoaded_ && !lbChatLoadFailed_) return; // spinner stays while the first load is running
+if (!lbChatLoaded_) { box.innerHTML = ''; return; } // banner already says it failed
 box.innerHTML = `<div class="chat-empty"><b style="display:block;font-size:13px;color:var(--text);margin-bottom:4px">No messages yet.</b>Ask Admin anything about training, payment, or schedule.</div>`;
 return;
 }
-box.innerHTML = lbChatMessages.map(function (m) {
+
+const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+let lastSent = -1;
+list.forEach(function (m, i) { if (m.sender !== 'Admin' && !m.local) lastSent = i; });
+
+box.innerHTML = list.map(function (m, i) {
 const cls = m.sender === 'Admin' ? 'admin' : 'parent';
-return `<div class="chat-bubble ${cls}">${lbEscapeHtml_(m.body)}</div>`;
+const bub = m.local ? (m.status === 'failed' ? ' failed' : ' pending') : '';
+return `<div class="chat-row ${cls}"><div class="chat-bubble ${cls}${bub}">${lbEscapeHtml_(m.body)}</div>${lbChatMetaHtml_(m, i === lastSent)}</div>`;
 }).join('');
-box.scrollTop = box.scrollHeight;
+
+if (atBottom || box.dataset.n !== String(list.length)) box.scrollTop = box.scrollHeight;
+box.dataset.n = String(list.length);
+lbChatMarkSeen_();
 }
 
 function lbEscapeHtml_(s) {
 return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+/* === START: ASK ADMIN — CONVERSATION LIFECYCLE === */
+const LB_CHAT_OUTBOX_KEY = 'livity_chat_outbox_v1';
+const LB_CHAT_SEEN_KEY = 'livity_chat_seen_v1';
+let lbChatOutbox_ = null, lbChatFlushing_ = false, lbChatClosed_ = false, lbChatReopen_ = false;
+let lbChatLoaded_ = false, lbChatLoadFailed_ = false, lbChatUnreadN_ = 0;
+
+/* ---- outbox: nasa device, kaya hindi nawawala ang hindi pa napapadala ---- */
+function lbOutboxLoad_() {
+if (lbChatOutbox_) return lbChatOutbox_;
+try { lbChatOutbox_ = JSON.parse(localStorage.getItem(LB_CHAT_OUTBOX_KEY) || '[]') || []; } catch (e) { lbChatOutbox_ = []; }
+// naputol habang "sending" (na-close ang app): hindi alam kung nakarating, kaya Failed + Retry
+lbChatOutbox_.forEach(function (m) { if (m.status === 'sending') { m.status = 'failed'; m.error = 'Not confirmed'; } });
+return lbChatOutbox_;
+}
+function lbOutboxSave_() { try { localStorage.setItem(LB_CHAT_OUTBOX_KEY, JSON.stringify(lbChatOutbox_ || [])); } catch (e) {} }
+
+function lbChatPaint_() { if (document.getElementById('chatMessages')) lbRenderChatMessages_(); }
+
+function lbChatMsgs_() {
+const mine = lbOutboxLoad_().filter(function (m) { return lbChatContact && m.whatsapp === lbChatContact.whatsapp; })
+.map(function (m) { return { sender:'Parent', body:m.body, status:m.status, id:m.id, error:m.error, ts:m.ts, local:true }; });
+return lbChatMessages.concat(mine);
+}
+
+/* ---- send / retry / offline ---- */
+async function lbChatSendOne_(m) {
+m.status = 'sending'; m.error = '';
+lbChatPaint_();
+try {
+await doFetch('sendMessage', { contactKey:m.whatsapp, guardianName:m.guardianName, whatsapp:m.whatsapp, body:m.body, requestId:m.id, reopen:m.reopen });
+lbChatOutbox_ = lbOutboxLoad_().filter(function (x) { return x.id !== m.id; });
+lbOutboxSave_();
+if (lbChatContact && lbChatContact.whatsapp === m.whatsapp) lbChatMessages.push({ sender:'Parent', body:m.body, status:'sent', ts:m.ts });
+lbChatReopen_ = false; lbChatClosed_ = false;
+return true;
+} catch (e) {
+m.tries = (m.tries || 0) + 1;
+if (!navigator.onLine) { m.status = 'queued'; m.error = ''; }
+else { m.status = 'failed'; m.error = /reach the server|unexpected response|status/i.test(e.message || '') ? "Couldn't reach Livity" : (e.message || 'Not sent'); }
+lbOutboxSave_();
+return false;
+} finally { lbChatPaint_(); }
+}
+
+async function lbChatFlush_() {
+if (lbChatFlushing_ || !navigator.onLine) { lbChatPaint_(); return; }
+lbChatFlushing_ = true;
+try {
+let m;
+while ((m = lbOutboxLoad_().find(function (x) { return x.status === 'queued'; }))) {
+if (!(await lbChatSendOne_(m))) break;
+}
+} finally { lbChatFlushing_ = false; }
+}
+
+function lbChatRetry_(id) {
+const m = lbOutboxLoad_().find(function (x) { return x.id === id; });
+if (!m) return;
+m.status = 'queued'; m.error = '';
+lbOutboxSave_(); lbChatPaint_(); lbChatFlush_();
+}
+
+function lbChatDiscard_(id) {
+lbChatOutbox_ = lbOutboxLoad_().filter(function (x) { return x.id !== id; });
+lbOutboxSave_(); lbChatPaint_();
+}
+
+function lbChatStartNew_() { lbChatClosed_ = false; lbChatReopen_ = true; lbChatPaint_(); }
+
+/* ---- display ---- */
+function lbChatTime_(m) {
+const v = m.ts || m.createdAt || m.timestamp || m.time || m.date;
+if (!v) return '';
+const d = new Date(v);
+if (isNaN(d.getTime())) return '';
+const t = d.toLocaleTimeString([], { hour:'numeric', minute:'2-digit' });
+return d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString(undefined, { month:'short', day:'numeric' }) + ' · ' + t;
+}
+
+function lbChatMetaHtml_(m, isLastSent) {
+if (m.sender === 'Admin') {
+const t = lbChatTime_(m);
+return t ? '<div class="chat-meta">' + lbEscapeHtml_(t) + '</div>' : '';
+}
+if (m.local) {
+if (m.status === 'failed') {
+return '<div class="chat-meta fail">Failed — ' + lbEscapeHtml_(m.error || 'not sent') + ' · <button type="button" class="chat-act" onclick="lbChatRetry_(\'' + m.id + '\')">Retry</button> · <button type="button" class="chat-act" onclick="lbChatDiscard_(\'' + m.id + '\')">Delete</button></div>';
+}
+return '<div class="chat-meta">' + (navigator.onLine ? 'Sending…' : 'Waiting for connection…') + '</div>';
+}
+if (!isLastSent) return '';
+const t = lbChatTime_(m);
+return '<div class="chat-meta">' + ((m.readAt || m.read) ? 'Seen' : 'Sent') + (t ? ' · ' + lbEscapeHtml_(t) : '') + '</div>';
+}
+
+function lbChatStatusLine_() {
+if (!navigator.onLine) return 'Offline';
+if (lbChatClosed_) return 'Conversation closed';
+if (lbChatLoadFailed_) return "Couldn't refresh — retrying";
+const last = lbChatMessages[lbChatMessages.length - 1];
+if (!last) return 'Academy Support';
+return last.sender === 'Admin' ? 'Admin replied' + (lbChatTime_(last) ? ' · ' + lbChatTime_(last) : '') : 'Waiting for reply';
+}
+
+function lbChatBannerHtml_() {
+if (!navigator.onLine) return '<div class="notice" style="margin:0 0 8px">📶 You\'re offline. Messages are saved and will send when you reconnect.</div>';
+if (lbChatClosed_) return '<div class="notice" style="margin:0 0 8px"><b>This conversation is closed.</b><br><button type="button" class="chat-act" onclick="lbChatStartNew_()">Start a new conversation</button></div>';
+if (lbChatLoadFailed_ && !lbChatLoaded_) return '<div class="notice" style="margin:0 0 8px;background:#ffeceb">Couldn\'t load your conversation. <button type="button" class="chat-act" onclick="lbLoadChatMessages_()">Try again</button></div>';
+return '';
+}
+
+/* ---- unread ---- */
+function lbChatAdminCount_() { return lbChatMessages.filter(function (m) { return m.sender === 'Admin'; }).length; }
+function lbChatSeenGet_(w) { try { const o = JSON.parse(localStorage.getItem(LB_CHAT_SEEN_KEY) || 'null'); return (o && o.w === w) ? Number(o.n) : null; } catch (e) { return null; } }
+function lbChatSeenSet_(w, n) { try { localStorage.setItem(LB_CHAT_SEEN_KEY, JSON.stringify({ w:w, n:n })); } catch (e) {} }
+
+function lbChatBadge_() {
+const ball = document.getElementById('livityBall');
+if (ball) ball.classList.toggle('has-unread', lbChatUnreadN_ > 0);
+}
+
+function lbChatMarkSeen_() {
+if (!lbChatContact || !lbChatLoaded_ || document.hidden || !document.getElementById('chatMessages')) return;
+lbChatSeenSet_(lbChatContact.whatsapp, lbChatAdminCount_());
+lbChatUnreadN_ = 0; lbChatBadge_();
+}
+
+/** Habang sarado ang chat: tahimik na tingin kung may bagong reply (pula ang tuldok sa ball). */
+async function lbChatPoll_() {
+if (document.hidden || !navigator.onLine || document.getElementById('chatMessages')) return;
+const c = lbGetSavedContact_();
+if (!c || !c.whatsapp) return;
+try {
+const res = await fetch(LIVITY_API_URL + '?action=messages&contact=' + encodeURIComponent(c.whatsapp));
+const json = await res.json();
+if (!json.success || !json.messages) return;
+const n = json.messages.filter(function (m) { return m.sender === 'Admin'; }).length;
+const seen = lbChatSeenGet_(c.whatsapp);
+if (seen === null) { lbChatSeenSet_(c.whatsapp, n); lbChatUnreadN_ = 0; }
+else lbChatUnreadN_ = Math.max(0, n - seen);
+lbChatBadge_();
+} catch (e) { /* silent */ }
+}
+
+window.addEventListener('online', function () { lbChatFlush_(); if (document.getElementById('chatMessages')) lbLoadChatMessages_(); });
+window.addEventListener('offline', lbChatPaint_);
+setInterval(lbChatPoll_, 60000);
+document.addEventListener('visibilitychange', function () { if (!document.hidden) lbChatPoll_(); });
+document.addEventListener('DOMContentLoaded', function () { setTimeout(lbChatPoll_, 2500); setTimeout(lbChatFlush_, 3000); });
+/* === END: ASK ADMIN — CONVERSATION LIFECYCLE === */
 
 function lbSendQuickPrompt_(text) {
 const input = document.getElementById('chatInput');
@@ -6280,21 +6621,17 @@ async function lbSendChatMessage_() {
 const input = document.getElementById('chatInput');
 const text = input ? input.value.trim() : '';
 if (!text || !lbChatContact) return;
-
-lbChatMessages.push({ sender: 'Parent', body: text });
-lbRenderChatMessages_();
+if (lbChatClosed_) return;
 if (input) input.value = '';
-
-try {
-await doFetch('sendMessage', {
-contactKey: lbChatContact.whatsapp,
-guardianName: lbChatContact.guardianName,
-whatsapp: lbChatContact.whatsapp,
-body: text
+lbOutboxLoad_().push({
+id: 'CM' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+body: text, ts: Date.now(), status: 'queued', tries: 0, error: '',
+whatsapp: lbChatContact.whatsapp, guardianName: lbChatContact.guardianName,
+reopen: lbChatReopen_ ? 1 : 0
 });
-} catch (e) {
-// stays visible locally kahit mag-fail yung send sa likod
-}
+lbOutboxSave_();
+lbChatPaint_();
+lbChatFlush_();
 }
 /* === END: ASK ADMIN JA — CHAT (Sheet-backed) === */
 
@@ -6480,16 +6817,20 @@ loadGallery_();
 /* === START: GALLERY — FETCH, RENDER, LIGHTBOX === */
 let lbGalleryItems = [];
 
+let lbGalState_ = 'idle'; // idle | loading | ready | error
+
 async function loadGallery_() {
-const grid = document.getElementById('galleryGrid');
-if (!grid) return;
+if (lbGalState_ === 'loading') return;
+lbGalState_ = 'loading';
+renderGallery_();
 try {
 const res = await fetch(LIVITY_API_URL + '?action=gallery');
 const json = await res.json();
 if (!json.success) throw new Error('bad gallery payload');
 lbGalleryItems = json.items || [];
+lbGalState_ = 'ready';
 } catch (e) {
-lbGalleryItems = [];
+lbGalState_ = 'error'; // keep any items already loaded
 }
 renderGallery_();
 }
@@ -6497,6 +6838,16 @@ renderGallery_();
 function renderGallery_() {
 const grid = document.getElementById('galleryGrid');
 if (!grid) return;
+if (lbGalleryItems.length === 0 && lbGalState_ === 'loading') {
+grid.style.display = 'block';
+grid.innerHTML = lbLoadingHtml_('Loading photos…');
+return;
+}
+if (lbGalleryItems.length === 0 && lbGalState_ === 'error') {
+grid.style.display = 'block';
+grid.innerHTML = lbEmptyState_('', "Couldn't load the gallery", 'Check your connection and try again.', '<button type="button" class="btn outline" style="padding:10px 16px;font-size:13px" onclick="loadGallery_()">Try again</button>');
+return;
+}
 if (lbGalleryItems.length === 0) {
 grid.style.display = 'block';
 grid.innerHTML = `<p class="lb-text" style="color:var(--muted);text-align:center;padding:16px 0;margin:0">No photos or videos yet — check back soon.</p>`;
@@ -6530,6 +6881,7 @@ lockBodyScroll_();
 }
 
 function closeGalleryLightbox_() {
+if (!document.getElementById('galleryModal').classList.contains('open')) return;
 const v = document.querySelector('#galleryModalBody video');
 if (v) v.pause();
 document.getElementById('galleryModal').classList.remove('open');
@@ -6862,15 +7214,13 @@ function pfSupportRow_(ico, title, sub, action) {
 }
 
 function pfWhatsNew_() {
-  if (lbVersion_) verOpen_();
-  else appToast_('Nothing new to show yet');
+  verOpen_();
 }
 
 function pfSupportHtml_() {
   var ver = lbVersion_ ? 'v' + lbEscapeHtml_(lbVersion_.version) : '';
   return '<div class="mo-sec" style="margin-top:18px">Support</div>'
-    + pfSupportRow_('chat',  'Ask Admin',    'Chat with Admin',      "lbGoTo('askadmin')")
-    + pfSupportRow_('help',  'Help &amp; Tour', 'Guides and walkthroughs', "closeLivityBall();openTutorial()")
+    + pfSupportRow_('help',  'Help', 'Step-by-step guides', "closeLivityBall();openTutorial()")
     + pfSupportRow_('star',  'Rate Us',      'Tell us how we\'re doing', "openRateModal()")
     + pfSupportRow_('share', 'Share App',    'Send Livity to a friend',  "moShare_()")
     + pfSupportRow_('spark', 'What\'s New',  ver,                        "pfWhatsNew_()");
@@ -7572,64 +7922,6 @@ if (panel) panel.innerHTML = `<div class="pay-badge pending">📶 Saved on this 
 }
 /* === END: PAYMENT PANEL EDIT === */
 
-/* ---- SCAN: gumagamit na ng Livity backend (overrides) ---- */
-async function scApi_(action, params) {
-const res = await fetch(LIVITY_API_URL, {
-method: 'POST',
-headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-body: JSON.stringify(Object.assign({ action: action, key: scKey_() }, params || {})),
-redirect: 'follow'
-});
-const data = await res.json();
-if (!data.success) throw new Error(data.error || 'Server error');
-return data;
-}
-
-async function scLoadSessions_() {
-const sel = scEl_('scSessionSel');
-try {
-const r = await scApi_('scanSessions', {});
-scSessions = r.sessions || [];
-scCacheSessions_(scSessions);
-const d = new Date();
-const nowMin = d.getHours() * 60 + d.getMinutes();
-const toMin = function (t) { const a = String(t || '0:0').split(':'); return (+a[0]) * 60 + (+a[1]); };
-const pick = scSessions.filter(function (s) { return nowMin <= toMin(s.end) + 30; })[0] || scSessions[scSessions.length - 1] || null;
-scSession = pick ? pick.scheduleId : null;
-sel.innerHTML = scSessions.length ? scSessions.map(function (s) {
-const label = lbShortProgramName_(s.programName) + ' · ' + lbFormatTimeRange_(s.start, s.end) + ' · ' + s.venue;
-return '<option value="' + lbEscapeHtml_(s.scheduleId) + '"' + (s.scheduleId === scSession ? ' selected' : '') + '>' + lbEscapeHtml_(label) + '</option>';
-}).join('') : '<option value="">No training scheduled today</option>';
-scRenderCounts_(pick ? pick.counts : { total: 0, present: 0, late: 0, unconfirmed: 0 });
-if (scPending_) scLookup_(scPending_);
-} catch (e) {
-if (/key/i.test(e.message)) return scForgetKey_('Wrong or missing staff key.');
-const cached = await scIdbGetAll_('sessions');
-if (cached.length) {
-scSessions = cached;
-scSession = cached[0].scheduleId;
-sel.innerHTML = cached.map(function (s) {
-const label = lbShortProgramName_(s.programName) + ' · ' + lbFormatTimeRange_(s.start, s.end) + ' · ' + s.venue;
-return '<option value="' + lbEscapeHtml_(s.scheduleId) + '"' + (s.scheduleId === scSession ? ' selected' : '') + '>' + lbEscapeHtml_(label) + ' (cached)</option>';
-}).join('');
-scRenderCounts_(cached[0].counts || { total: 0, present: 0, late: 0, unconfirmed: 0 });
-} else {
-sel.innerHTML = '<option value="">Could not load — connect once to cache today\'s schedule</option>';
-scShow_('err', 'Server error', e.message);
-}
-}
-scRenderSyncStatus_();
-}
-
-async function scRefreshCounts_() {
-try {
-const r = await scApi_('scanSessions', {});
-scSessions = r.sessions || [];
-const s = scSessions.filter(function (x) { return x.scheduleId === scSession; })[0];
-scRenderCounts_(s ? s.counts : { total: 0, present: 0, late: 0, unconfirmed: 0 });
-} catch (e) { /* silent */ }
-}
-
 function scShowPlayer_(kind, r) {
 const box = scEl_('scResult'), cam = scEl_('scCam');
 if (!box) return;
@@ -7731,41 +8023,6 @@ scPending_ = '';
 if (!c) return;
 scBusy = false;
 scHandle_(c, false);
-}
-
-async function scHandle_(code, manual) {
-if (scBusy) return;
-const now = Date.now();
-if (!manual && code === scLastCode && now - scLastAt < 2500) return;
-scBusy = true; scLastCode = code; scLastAt = now;
-if (!scSession) { scBusy = false; return scShow_('err', 'Pick a session first', ''); }
-
-let kind = 'err';
-try {
-const r = await scApi_('scanPlayer', { scheduleId: scSession, code: String(code).trim(), manual: manual ? '1' : '0' });
-kind = { PRESENT: 'ok', LATE: 'late', DUPLICATE: 'dup' }[r.result] || 'err';
-scShowPlayer_(kind, r);
-if (r.counts) scRenderCounts_(r.counts);
-} catch (e) {
-if (/key/i.test(e.message)) { scBusy = false; return scForgetKey_('Wrong or missing staff key.'); }
-scShow_('err', 'Could not record', String(e.message || 'No connection').slice(0, 60));
-}
-
-if (navigator.vibrate) navigator.vibrate(kind === 'err' ? [12, 8, 12] : [10, 6, 20]);
-clearTimeout(scFlashTimer);
-scFlashTimer = setTimeout(function () {
-scBusy = false;
-const cam = scEl_('scCam'); if (cam) cam.className = 'sc-cam';
-}, SC_RESULT_MS);
-}
-
-function scManualSubmit_() {
-const inp = scEl_('scManual');
-const v = (inp.value || '').trim();
-if (!v) return;
-inp.value = '';
-scBusy = false;
-scHandle_(v, true);
 }
 
 /* Kapag na-scan ng phone camera ang QR → ?lvt=…&t=… → bubukas ang scan modal sa player card (staff lang) */
@@ -8021,7 +8278,7 @@ let rateSelected = '';
 
 function openRateModal() {
 rateSelected = '';
-document.getElementById('rateModalBody').innerHTML = rateModalForm();
+document.getElementById('rateModalBody').innerHTML = rateEntryHtml_();
 document.getElementById('rateModal').classList.add('open');
 document.getElementById('rateBackdrop').classList.add('open');
 lockBodyScroll_();
@@ -8043,7 +8300,7 @@ return `
 <button type="button" class="ra-face good ${rateSelected === 'good' ? 'sel' : ''}" data-r="good" onclick="pickRate('good')"><span>🙂</span><b>Loving it</b></button>
 <button type="button" class="ra-face bad ${rateSelected === 'bad' ? 'sel' : ''}" data-r="bad" onclick="pickRate('bad')"><span>🙁</span><b>Needs work</b></button>
 </div>
-<div class="ra-more ${rateSelected ? 'show' : ''}" id="raMore"><div><textarea class="ra-text" id="rateDetails" rows="3" placeholder="Tell us more (optional)"></textarea></div></div>
+<div class="ra-more ${rateSelected ? 'show' : ''}" id="raMore"><div><textarea class="ra-text" id="rateDetails" rows="3" maxlength="500" placeholder="Tell us more (optional)"></textarea></div></div>
 <div class="ra-actions">
 <button type="button" class="ra-send" id="raSend" onclick="submitRate()" ${rateSelected ? '' : 'disabled'}>Send Feedback</button>
 <button type="button" class="ra-later" onclick="closeRateModal()">Not now</button>
@@ -8068,7 +8325,102 @@ if (send) send.disabled = false;
 /* === END: RATE US — PICK === */
 
 /* === START: RATE US — APPLE-STYLE SUCCESS === */
+/* === START: RATE US — SUBMIT LIFECYCLE === */
+const RATE_KEY = 'livity_rate_v1';          // { sent:{rating,at}, pending:{id,rating,text,ts,error} }
+const RATE_ANON_KEY = 'livity_anon_v1';
+const RATE_COOLDOWN_MS = 7 * 86400000;      // isang rating kada 7 araw bawat device
+let rateSending_ = false;
+
+function rateLoad_() { try { return JSON.parse(localStorage.getItem(RATE_KEY) || 'null') || {}; } catch (e) { return {}; } }
+function rateSave_(o) { try { localStorage.setItem(RATE_KEY, JSON.stringify(o)); } catch (e) {} }
+function rateAnonId_() {
+  try {
+    let id = localStorage.getItem(RATE_ANON_KEY);
+    if (!id) { id = 'AN' + Date.now().toString(36) + Math.random().toString(36).slice(2, 9); localStorage.setItem(RATE_ANON_KEY, id); }
+    return id;
+  } catch (e) { return 'AN-NOSTORE'; }
+}
+function ratePaint_(html) {
+  const m = document.getElementById('rateModal');
+  if (m && m.classList.contains('open')) document.getElementById('rateModalBody').innerHTML = html;
+}
+
+function rateFailedHtml_(p) {
+  return '<div class="ra-title">Couldn\'t send</div>'
+    + '<div class="ra-sub">' + lbEscapeHtml_(p.error || 'Something went wrong.') + '<br>Your feedback is saved on this device.</div>'
+    + '<div class="ra-actions"><button type="button" class="ra-send" onclick="rateSend_()">Retry</button>'
+    + '<button type="button" class="ra-later" onclick="closeRateModal()">Not now</button>'
+    + '<button type="button" class="ra-later" style="color:var(--muted);font-size:13px" onclick="rateDiscard_()">Discard feedback</button></div>';
+}
+
+function rateAlreadyHtml_(s) {
+  const left = Math.max(1, Math.ceil((s.at + RATE_COOLDOWN_MS - Date.now()) / 86400000));
+  const when = new Date(s.at).toLocaleDateString(undefined, { month:'short', day:'numeric' });
+  return '<div class="ra-icon"><img src="' + moLogoSrc_() + '" alt="" width="46" height="46"></div>'
+    + '<div class="ra-title">Thanks, we got your feedback</div>'
+    + '<div class="ra-sub">You rated us ' + (s.rating === 'good' ? '🙂' : '🙁') + ' on ' + when + '. You can send another in ' + left + ' day' + (left === 1 ? '' : 's') + '.<br>For urgent concerns, message Admin JA.</div>'
+    + '<div class="ra-actions"><button type="button" class="ra-send" onclick="closeRateModal()">Close</button></div>';
+}
+
+function rateEntryHtml_() {
+  const st = rateLoad_();
+  if (st.pending) return rateFailedHtml_(st.pending);  // may naiwang hindi napadala
+  if (st.sent && Date.now() - st.sent.at < RATE_COOLDOWN_MS) return rateAlreadyHtml_(st.sent);
+  return rateModalForm();
+}
+
+function rateDiscard_() {
+  const st = rateLoad_(); delete st.pending; rateSave_(st);
+  rateSelected = '';
+  ratePaint_(rateModalForm());
+}
+
 function submitRate() {
+  if (!rateSelected || rateSending_) return;            // double-tap guard
+  const ta = document.getElementById('rateDetails');
+  const st = rateLoad_();
+  if (st.sent && Date.now() - st.sent.at < RATE_COOLDOWN_MS) { ratePaint_(rateAlreadyHtml_(st.sent)); return; }
+  st.pending = { id: 'RT' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), rating: rateSelected, text: (ta ? ta.value : '').trim().slice(0, 500), ts: Date.now(), error: '' };
+  rateSave_(st);
+  rateSend_();
+}
+
+async function rateSend_() {
+  if (rateSending_) return;
+  const st = rateLoad_(), p = st.pending;
+  if (!p) return;
+  rateSending_ = true; p.error = ''; rateSave_(st);
+  ratePaint_(lbLoadingHtml_('Sending feedback…'));
+  const pl = (typeof pfSnapPlayer_ === 'function') ? pfSnapPlayer_() : null;
+  try {
+    await doFetch('submitRating', {
+      requestId: p.id, rating: p.rating, comment: p.text,
+      playerId: pl ? pl.playerId : '', anonId: rateAnonId_(),
+      appVersion: lbVersion_ ? lbVersion_.version : '',
+      clientTs: new Date(p.ts).toISOString(), ua: (navigator.userAgent || '').slice(0, 80)
+    });
+    st.sent = { rating: p.rating, at: Date.now() }; delete st.pending; rateSave_(st);
+    rateSelected = p.rating;
+    const open = document.getElementById('rateModal').classList.contains('open');
+    if (open) rateShowThanks_(); else appToast_('Feedback sent ✓');
+  } catch (e) {
+    const msg = String(e.message || '');
+    if (/already|too many|limit/i.test(msg)) {            // server mismo ang nag-sabing may rating na
+      st.sent = { rating: p.rating, at: Date.now() }; delete st.pending; rateSave_(st);
+      ratePaint_(rateAlreadyHtml_(st.sent));
+    } else {
+      p.error = (/reach the server|unexpected response|status/i.test(msg) || !navigator.onLine) ? "Couldn't reach Livity. Check your connection." : msg;
+      rateSave_(st);
+      ratePaint_(rateFailedHtml_(p));
+    }
+  } finally { rateSending_ = false; }
+}
+
+/* kapag bumalik ang internet: ipadala nang tahimik ang naiwan */
+window.addEventListener('online', function () { if (rateLoad_().pending) rateSend_(); });
+/* === END: RATE US — SUBMIT LIFECYCLE === */
+
+function rateShowThanks_() {
 if (!rateSelected) return;
 document.getElementById('rateModalBody').innerHTML = `
 <div class="ra-done">
@@ -8091,14 +8443,14 @@ steps:[
 { icon:'◫', title:'Browse Programs', text:'Tap "Programs" to see every training type and pick the one you play.' },
 { icon:'◷', title:'Know Your Schedule', text:'Tap "Schedule" to see exactly what day and time your training is.' },
 { icon:'⚽', title:'Tap the Floating Ball', text:'Ask Admin JA a question or top up your sessions anytime.' },
-{ icon:'↗', title:'New Here? Enroll', text:'Tap "Enroll" and sign up together with your parent.' }
+{ icon:'↗', title:'New Here? Enroll', text:'Tap ☰ on the Home screen, then "Enroll a New Player", and sign up together with your parent.' }
 ]
 },
 parent: {
 icon:'👨‍👩‍👧', label:'Parent', color:'#ED1C24', caption:'Enroll, pay, and track sessions',
 steps:[
-{ icon:'↗', title:'Enroll a New Player', text:'Tap "Enroll" on the Home screen, choose a program, and fill out the short form.' },
-{ icon:'⚽', title:'Manage an Existing Player', text:'Tap the floating ball → "My Player" → enter your WhatsApp number to see your child\'s full profile.' },
+{ icon:'↗', title:'Enroll a New Player', text:'Tap ☰ on the Home screen, then "Enroll a New Player", choose a program, and fill out the short form.' },
+{ icon:'⚽', title:'Manage an Existing Player', text:'Tap My Livity at the bottom → enter your WhatsApp number to see your child\'s full profile.' },
 { icon:'₱', title:'Payments & Balance', text:'Inside the player profile, check "Payments & Balance" for what\'s due and when.' },
 { icon:'◷', title:'Weekly Schedule', text:'Tap "Schedule" in the bottom menu to see the whole week at a glance.' },
 { icon:'☷', title:'Talk to Admin', text:'Tap the ball → "Ask Admin" to chat directly with our staff.' }
@@ -8222,8 +8574,7 @@ steps:[
 "Prefer WhatsApp? Use the direct link at the bottom of the chat."
 ], cta:'Ask Admin →', action:"tutOpenLb_('askadmin')" },
 
-{ key:'journey', icon:'🧭', label:'What happens at training?', title:'Your Livity Journey', sub:'', steps:[], cta:'', action:'' },
-{ key:'app', icon:'📱', label:'Understand the app', title:'Understand the app', sub:'', steps:[], cta:'', action:'' }
+{ key:'journey', icon:'🧭', label:'What happens at training?', title:'Your Livity Journey', sub:'', steps:[], cta:'', action:'' }
 ];
 
 /** Closes the help sheet, then opens Anytime Livity directly on the given screen. */
@@ -8249,10 +8600,7 @@ document.getElementById('tutorialBody').innerHTML = `
 <p>Pick a task and we'll walk you through it.</p>
 </div>
 ${rows}
-<div class="session-detail-label" style="margin-top:18px">New to Livity?</div>
-<button class="btn primary" style="width:100%;margin-bottom:12px" onclick="tutTourStart_('around')">Show me around</button>
-<div class="session-detail-label">Already know the app?</div>
-<button class="btn outline" style="width:100%" onclick="closeTutorial()">Skip</button>
+<button type="button" class="pf-photo-rm" style="display:block;margin:16px auto 0" onclick="tutTourStart_('first')">Replay the app tour</button>
 `;
 }
 
@@ -8260,7 +8608,7 @@ ${rows}
 const TUTORIAL_JOURNEY = [
 { title:'Register', text:'Sign up through Enroll. Your payment stays Pending until Livity confirms it.' },
 { title:'Choose your program', text:'Regular, Private, Advanced (by assessment) or Academy. Not sure? Ask Admin JA.' },
-{ title:'Get your Player ID', text:"It's shown on your player's profile under My Player. Keep it handy." },
+{ title:'Get your Player ID', text:"It's shown on your player's card in My Livity. Keep it handy." },
 { title:'Check your schedule', text:'Open Schedule to see training days, times and venues.' },
 { title:'Attend training', text:'Academy players are expected to attend automatically. For Regular and Advanced, reserve your spot at least 2 hours before.' },
 { title:'Track your sessions', text:'My Player shows how many sessions you have left.' },
@@ -8285,14 +8633,12 @@ document.getElementById('tutorialBody').innerHTML = `
 <p>From sign-up to your first session, and every session after.</p>
 </div>
 ${items}
-<button class="btn primary" style="width:100%;margin-top:16px" onclick="tutTourStart_('first')">👆 Show me around</button>
 `;
 document.getElementById('tutorialBody').scrollTop = 0;
 }
 /* === END: YOUR LIVITY JOURNEY === */
 
 function renderTutorialTask_(key) {
-if (key === 'app') return renderTutorialRoleSelect_();
 if (key === 'journey') return renderTutorialJourney_();
 const t = TUTORIAL_TASKS.find(function (x) { return x.key === key; });
 if (!t) return renderTutorialHome_();
@@ -8311,8 +8657,7 @@ document.getElementById('tutorialBody').innerHTML = `
 <p>${t.sub}</p>
 </div>
 ${steps}
-${TUT_TASK_TOUR[t.key] ? `<button class="btn primary" style="width:100%;margin-top:6px" onclick="tutTourStart_('${TUT_TASK_TOUR[t.key]}')">👆 Show me on screen</button>` : ''}
-<button class="btn outline" style="width:100%;margin-top:8px;background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)" onclick="${t.action}">${t.cta}</button>
+<button class="btn primary" style="width:100%;margin-top:6px" onclick="${t.action}">${t.cta}</button>
 `;
 }
 /* === END: HELP HOME — TASK-BASED === */
@@ -8623,9 +8968,6 @@ try { navigator.vibrate(8); } catch (err) {}
 })();
 /* === END: GLOBAL HAPTIC TAP === */
 /* === START: SCAN MODAL — LOGIC (QR attendance) === */
-/* === START: SCAN API URL EDIT === */
-const SCAN_API_URL = LIVITY_API_URL; // legacy constant — scanner shares the Livity backend
-/* === END: SCAN API URL EDIT === */
 const SCAN_KEY_STORE = 'livity_scan_key_v1'; // staff key — nasa device lang ng staff, hindi sa source code
 const SC_RESULT_MS = 1700;
 let scStream = null, scScanning = false, scBusy = false, scLastCode = '', scLastAt = 0;
@@ -8756,7 +9098,7 @@ return all.filter(function (a) { return a.syncStatus === 'pending'; }).length;
 
 let scQueueFlushing_ = false;
 async function scQueueFlush_() {
-if (scQueueFlushing_ || !navigator.onLine) return;
+if (scQueueFlushing_ || !navigator.onLine || !scKey_()) return;
 scQueueFlushing_ = true;
 let accepted = 0, duplicate = 0, errored = 0;
 try {
@@ -8777,6 +9119,7 @@ if (r.player) scCachePlayer_(r.player);
 if (r.counts) scRenderCounts_(r.counts);
 scShowSyncProgress_('SYNCING…', pending.length - (i + 1), accepted, duplicate);
 } catch (e) {
+if (/key/i.test(e.message || '')) break; // key problem, hindi sira ang scan; maghintay ng sign-in
 job.retryCount = (job.retryCount || 0) + 1;
 const isPermanent = job.retryCount >= 20;
 await scIdbPut_('attendance', isPermanent ? Object.assign({}, job, { syncStatus: 'error' }) : job);
@@ -8911,26 +9254,6 @@ window.addEventListener('offline', scCheckConnection_);
 
 function scEl_(id) { return document.getElementById(id); }
 function scKey_() { try { return localStorage.getItem(SCAN_KEY_STORE) || ''; } catch (e) { return ''; } }
-function scToday_() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
-
-async function scApi_(action, params) {
-const res = await fetch(SCAN_API_URL, {
-method: 'POST',
-headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // simple request = walang CORS preflight
-body: JSON.stringify(Object.assign({ action: action, key: scKey_() }, params || {})),
-redirect: 'follow'
-});
-const data = await res.json();
-if (!data.ok) throw new Error(data.error || 'Server error');
-return data;
-}
-
-function openScan_() {
-scEl_('scanModal').classList.add('open');
-lockBodyScroll_();
-if (!scKey_()) return scRenderGate_('');
-scRenderMain_();
-}
 
 function closeScan_() {
 scStop_();
@@ -8939,29 +9262,9 @@ scEl_('scanModal').classList.remove('open');
 unlockBodyScroll_(); // now handles the nav reset/re-pin retries centrally
 }
 
-function scRenderGate_(msg) {
-scEl_('scanBody').innerHTML = `
-<div class="tutorial-intro" style="margin-top:24px"><div class="tutorial-intro-ico">🔐</div><h4 style="color:#fff">Staff access</h4><p style="color:#c8c4bb">Enter the staff key once. It's saved on this device only.</p></div>
-<input class="lb-input" id="scKeyInput" type="password" placeholder="Staff key" autocomplete="off" onkeydown="if(event.key==='Enter')scSaveKey_()">
-<div class="lb-err">${lbEscapeHtml_(msg)}</div>
-<button class="btn primary" style="width:100%" onclick="scSaveKey_()">Unlock →</button>`;
-}
-
-function scSaveKey_() {
-const v = scEl_('scKeyInput').value.trim();
-if (!v) return;
-try { localStorage.setItem(SCAN_KEY_STORE, v); } catch (e) {}
-scRenderMain_();
-}
-
-function scForgetKey_(msg) {
-scStop_();
-try { localStorage.removeItem(SCAN_KEY_STORE); } catch (e) {}
-scRenderGate_(msg || '');
-}
-
 function scRenderMain_() {
 scEl_('scanBody').innerHTML = `
+${staffBarHtml_()}
 <div style="display:flex;gap:8px;margin:2px 0 12px">
 <button type="button" class="btn primary" id="scModeAttBtn" style="flex:1;padding:11px;font-size:12px" onclick="scSetMode_('attendance')">▶ Start Attendance</button>
 <button type="button" class="btn outline" id="scModeTestBtn" style="flex:1;padding:11px;font-size:12px" onclick="scSetMode_('test')">🔍 Test / Verify QR</button>
@@ -8997,36 +9300,13 @@ TAP TO SCAN
 <input class="lb-input" id="scManual" placeholder="LVTFA-XXXXXXX" autocapitalize="characters" autocomplete="off" onkeydown="if(event.key==='Enter')scManualSubmit_()">
 <button class="btn primary" onclick="scManualSubmit_()">Record</button>
 </div>
-<div style="text-align:center"><button class="sc-link" onclick="scForgetKey_('')">Change staff key</button></div>`;
+<div style="text-align:center"></div>`;
 scRenderCacheSummary_();
 scUpdateDecoderLabel_();
 scRenderModeButtons_();
 scLoadSessions_();
 scRenderSyncStatus_();
 scStartConnMonitor_();
-}
-
-async function scLoadSessions_() {
-const sel = scEl_('scSessionSel');
-try {
-if (!SCAN_API_URL || SCAN_API_URL.indexOf('PASTE') === 0) throw new Error('Scan server URL is not set yet.');
-const r = await scApi_('sessions', {});
-const today = scToday_();
-scSessions = r.sessions.slice().sort(function (a, b) { return (b.date + b.start).localeCompare(a.date + a.start); }).slice(0, 10);
-const pick = scSessions.filter(function (s) { return s.date === today && s.status === 'Open'; })[0]
-|| scSessions.filter(function (s) { return s.date === today; })[0]
-|| scSessions[0] || null;
-scSession = pick ? pick.sessionId : null;
-sel.innerHTML = scSessions.length ? scSessions.map(function (s) {
-const label = s.team + ' · ' + (s.date === today ? 'Today' : s.date) + ' · ' + lbFormatTime12_(s.start) + (s.status === 'Closed' ? ' · Closed' : '');
-return '<option value="' + lbEscapeHtml_(s.sessionId) + '"' + (s.sessionId === scSession ? ' selected' : '') + '>' + lbEscapeHtml_(label) + '</option>';
-}).join('') : '<option value="">No sessions yet</option>';
-scRefreshCounts_();
-} catch (e) {
-if (/key|unauthor|denied/i.test(e.message)) return scForgetKey_('Wrong or missing staff key.');
-sel.innerHTML = '<option value="">Could not load sessions</option>';
-scShow_('err', 'Server error', e.message);
-}
 }
 
 function scPickSession_(id) { if (scTestMode_) return; scSession = id || null; scSessionBackup_ = scSession; scRefreshCounts_(); scRenderModeBanner_(); }
@@ -9041,11 +9321,6 @@ el.textContent = '✓ ATTENDANCE MODE — recording to session';
 el.style.background = 'rgba(255,159,10,.16)'; el.style.color = '#FF9F0A';
 el.textContent = '⚠ TEST MODE — no session selected, not recording';
 }
-}
-
-async function scRefreshCounts_() {
-if (!scSession) return scRenderCounts_({ total: 0, present: 0, late: 0, unconfirmed: 0 });
-try { const r = await scApi_('roster', { sessionId: scSession }); scRenderCounts_(r.counts); } catch (e) { /* silent */ }
 }
 
 function scRenderCounts_(c) {
@@ -9145,46 +9420,6 @@ requestAnimationFrame(scTick_);
 }
 
 /* ---- record attendance ---- */
-async function scHandle_(code, manual) {
-if (scBusy) return;
-const now = Date.now();
-if (!manual && code === scLastCode && now - scLastAt < 2500) return;
-scBusy = true; scLastCode = code; scLastAt = now;
-if (!scSession) { scBusy = false; return scShow_('err', 'Pick a session first', ''); }
-
-let kind = 'err', title = 'Error', sub = '';
-try {
-const r = await scApi_('scan', { sessionId: scSession, code: String(code).trim(), manual: manual ? '1' : '0' });
-const name = r.player ? r.player.name : '';
-if (r.result === 'PRESENT') { kind = 'ok'; title = name || 'Present'; sub = 'PRESENT'; }
-else if (r.result === 'LATE') { kind = 'late'; title = name || 'Late'; sub = 'LATE ' + (r.minutesLate || 0) + ' MIN'; }
-else if (r.result === 'DUPLICATE') { kind = 'dup'; title = name || 'Already scanned'; sub = r.message || 'Already recorded'; }
-else { kind = 'err'; title = name || 'Not recognised'; sub = r.message || 'Invalid QR'; }
-if (r.counts) scRenderCounts_(r.counts);
-} catch (e) {
-if (/key|unauthor|denied/i.test(e.message)) { scBusy = false; return scForgetKey_('Wrong or missing staff key.'); }
-title = 'Could not record'; sub = String(e.message || 'No connection').slice(0, 60);
-}
-
-scShow_(kind, title, sub);
-if (navigator.vibrate) navigator.vibrate(kind === 'err' ? [12, 8, 12] : [10, 6, 20]);
-clearTimeout(scFlashTimer);
-scFlashTimer = setTimeout(function () {
-scBusy = false;
-const cam = scEl_('scCam'); if (cam) cam.className = 'sc-cam';
-if (kind !== 'err') scRefreshCounts_();
-}, SC_RESULT_MS);
-}
-
-function scManualSubmit_() {
-const inp = scEl_('scManual');
-let id = (inp.value || '').trim().toUpperCase();
-if (!id) return;
-if (/^\d+$/.test(id)) id = 'LVTFA-' + id.padStart(4, '0');
-inp.value = '';
-scBusy = false;
-scHandle_(id, true);
-}
 
 document.addEventListener('visibilitychange', function () {
 if (document.hidden && scStream) scStop_();
@@ -9258,6 +9493,7 @@ const now = Date.now();
 if (!manual && code === scLastCode && now - scLastAt < 2500) return;
 scBusy = true; scLastCode = code; scLastAt = now;
 
+staffTouch_();
 if (!scSession) {
 await scRunDiagnostic_(code, manual);
 if (navigator.vibrate) navigator.vibrate([8]);
@@ -9360,7 +9596,7 @@ const CTX_HELP = {
 schedule: { q:"How does scheduling work?", a:"The schedule shows each program's training days, times and venues for the week. Academy players are automatically expected to attend, so no booking is needed. For Regular and Advanced, reserve your spot at least 2 hours before the session. Private sessions are booked through Admin JA." },
 sessions: { q:"What does “sessions left” mean?", a:"It's how many training sessions remain in your current package. A session is used once training is completed; if weather cancels it within the first 45 minutes, it isn't deducted. Packages are valid for 30 days from your first training day, so use them before they expire. Top up when you're running low." },
 payment: { q:"Why is my payment pending?", a:"Pending means your submission is in and Livity hasn't verified the payment yet. It changes to Paid once it's confirmed, and you'll be notified. If it's taking long, message Admin JA." },
-playerId: { q:"Where can I use my Player ID?", a:"Enter it under My Player (the ⚽ Anytime Livity ball) to find your player instead of typing your mobile number. It's also handy to mention when you message Admin JA." },
+playerId: { q:"Where can I use my Player ID?", a:"Enter it in My Livity (the person icon at the bottom) to find your player instead of typing your mobile number. It's also handy to mention when you message Admin JA." },
 enroll: { q:"What happens after I submit?", a:"Your enrollment is received and shows as Pending while Livity verifies your payment. Once it's confirmed, you'll be notified and training is activated. Keep the reference number shown after you submit." }
 };
 
@@ -9378,8 +9614,7 @@ box.style.display = open ? 'block' : 'none';
 btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
-// static placeholders: <div id="schedBanner"></div>
-<div data-ctx="schedule"></div>
+// static placeholders: <div data-ctx="schedule"></div>
 document.addEventListener('DOMContentLoaded', function () {
 document.querySelectorAll('[data-ctx]').forEach(function (el) {
 el.innerHTML = ctxHelp_(el.getAttribute('data-ctx'));
@@ -9397,7 +9632,7 @@ function pfLogout_() {
       if (k.indexOf(PF_PHOTO_KEY) === 0 || k.indexOf(PF_QR_KEY) === 0) toRemove.push(k);
     }
     toRemove.forEach(function (k) { localStorage.removeItem(k); });
-    [PROFILE_KEY, PF_SNAP_KEY, KNOWN_KEY, LB_CHAT_CONTACT_KEY, LB_DRAFT_KEY, LB_REF_KEY].forEach(function (k) { localStorage.removeItem(k); });
+    [PROFILE_KEY, PF_SNAP_KEY, KNOWN_KEY, LB_CHAT_CONTACT_KEY, LB_DRAFT_KEY, LB_REF_KEY, LB_CHAT_OUTBOX_KEY, LB_CHAT_SEEN_KEY].forEach(function (k) { localStorage.removeItem(k); });
   } catch (e) {}
 
   lbTopup = { query:'', players:[], selected:null, paymentMethod:'', packageKey:'', activeProgramId:'' };
@@ -9412,7 +9647,8 @@ function pfLogout_() {
 
   closeLivityBall();
   show('home');
-  appToast_('Logged out');
+  lbChatOutbox_ = null; lbChatUnreadN_ = 0; lbChatBadge_();
+appToast_('Logged out');
 }
 
 function pfSwitch_() {
@@ -9551,7 +9787,63 @@ window.addEventListener('pageshow', safeReset);
 /* === START: VERSION CONTROL — WHAT'S NEW (GSheet-driven) === */
 const VER_SEEN_KEY = 'livity_ver_seen_v1';
 const VER_CACHE_KEY = 'livity_ver_cache_v1';
-let lbVersion_ = null;
+const VER_AT_KEY = 'livity_ver_at_v1';
+const VER_HIST_KEY = 'livity_ver_hist_v1';
+let lbVersion_ = null, lbVerState_ = 'loading', lbVerAt_ = 0, lbVerHistory_ = [], lbVerCheckedAt_ = 0; // state: loading | live | cached | none | error
+
+function verIsNew_() {
+if (!lbVersion_) return false;
+let seen = '';
+try { seen = localStorage.getItem(VER_SEEN_KEY) || ''; } catch (e) {}
+return seen !== lbVersion_.version;
+}
+
+function verMarkSeen_() {
+if (!lbVersion_) return;
+try { localStorage.setItem(VER_SEEN_KEY, lbVersion_.version); } catch (e) {}
+verPaint_();
+}
+
+/** Isang lugar para sa lahat ng indicator: chip + drawer. */
+function verPaint_() {
+verChip_();
+const n = verIsNew_();
+document.querySelectorAll('.ver-dot').forEach(function (el) { el.classList.toggle('on', n); });
+}
+
+function verCmp_(a, b) { // newest first
+const x = String(a).split('.'), y = String(b).split('.');
+for (let i = 0; i < Math.max(x.length, y.length); i++) {
+const d = (parseInt(y[i], 10) || 0) - (parseInt(x[i], 10) || 0);
+if (d) return d;
+}
+return 0;
+}
+
+function verDate_(d) {
+const t = new Date(d);
+return isNaN(t.getTime()) ? String(d) : t.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+}
+
+/** History: galing sa server (`history`) kung meron; kung wala, naiipon sa device ang bawat version na nakita. */
+function verHistMerge_(cur, srv) {
+let h = [];
+try { h = JSON.parse(localStorage.getItem(VER_HIST_KEY) || '[]') || []; } catch (e) {}
+(Array.isArray(srv) ? srv : []).concat(cur ? [cur] : []).forEach(function (v) {
+if (!v || !v.version) return;
+const i = h.findIndex(function (x) { return x.version === v.version; });
+if (i > -1) h[i] = Object.assign({}, h[i], v); else h.push(v);
+});
+h.sort(function (a, b) { return verCmp_(a.version, b.version); });
+h = h.slice(0, 10);
+try { localStorage.setItem(VER_HIST_KEY, JSON.stringify(h)); } catch (e) {}
+return h;
+}
+
+function verRetry_() {
+if (!lbVersion_) { lbVerState_ = 'loading'; verOpen_(); }
+loadVersion_(true);
+}
 
 function verChip_() {
 const host = document.querySelector('#home .content');
@@ -9564,24 +9856,57 @@ chip.setAttribute('onclick', 'verOpen_()');
 chip.style.cssText = 'text-align:center;font-size:11px;font-weight:700;color:var(--muted);margin:14px 0 0;cursor:pointer';
 host.appendChild(chip);
 }
-chip.textContent = 'v' + lbVersion_.version + (lbVersion_.build ? ' · Build ' + lbVersion_.build : '') + ' · What\'s New';
+chip.innerHTML = lbEscapeHtml_('v' + lbVersion_.version + (lbVersion_.build ? ' · Build ' + lbVersion_.build : '') + ' · What\'s New') + '<span class="ver-dot"></span>';
 }
 
 function verOpen_() {
-const v = lbVersion_;
-if (!v) return;
-const lines = String(v.whatsNew || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean)
-.map(function (l) { return '<p class="lb-text" style="margin:0 0 6px">' + lbEscapeHtml_(l) + '</p>'; }).join('');
-document.getElementById('verModalBody').innerHTML = `
-<div class="welcome-badge" style="margin-bottom:10px">What's New</div>
-<h4 style="margin:0 0 2px;font-size:18px;text-align:left">Version ${lbEscapeHtml_(v.version)}</h4>
-<p class="lb-text" style="color:var(--muted);font-size:11px;margin:0 0 12px">${v.build ? 'Build ' + lbEscapeHtml_(v.build) : ''}</p>
-<div class="ver-list" style="text-align:left">${lines || '<p class="lb-text">Performance and stability improvements.</p>'}</div>
-<button class="btn primary" style="width:100%;flex-shrink:0" onclick="closeVersionModal_()">Got it</button>
-`;
-document.getElementById('verModal').classList.add('open');
+const v = lbVersion_, esc = lbEscapeHtml_;
+const linesOf = function (t) {
+return String(t || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean)
+.map(function (l) { return '<p class="lb-text" style="margin:0 0 6px">' + esc(l) + '</p>'; }).join('');
+};
+const closeBtn = '<button class="btn primary" style="width:100%;flex-shrink:0" onclick="closeVersionModal_()">Got it</button>';
+const badge = function (t) { return '<div class="welcome-badge" style="margin-bottom:10px">' + t + '</div>'; };
+const head = function (t) { return '<h4 style="margin:0 0 6px;font-size:16px;text-align:left">' + t + '</h4>'; };
+let html;
+
+if (!v) {
+// walang version na maipakita: loading / wala pang release / pumalya
+html = badge('What\'s New') + (lbVerState_ === 'loading'
+? lbLoadingHtml_('Checking for updates…')
+: lbVerState_ === 'none'
+? head('No updates yet') + '<p class="lb-text">Nothing has been released yet. Check back soon.</p>'
+: head('Couldn\'t load updates') + '<p class="lb-text">Check your connection and try again.</p><button type="button" class="btn outline" style="width:100%;margin-bottom:8px" onclick="verRetry_()">Try again</button>')
++ closeBtn;
+} else {
+const wasNew = verIsNew_();
+const cur = linesOf(v.whatsNew);
+const hist = lbVerHistory_.filter(function (h) { return h.version !== v.version; });
+const histHtml = hist.length
+? '<div class="session-detail-label" style="margin-top:14px">Earlier versions</div>' + hist.map(function (h) {
+return '<details class="mo-det" style="margin-bottom:6px"><summary>v' + esc(h.version) + (h.date ? ' · ' + esc(verDate_(h.date)) : '') + '</summary><div style="padding:0 16px 12px">' + (linesOf(h.whatsNew) || '<p class="lb-text">No changes listed.</p>') + '</div></details>';
+}).join('')
+: '';
+const meta = [v.build ? 'Build ' + esc(v.build) : '', v.date ? esc(verDate_(v.date)) : ''].filter(Boolean).join(' · ');
+const stale = lbVerState_ === 'cached'
+? '<p class="lb-text" style="font-size:11px;color:var(--muted);margin:0 0 10px">📶 Saved copy' + (lbVerAt_ ? ' · checked ' + lbSchedAgo_(lbVerAt_) : '') + '. <button type="button" class="chat-act" onclick="verRetry_()">Refresh</button></p>'
+: '';
+html = badge(wasNew ? 'New update' : 'What\'s New')
++ '<h4 style="margin:0 0 2px;font-size:18px;text-align:left">Version ' + esc(v.version) + '</h4>'
++ '<p class="lb-text" style="color:var(--muted);font-size:11px;margin:0 0 12px">' + meta + '</p>'
++ stale
++ '<div class="ver-list" style="text-align:left">' + (cur || '<p class="lb-text">No changes were listed for this version.</p>') + histHtml + '</div>'
++ closeBtn;
+verMarkSeen_(); // binuksan = nabasa na
+}
+
+document.getElementById('verModalBody').innerHTML = html;
+const m = document.getElementById('verModal');
+if (!m.classList.contains('open')) {
+m.classList.add('open');
 document.getElementById('verBackdrop').classList.add('open');
 lockBodyScroll_();
+}
 }
 
 function closeVersionModal_() {
@@ -9590,30 +9915,37 @@ if (!m.classList.contains('open')) return;
 m.classList.remove('open');
 document.getElementById('verBackdrop').classList.remove('open');
 unlockBodyScroll_();
-if (lbVersion_) { try { localStorage.setItem(VER_SEEN_KEY, lbVersion_.version); } catch (e) {} }
 }
 
-async function loadVersion_() {
-let v = null;
+async function loadVersion_(force) {
+if (!force && Date.now() - lbVerCheckedAt_ < 600000) return; // max isang check kada 10 min (para sa auto-refresh)
+lbVerCheckedAt_ = Date.now();
+let v = null, srvHist = null, state = 'error';
 try {
 const res = await fetch(LIVITY_API_URL + '?action=version');
 const json = await res.json();
-if (json.success && json.current) {
-v = json.current;
-try { localStorage.setItem(VER_CACHE_KEY, JSON.stringify(v)); } catch (e) {}
-}
+if (!json.success) throw new Error('bad version payload');
+srvHist = json.history;
+if (json.current) {
+v = json.current; state = 'live'; lbVerAt_ = Date.now();
+try { localStorage.setItem(VER_CACHE_KEY, JSON.stringify(v)); localStorage.setItem(VER_AT_KEY, String(lbVerAt_)); } catch (e) {}
+} else { state = 'none'; }
 } catch (e) {
 try { v = JSON.parse(localStorage.getItem(VER_CACHE_KEY) || 'null'); } catch (e2) {}
+if (v) { state = 'cached'; try { lbVerAt_ = Number(localStorage.getItem(VER_AT_KEY)) || 0; } catch (e3) {} }
+lbVerCheckedAt_ = 0; // pumalya: payagan ang susunod na subok
 }
-if (!v) return;
+lbVerState_ = state;
 lbVersion_ = v;
-verChip_();
+lbVerHistory_ = verHistMerge_(v, srvHist);
 
+if (v) {
 let seen = '', welcomeSeen = false;
 try { seen = localStorage.getItem(VER_SEEN_KEY) || ''; welcomeSeen = localStorage.getItem(WELCOME_KEY) === '1'; } catch (e) {}
-if (seen === v.version) return;
-if (!welcomeSeen) { try { localStorage.setItem(VER_SEEN_KEY, v.version); } catch (e) {} return; } // bagong user: Welcome popup muna, huwag nang dagdagan
-setTimeout(verOpen_, 600);
+if (seen !== v.version && !welcomeSeen) verMarkSeen_(); // bagong install: walang ipapakitang "new"
+}
+verPaint_();
+if (document.getElementById('verModal').classList.contains('open')) verOpen_(); // naka-bukas habang nag-load: i-update
 }
 
 document.addEventListener('DOMContentLoaded', loadVersion_);
@@ -9655,7 +9987,7 @@ lbScheduleWeek = json.week;
 lbSchedState_ = 'live';
 lbSchedSave_(json.week);
 lbSchedBanner_();
-if (prev_ !== JSON.stringify(json.week)) appToast_('Schedule updated');
+if (prev_ !== 'null' && prev_ !== JSON.stringify(json.week)) appToast_('Schedule updated');
 renderScheduleTabs();
 renderScheduleDay(lbScheduleActiveDay || lbScheduleWeek[0].day);
 renderScheduleByProgram_();
@@ -9691,7 +10023,7 @@ if (manual && btn) btn.classList.add('spin');
 let ok = true;
 try {
 const modalOpen = document.getElementById('livityModal').classList.contains('open');
-const jobs = [appRefreshSchedule_()];
+const jobs = [appRefreshSchedule_(), loadVersion_()];
 if (pfSnapLoad_() || lbTopup.selected) jobs.push(pfRefresh_().then(function (r) { if (r === false) ok = false; }));
 if (modalOpen && lbTopup.selected && document.getElementById('lbTitle').textContent === 'Payments') jobs.push(appRefreshPayments_());
 if (document.getElementById('chatMessages') && lbChatContact) jobs.push(lbLoadChatMessages_());
@@ -10149,12 +10481,8 @@ const on = document.querySelector('#moTabs button.on');
 const bar_ = document.getElementById('moTabs');
 if (on && bar_) bar_.scrollTo({ left: on.offsetLeft - (bar_.clientWidth - on.offsetWidth) / 2, behavior:'smooth' });
 if (moTab_ === 'gallery') {
-if (moGalLoaded_) renderGallery_();
-else {
-const g = document.getElementById('galleryGrid');
-if (g) { g.style.display = 'block'; g.innerHTML = lbLoadingHtml_('Loading photos…'); }
-loadGallery_().then(function () { moGalLoaded_ = lbGalleryItems.length > 0; });
-}
+if (lbGalState_ === 'ready') renderGallery_();
+else loadGallery_(); // idle/error: fetch; loading: renders spinner
 }
 }
 function moSet_(k) { moTab_ = k; moDraw_(); }
@@ -10181,9 +10509,9 @@ moStats_();
 }
 (function () {
 var m = document.getElementById('more'), h = document.querySelector('#home .content');
-/* === START: LIVITY TABS MOVED UP — right below the hero === */
-if (m && h) { m.className = 'mo-home'; h.insertBefore(m, h.firstChild); }
-/* === END: LIVITY TABS MOVED UP === */
+/* === START: LIVITY TABS AT THE BOTTOM OF HOME === */
+if (m && h) { m.className = 'mo-home'; h.appendChild(m); }
+/* === END: LIVITY TABS AT THE BOTTOM OF HOME === */
 })();
 moRender_();
 
@@ -10517,6 +10845,109 @@ function hdRender_() {
   hdRender_();
 })();
 /* === END: HOME DASHBOARD — LOGIC === */
+/* === START: STAFF MODULE — auth boundary para sa Scanner === */
+const STAFF_META_KEY = 'livity_staff_v1';      // { name, role, since, last }
+const STAFF_TTL_MS = 12 * 3600 * 1000;         // auto sign-out kapag idle ng 12h (kung walang pending scans)
+
+function staffMeta_() { try { return JSON.parse(localStorage.getItem(STAFF_META_KEY) || 'null'); } catch (e) { return null; } }
+function staffMetaSet_(o) { try { localStorage.setItem(STAFF_META_KEY, JSON.stringify(o)); } catch (e) {} }
+function staffIs_() { return !!scKey_(); }
+function staffTouch_() { const m = staffMeta_(); if (m) { m.last = Date.now(); staffMetaSet_(m); } }
+
+/** Isang source ng UI state: nav tab + drawer entry. */
+function staffSync_() {
+  document.body.classList.toggle('is-staff', staffIs_());
+  const b = document.getElementById('staffEntryBtn');
+  if (b) b.textContent = staffIs_() ? 'Open staff scanner' : 'Staff sign-in';
+}
+
+function staffClear_() {
+  try { localStorage.removeItem(SCAN_KEY_STORE); localStorage.removeItem(STAFF_META_KEY); } catch (e) {}
+  staffSync_();
+}
+
+function scIdbClear_(store) {
+  return scIdbOp_(store, 'readwrite', function (s, done) { const r = s.clear(); r.onsuccess = function () { done(true); }; r.onerror = function () { done(false); }; });
+}
+
+function staffBarHtml_() {
+  const m = staffMeta_() || {};
+  const left = m.last ? Math.max(0, STAFF_TTL_MS - (Date.now() - m.last)) : STAFF_TTL_MS;
+  const h = Math.floor(left / 3600000);
+  return '<div class="staff-bar"><div><b>' + lbEscapeHtml_(m.name || 'Staff') + '</b><span>' + lbEscapeHtml_(m.role || 'Staff') + ' · scanner access · session ~' + h + 'h left</span></div>'
+    + '<button type="button" class="sc-link" onclick="staffSignOut_()">Sign out</button></div>';
+}
+
+function staffRenderGate_(msg) {
+  const m = staffMeta_() || {};
+  scEl_('scanBody').innerHTML = `
+<div class="tutorial-intro" style="margin-top:24px"><div class="tutorial-intro-ico">🔐</div><h4 style="color:#fff">Livity Staff</h4><p style="color:#c8c4bb">Authorized staff only. Sign in to use the attendance scanner.</p></div>
+<input class="lb-input" id="staffName" placeholder="Your name" autocomplete="off" value="${lbEscapeHtml_(m.name || '')}">
+<input class="lb-input" id="scKeyInput" type="password" placeholder="Staff key" autocomplete="off" onkeydown="if(event.key==='Enter')staffSignIn_()">
+<div class="lb-err" id="staffErr">${lbEscapeHtml_(msg || '')}</div>
+<button class="btn primary" id="staffBtn" style="width:100%" onclick="staffSignIn_()">Sign in →</button>
+<div style="text-align:center"><button class="sc-link" onclick="closeScan_()">Cancel</button></div>`;
+}
+
+/** Vine-validate ang key sa server BAGO i-save (dati: naka-save agad kahit mali). */
+async function staffSignIn_() {
+  const name = (scEl_('staffName').value || '').trim();
+  const key = (scEl_('scKeyInput').value || '').trim();
+  const err = scEl_('staffErr'), btn = scEl_('staffBtn');
+  if (!name || !key) { err.textContent = 'Enter your name and the staff key.'; return; }
+  btn.disabled = true; btn.textContent = 'Checking…'; err.textContent = '';
+  try {
+    const res = await fetch(LIVITY_API_URL, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'scanSessions', key: key }), redirect: 'follow'
+    });
+    const d = await res.json();
+    if (!d.success) throw new Error(d.error || 'Wrong staff key.');
+    try { localStorage.setItem(SCAN_KEY_STORE, key); } catch (e) {}
+    staffMetaSet_({ name: name, role: d.role || 'Staff', since: Date.now(), last: Date.now() }); // role: galing sa server kung meron
+    staffSync_();
+    scRenderMain_();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Sign in →';
+    err.textContent = (e instanceof TypeError || !navigator.onLine)
+      ? 'No connection. Connect to the internet to sign in.'
+      : (/key/i.test(e.message) ? 'Wrong staff key.' : e.message);
+  }
+}
+
+/** Hindi pwedeng mag-sign out kung may unsynced scans — mawawala ang attendance. */
+async function staffSignOut_() {
+  const pending = await scPendingCount_();
+  if (pending > 0) {
+    alert('You still have ' + pending + ' unsynced scan' + (pending === 1 ? '' : 's') + '.\n\nConnect to the internet and wait for sync to finish before signing out.');
+    return;
+  }
+  if (!confirm('Sign out of Livity Staff?\n\nCached players and sessions will be removed from this device.')) return;
+  scStop_();
+  await Promise.all(['players', 'sessions', 'attendance', 'meta'].map(scIdbClear_));
+  closeScan_();
+  staffClear_();
+  appToast_('Signed out');
+}
+
+/* overrides (last declaration wins) */
+async function openScan_() {
+  scEl_('scanModal').classList.add('open');
+  lockBodyScroll_();
+  if (!staffIs_()) return staffRenderGate_('');
+  const m = staffMeta_();
+  if (m && Date.now() - (m.last || m.since || 0) > STAFF_TTL_MS) {
+    if ((await scPendingCount_()) === 0) { staffClear_(); return staffRenderGate_('Session expired. Please sign in again.'); }
+  }
+  staffTouch_();
+  scRenderMain_();
+}
+
+function scForgetKey_(msg) { scStop_(); staffClear_(); staffRenderGate_(msg || ''); }
+
+staffSync_();
+document.addEventListener('DOMContentLoaded', staffSync_);
+/* === END: STAFF MODULE === */
 /* === END: MORE / LIVITY REDESIGN — LOGIC === */
 
 </script>
