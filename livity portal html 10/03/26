@@ -25,6 +25,11 @@
 --text:#0B2F64;
 --muted:#5a5a5a;
 --line:#e2e2e2;
+/* Z-LAYERS: < 100 = in-page. Sa itaas, laging calc(var(--z-X) + offset). Huwag magsulat ng bare number. */
+--z-overlay:100;
+--z-modal:200;
+--z-full:300;
+--z-system:400;
 }
 
 * {
@@ -304,7 +309,7 @@ max-width:330px;
 .welcome-backdrop {
 position:fixed;
 inset:0;
-z-index:200;
+z-index:calc(var(--z-modal) + 20);
 background:rgba(11,47,100,.35);
 backdrop-filter:blur(14px);
 -webkit-backdrop-filter:blur(14px);
@@ -318,7 +323,7 @@ pointer-events:auto;
 }
 .welcome-modal {
 position:fixed;
-z-index:201;
+z-index:calc(var(--z-modal) + 21);
 left:50%;
 top:50%;
 transform:translate(-50%,-46%) scale(.9);
@@ -426,7 +431,7 @@ position:fixed;
 inset:0;
 background:rgba(11,47,100,.45);
 backdrop-filter:blur(6px);
-z-index:69;
+z-index:calc(var(--z-modal) + 0);
 opacity:0;
 pointer-events:none;
 transition:opacity .22s ease;
@@ -438,7 +443,7 @@ pointer-events:auto;
 
 .rate-modal {
 position:fixed;
-z-index:70;
+z-index:calc(var(--z-modal) + 1);
 left:50%;
 top:50%;
 transform:translate(-50%,-50%) scale(.9);
@@ -638,7 +643,7 @@ border-radius:inherit;
 .tutorial-sheet-backdrop {
 position:fixed;
 inset:0;
-z-index:80;
+z-index:calc(var(--z-modal) + 10);
 background:rgba(11,47,100,.5);
 backdrop-filter:blur(10px);
 -webkit-backdrop-filter:blur(10px);
@@ -653,7 +658,7 @@ pointer-events:auto;
 
 .tutorial-sheet {
 position:fixed;
-z-index:81;
+z-index:calc(var(--z-modal) + 11);
 left:50%;
 bottom:0;
 transform:translate(-50%,100%);
@@ -865,7 +870,7 @@ to { transform:rotate(360deg); }
 /* === START: GUIDED TOUR — STYLES === */
 .tut-spot {
 position:fixed;
-z-index:90;
+z-index:calc(var(--z-system) + 0);
 left:50%;
 top:50%;
 width:0;
@@ -892,7 +897,7 @@ display:none;
 }
 .tut-card {
 position:fixed;
-z-index:91;
+z-index:calc(var(--z-system) + 1);
 left:50%;
 width:min(300px,88vw);
 transform:translateX(-50%);
@@ -960,7 +965,7 @@ transform:rotate(45deg);
 /* === START: SCAN MODAL — STYLES === */
 .scan-modal {
 position:fixed;
-z-index:210;
+z-index:calc(var(--z-full) + 0);
 top:0;
 bottom:0;
 left:0;
@@ -1773,9 +1778,8 @@ display:block;
 }
 
 /* === START: NO BACK BUTTONS — SWIPE NAV EDIT === */
-.view .back,
-.livity-ball-modal .back,
-#lbBackBtn {
+/* Option A: top-left back is ON. In-body duplicates inside the modal stay hidden (header back is the one). */
+.livity-ball-modal .back {
 display:none !important;
 }
 .view.active {
@@ -1818,7 +1822,7 @@ animation:livityPop .38s cubic-bezier(.34,1.56,.64,1);
 /* === START: LIVITY BALL — DEFAULT POSITION EDIT === */
 .livity-ball {
 position:fixed;
-z-index:60;
+z-index:calc(var(--z-overlay) + 1);
 width:68px;
 height:68px;
 right:70px;
@@ -1865,7 +1869,7 @@ animation:livityPop .42s cubic-bezier(.34,1.56,.64,1);
 /* === START: LIVITY BALL HINT BUBBLE — APPLE-STYLE ZOOM === */
 .livity-hint {
 position:fixed;
-z-index:60;
+z-index:calc(var(--z-overlay) + 1);
 max-width:180px;
 background:#171714;
 color:#fff;
@@ -1911,7 +1915,7 @@ position:fixed;
 inset:0;
 background:rgba(11,47,100,.45);
 backdrop-filter:blur(6px);
-z-index:59;
+z-index:calc(var(--z-overlay) + 0);
 opacity:0;
 pointer-events:none;
 transition:opacity .22s ease;
@@ -1924,7 +1928,7 @@ pointer-events:auto;
 
 .livity-ball-modal {
 position:fixed;
-z-index:61;
+z-index:calc(var(--z-overlay) + 2);
 left:50%;
 bottom:96px;
 transform:translate(-50%,24px) scale(.9);
@@ -2688,7 +2692,7 @@ transition:transform .3s cubic-bezier(.34,1.56,.64,1);
 
 /* === START: PROFILE AS PART OF THE APP — SEAMLESS === */
 /* nav nasa ibabaw ng profile sheet (z 61) pero sa ilalim ng mga popup (69+) */
-.bottom { z-index:65; }
+.bottom { z-index:calc(var(--z-overlay) + 3); }
 
 /* huwag itago ang nav kapag profile ang bukas */
 body.pf-open.app-isolated .bottom {
@@ -2705,7 +2709,7 @@ padding-bottom:calc(92px + env(safe-area-inset-bottom,0px));
 body.pf-open .livity-ball-backdrop { display:none; }
 
 /* ball laging nasa ibabaw ng profile */
-body.pf-open .livity-ball { z-index:66; }
+body.pf-open .livity-ball { z-index:calc(var(--z-overlay) + 4); }
 /* === END: PROFILE AS PART OF THE APP === */
 
 /* === START: MORE / LIVITY REDESIGN — STYLES === */
@@ -2781,6 +2785,15 @@ body.pf-open .livity-ball { z-index:66; }
 .mo-ven{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border-radius:18px;padding:14px;margin-bottom:8px;box-shadow:0 2px 10px rgba(11,47,100,.08)}
 .mo-ven b{display:block;font-size:14px;color:var(--text)}
 .mo-ven span{font-size:11.5px;color:var(--muted)}
+.mo-coach{background:#fff;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(11,47,100,.08)}
+.mo-coach-h{display:flex;gap:12px;align-items:center}
+.mo-coach-av{width:60px;height:60px;border-radius:50%;background:var(--navy) center/cover no-repeat;color:#fff;display:grid;place-items:center;font-weight:800;font-size:20px;flex-shrink:0}
+.mo-coach-h b{display:block;font-size:16px;color:var(--text)}
+.mo-coach-role{font-size:12px;color:var(--muted);margin-top:2px}
+.mo-coach-spec{display:inline-block;margin-top:6px;font-size:11px;font-weight:800;color:var(--navy);background:#fff8dd;border:1px solid #ffe38a;border-radius:8px;padding:3px 9px}
+.mo-coach-lbl{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.mo-coach-bio{margin:12px 0 0;font-size:13px;line-height:1.55;color:#5e5a52}
+.mo-coach-av:empty{font-size:0}
 
 .mo-snap{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -18px;padding:2px 18px 10px;scrollbar-width:none}
 .mo-snap::-webkit-scrollbar{display:none}
@@ -2815,9 +2828,9 @@ html.sw-busy .view.active{animation:none}
 .menu-btn{width:36px;height:36px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;color:var(--gold-light);display:grid;place-items:center;cursor:pointer;flex-shrink:0;margin-left:-6px}
 /* === END: HAMBURGER — ICON ONLY EDIT === */
 .menu-btn svg{width:22px;height:22px;display:block}
-.hd-drawer-backdrop{position:fixed;inset:0;z-index:71;background:rgba(11,47,100,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s ease}
+.hd-drawer-backdrop{position:fixed;inset:0;z-index:calc(var(--z-overlay) + 10);background:rgba(11,47,100,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s ease}
 .hd-drawer-backdrop.open{opacity:1;pointer-events:auto}
-.hd-drawer{position:fixed;z-index:72;top:0;bottom:0;left:max(0px,calc(50% - 240px));width:min(340px,88vw);background:#f7f5ef;color:var(--text);border-radius:0 24px 24px 0;box-shadow:0 0 60px rgba(0,0,0,.4);padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;transform:translateX(-105%);visibility:hidden;transition:transform .38s cubic-bezier(.34,1.2,.64,1),visibility 0s .38s}
+.hd-drawer{position:fixed;z-index:calc(var(--z-overlay) + 11);top:0;bottom:0;left:max(0px,calc(50% - 240px));width:min(340px,88vw);background:#f7f5ef;color:var(--text);border-radius:0 24px 24px 0;box-shadow:0 0 60px rgba(0,0,0,.4);padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;transform:translateX(-105%);visibility:hidden;transition:transform .38s cubic-bezier(.34,1.2,.64,1),visibility 0s .38s}
 .hd-drawer.open{transform:none;visibility:visible;transition:transform .38s cubic-bezier(.34,1.2,.64,1)}
 .hd-drawer-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 14px}
 .hd-drawer-head b{font-size:13px;font-weight:800;letter-spacing:3px;color:var(--navy)}
@@ -2859,6 +2872,118 @@ body.is-staff .bottom button[data-v="scan"] { display:flex; }
 .ver-dot{display:none;width:8px;height:8px;border-radius:50%;background:var(--red);margin-left:6px;vertical-align:middle}
 .ver-dot.on{display:inline-block}
 /* === END: STAFF BOUNDARY — STYLES === */
+
+/* === START: GLOBAL CONNECTIVITY BAR — STYLES === */
+.net-bar{position:fixed;left:50%;bottom:calc(82px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);width:calc(100% - 24px);max-width:456px;z-index:calc(var(--z-system) + 10);display:flex;flex-direction:column;gap:1px;padding:9px 14px;border-radius:16px;font-size:12px;line-height:1.35;color:#fff;background:#171714;box-shadow:0 8px 24px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .35s cubic-bezier(.34,1.56,.64,1)}
+.net-bar.show{opacity:1;transform:translate(-50%,0)}
+.net-bar b{font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.net-bar span{color:#c8c4bb;font-weight:600}
+.net-bar.off{background:#3a2a00;border:1px solid rgba(255,159,10,.5)}
+.net-bar.off b{color:#FF9F0A}
+.net-bar.sync b{color:var(--gold)}
+.net-bar.ok{background:#0f2a18;border:1px solid rgba(52,199,89,.5)}
+.net-bar.ok b{color:#34C759}
+/* === END: GLOBAL CONNECTIVITY BAR — STYLES === */
+
+/* === START: UNIFIED ERROR COMPONENT — STYLES === */
+.err-box{background:#ffeceb;border:1px solid #f7c9c6;border-radius:16px;padding:16px;margin:0 0 12px;text-align:center;color:var(--text)}
+.err-box .err-ico{font-size:22px;line-height:1;margin-bottom:6px}
+.err-box .err-title{font-size:15px;font-weight:850;color:var(--red);margin:0 0 4px}
+.err-box .err-text{font-size:13px;line-height:1.5;color:#5e5a52;margin:0}
+.err-box .err-why{font-size:12px;color:var(--muted);margin:4px 0 0}
+.err-box .err-actions{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.err-box .err-actions .btn{width:100%;padding:12px;font-size:13px;display:block;text-align:center;box-sizing:border-box;text-decoration:none}
+.err-box.compact{padding:12px 14px}
+.err-box.compact .err-actions{flex-direction:row}
+.err-box.flat{background:transparent;border:0;padding:0;margin:0}
+.err-box.flat .err-title{color:#ff8a80}
+.err-box.flat .err-text,.err-box.flat .err-why{color:#c8c4bb}
+/* === END: UNIFIED ERROR COMPONENT — STYLES === */
+
+/* === START: EMPTY STATE — STYLES === */
+.em{text-align:center;padding:18px 8px}
+.em-title{font-size:12px;font-weight:850;letter-spacing:1.2px;text-transform:uppercase;color:var(--text)}
+.em-text{margin:6px auto 0;max-width:280px;font-size:13px;line-height:1.5;color:#5e5a52}
+.em-acts{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.em-acts .btn{width:100%;padding:12px;font-size:13px;display:block;text-align:center;box-sizing:border-box;text-decoration:none}
+.em-acts .btn.em-sec{background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)}
+.em.compact{padding:10px 4px}
+.em.compact .em-acts{flex-direction:row}
+.em.compact .em-acts .btn{padding:10px 6px;font-size:12px}
+/* === END: EMPTY STATE — STYLES === */
+
+/* === START: TOAST — STYLES === */
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);max-width:min(440px,calc(100vw - 24px));z-index:calc(var(--z-system) + 20);display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:#171714;color:#fff;font-size:13px;font-weight:700;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .22s ease,transform .35s cubic-bezier(.34,1.56,.64,1)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.has-act{pointer-events:auto}
+.toast-ico{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;flex-shrink:0;background:#4A9DE0;color:#171714}
+.toast.success .toast-ico{background:#34C759}
+.toast.warn .toast-ico{background:#FF9F0A}
+.toast.error .toast-ico{background:#FF453A;color:#fff}
+.toast-act{background:none;border:0;padding:4px 2px;margin-left:4px;font:inherit;font-weight:800;color:var(--gold);cursor:pointer;flex-shrink:0}
+@media (prefers-reduced-motion:reduce){.toast{transition:opacity .01s}}
+/* === END: TOAST — STYLES === */
+
+/* === START: ACCESSIBILITY — FOCUS STATES === */
+:focus-visible{outline:3px solid var(--royal);outline-offset:2px}
+[role="button"]{cursor:pointer}
+[tabindex="-1"]:focus{outline:none}
+/* dark surfaces: gold ring para kita */
+.hero :focus-visible,.mo-hero :focus-visible,.scan-modal :focus-visible,.next-session-card:focus-visible,.cta :focus-visible,.splash :focus-visible{outline-color:var(--gold)}
+/* sa loob ng scroll/overflow containers, para hindi maputol ang ring */
+.mo-tabs button:focus-visible,.sched-tab:focus-visible,.bottom button:focus-visible,.panel[style*="overflow:hidden"] :focus-visible{outline-offset:-3px}
+.livity-ball:focus-visible{opacity:1;outline-offset:4px;border-radius:50%}
+/* === END: ACCESSIBILITY — FOCUS STATES === */
+
+/* === START: CONFIRM DIALOG — STYLES === */
+.cf-backdrop{position:fixed;inset:0;z-index:calc(var(--z-system) + 30);display:grid;place-items:center;padding:24px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;transition:opacity .2s ease}
+.cf-backdrop.show{opacity:1}
+.cf-box{width:min(320px,100%);background:rgba(255,255,255,.97);border-radius:26px;padding:22px 18px 10px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.4);transform:scale(.92);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.cf-backdrop.show .cf-box{transform:none}
+.cf-title{margin:0 0 6px;font-size:18px;font-weight:800;color:var(--text)}
+.cf-text{margin:0 0 16px;font-size:13px;line-height:1.5;color:#5e5a52;white-space:pre-line}
+.cf-acts{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+.cf-acts .btn{width:100%;padding:14px;font-size:15px}
+.cf-acts .cf-danger{background:var(--red);color:#fff}
+.cf-acts .cf-cancel{background:#f5f2ea;color:var(--text)}
+@media (prefers-reduced-motion:reduce){.cf-backdrop,.cf-box{transition:none}}
+/* === END: CONFIRM DIALOG — STYLES === */
+
+/* === START: BACK NAVIGATION — STYLES === */
+.view > .back{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin:-8px 0 4px -6px;padding:0 12px 0 4px;font-size:16px;font-weight:600;color:var(--royal);-webkit-tap-highlight-color:transparent}
+.view > .back svg{width:12px;height:20px;flex-shrink:0}
+.view > .back:active{opacity:.55}
+/* tab roots hindi nangangailangan ng back */
+#programs > .back,#schedule > .back{display:none}
+/* modal header back */
+#lbBackBtn{width:36px;height:36px;border-radius:12px;color:var(--royal)}
+#lbBackBtn svg{width:11px;height:18px;display:block}
+#lbBackBtn.at-root{display:none !important}
+/* === END: BACK NAVIGATION — STYLES === */
+
+/* === START: PRICING — COMPARISON STYLES === */
+/* itago ang lumang hardcoded rates (Rewards panel ay nananatili) */
+#pricing > p,
+#pricing > .price-grid,
+#pricing > .panel[style*="margin-top:12px"] { display:none; }
+
+.pc-banner{background:#fff8dd;border:1px solid #ffe38a;border-radius:16px;padding:14px;margin:0 0 12px;font-size:13px;line-height:1.5;color:var(--text)}
+.pc-banner b{display:block;font-size:15px;color:var(--navy);margin-bottom:2px}
+.pc-grp{background:#fff;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(11,47,100,.06)}
+.pc-grp h3{margin:0 0 4px;font-size:17px}
+.pc-who{font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.45}
+.pc-who b{color:var(--text)}
+.pc-row{display:grid;grid-template-columns:minmax(0,1.5fr) .75fr .95fr .95fr;gap:8px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);font-size:13px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.pc-row small{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:2px;line-height:1.4}
+.pc-row span:nth-child(n+2){text-align:right}
+.pc-h{border-top:0;padding:0 0 6px;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.pc-meta{font-size:12.5px;line-height:1.5;color:#5e5a52;margin-top:8px}
+.pc-meta b{color:var(--text)}
+.pc-rules{background:#fff8dd;border:1px solid #ffe38a;border-radius:14px;padding:12px 14px;margin:10px 0 12px;font-size:12px;line-height:1.5;color:#5e5a52;text-align:left}
+.pc-rules-t{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--navy);margin-bottom:2px}
+.pc-rule{margin-top:6px}
+.pc-rule b{display:block;font-size:11px;color:var(--text)}
+/* === END: PRICING — COMPARISON STYLES === */
 /* === END: MORE / LIVITY REDESIGN — STYLES === */
 </style>
 </head>
@@ -3825,7 +3950,7 @@ Key contacts
 
 <br>
 
-Admin JA — Training / Private · WhatsApp 09762675397
+<span data-contact="admin"></span> — Training / Private · WhatsApp <span data-contact="phone"></span>
 
 <br>
 
@@ -3864,7 +3989,7 @@ Coach Sam — Advanced Assessment
 <div class="welcome-badge">Message from Artiplay Developer Team</div>
 <h3 id="welcomeTitle">Welcome to Livity 👋</h3>
 <p style="font-size:15px;font-weight:650;color:var(--text);margin-bottom:14px">Everything you need for training is right here.</p>
-<p>If this is your first time using the app, don't hesitate to ask the Academy or our developer team at <a class="welcome-mail" href="mailto:livityacademy22@gmail.com">livityacademy22@gmail.com</a></p><p>Here at Artiplay, we'll keep improving the app and the overall experience so training and playing inside the Academy feels even better every time.</p>
+<p>If this is your first time using the app, don't hesitate to ask the Academy or our developer team at <a class="welcome-mail" data-contact="email" href="#"></a></p><p>Here at Artiplay, we'll keep improving the app and the overall experience so training and playing inside the Academy feels even better every time.</p>
 <p class="welcome-sign">— Artiplay Developer Team</p>
 <button class="btn primary" id="welcomeBtn" onclick="closeWelcome();tutTourStart_('first')">Show me around →</button>
 <button class="btn outline" style="margin-top:8px;background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)" onclick="closeWelcome()">I'll explore myself</button>
@@ -4011,10 +4136,111 @@ My Livity
 
 <script>
 
+/* === START: CONFIG — SINGLE SOURCE OF TRUTH === */
+const CONFIG = (function () {
+  var host = (location.hostname || '').toLowerCase();
+  var env = host === 'livityportal.artiplay.app' ? 'production'
+          : (!host || host === 'localhost' || host === '127.0.0.1' || /\.local$/.test(host)) ? 'development'
+          : 'staging';
+
+  /* Isang URL kada environment. TODO: maglagay ng hiwalay na TEST deployment/Sheet sa staging at development. */
+  var API_URLS = {
+    production:  'https://script.google.com/macros/s/AKfycbw47vUpk4xO8sypOsMlNxTn-zTQpUWAIS0YXtW5Qb-xp2UpexOki6xW5uxeDzxTYtQOWw/exec',
+    staging:     '',
+    development: ''
+  };
+  var url = API_URLS[env] || API_URLS.production;
+  if (env !== 'production' && !API_URLS[env]) {
+    console.warn('[CONFIG] Walang ' + env + ' API URL, PRODUCTION ang gamit. Ang test enroll/payment ay mapupunta sa totoong Sheet.');
+  }
+  var scannerUrl = url; // lagyan ng ibang URL dito kung hihiwalayin ang scanner backend
+
+  function hostKey(x) { return String(x || '').replace(/^https?:\/\//, '').split('/').slice(0, 2).join('/'); }
+  function deepFreeze(o) {
+    Object.keys(o).forEach(function (k) { var v = o[k]; if (v && typeof v === 'object') deepFreeze(v); });
+    return Object.freeze(o);
+  }
+
+  return deepFreeze({
+    env: env,
+    debug: env !== 'production',
+
+    api: {
+      url: url,
+      scannerUrl: scannerUrl,
+      /* tinutukoy kung ang isang request ay papunta sa Livity backend (para sa connectivity bar at data state) */
+      isApi: function (u) {
+        u = String(u || '');
+        return u.indexOf(hostKey(url)) > -1 || u.indexOf(hostKey(scannerUrl)) > -1;
+      },
+      ready: function () { return /^https:\/\/.+/.test(url) && url.indexOf('PASTE_YOUR') < 0; },
+      assertReady: function () {
+        if (this.ready()) return;
+        console.error('[CONFIG] api.url is not set for env "' + env + '".');
+        throw new Error('Livity is temporarily unavailable. Please try again later.');
+      }
+    },
+
+    contact: {
+      adminName: 'Admin JA',
+      whatsapp: '639762675397',            // international format, walang + o space
+      email: 'livityacademy22@gmail.com'
+    },
+
+    branding: {
+      name: 'Livity Training & Academy',
+      shortName: 'Livity',
+      logo: '/logo-512.png',
+      portalUrl: 'https://livityportal.artiplay.app/',  // base ng QR links (laging production)
+      shareText: 'Train like a pro with Livity.'
+    },
+
+    flags: {
+      reserveApi: false,      // true kapag may 'reserveSpot' / 'cancelReservation' na sa Apps Script
+      maintenance: true       // true = maintenance modal sa app link
+    },
+
+    cache: {
+      dailyRefreshMs: 24 * 60 * 60 * 1000,   // app-shell cache bust
+      refreshMinMs: 15000,                   // pinakamabilis na pagitan ng dalawang refresh
+      refreshTickMs: 45000,                  // auto-refresh habang bukas ang app
+      staffTtlMs: 12 * 3600 * 1000,          // idle sign-out ng staff
+      draftMaxAgeMs: 14 * 86400000,          // gaano katagal itatago ang enrollment draft
+      rateCooldownMs: 7 * 86400000           // isang rating kada device kada 7 araw
+    }
+  });
+})();
+/* === END: CONFIG === */
+
+/* === START: CONTACT — SINGLE SOURCE OF TRUTH === */
+const CONTACT = CONFIG.contact;
+
+/** wa.me link. Ang "Admin JA" sa text ay awtomatikong sumusunod sa CONTACT.adminName. */
+function contactWaUrl_(text) {
+  const t = text ? String(text).replace(/Admin JA/g, CONTACT.adminName) : '';
+  return 'https://wa.me/' + CONTACT.whatsapp + (t ? '?text=' + encodeURIComponent(t) : '');
+}
+function contactWaLocal_() { return '0' + CONTACT.whatsapp.replace(/^63/, ''); }                       // 09762675397
+function contactWaDisplay_() { const l = contactWaLocal_(); return l.slice(0, 4) + ' ' + l.slice(4, 7) + ' ' + l.slice(7); } // 0976 267 5397
+
+/** Para sa static HTML: data-contact="email | phone | admin | wa" */
+function contactBind_() {
+  document.querySelectorAll('[data-contact]').forEach(function (el) {
+    const k = el.getAttribute('data-contact');
+    if (k === 'email') { el.textContent = CONTACT.email; el.setAttribute('href', 'mailto:' + CONTACT.email); }
+    else if (k === 'phone') el.textContent = contactWaLocal_();
+    else if (k === 'admin') el.textContent = CONTACT.adminName;
+    else if (k === 'wa') el.setAttribute('href', contactWaUrl_());
+  });
+}
+contactBind_();
+document.addEventListener('DOMContentLoaded', contactBind_);
+/* === END: CONTACT === */
+
 /* === START: DAILY AUTO-REFRESH — VERSION CACHE-BUST (app shell only, never touches saved profile/photos/staff key) === */
 (function () {
 var REFRESH_KEY = 'livity_last_refresh_v1';
-var DAY_MS = 24 * 60 * 60 * 1000;
+var DAY_MS = CONFIG.cache.dailyRefreshMs;
 try {
 var last = Number(localStorage.getItem(REFRESH_KEY)) || 0;
 var now = Date.now();
@@ -4030,6 +4256,789 @@ location.replace(url);
 })();
 /* === END: DAILY AUTO-REFRESH === */
 
+/* === START: GLOBAL CONNECTIVITY — SINGLE SOURCE OF TRUTH === */
+const NET_SYNC_KEY = 'livity_last_sync_v1';
+const NET = (function () {
+  var apiDown = false, pending = 0, wasBusy = false, justSynced = false, tSynced = null, lastKey = '';
+  var lastSync = 0;
+  try { lastSync = Number(localStorage.getItem(NET_SYNC_KEY)) || 0; } catch (e) {}
+
+  function offline() { return !navigator.onLine || apiDown; }
+
+  function fmt(ms) {
+    if (!ms) return 'Not synced yet';
+    var d = new Date(ms);
+    var t = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return d.toDateString() === new Date().toDateString() ? t : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' · ' + t;
+  }
+
+  /* lahat ng pending: scanner queue + chat outbox + payment queue + rating */
+  async function count() {
+    var n = 0;
+    try { if (typeof staffIs_ === 'function' && staffIs_()) n += Number(await scPendingCount_()) || 0; } catch (e) {}
+    try { n += (JSON.parse(localStorage.getItem('livity_chat_outbox_v1') || '[]') || []).filter(function (m) { return m.status !== 'failed'; }).length; } catch (e) {}
+    try { n += (JSON.parse(localStorage.getItem('livity_paypending_v1') || '[]') || []).length; } catch (e) {}
+    try { if ((JSON.parse(localStorage.getItem('livity_rate_v1') || 'null') || {}).pending) n += 1; } catch (e) {}
+    return n;
+  }
+
+  function ensure() {
+    var el = document.getElementById('netBar');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'netBar';
+      el.className = 'net-bar';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+
+  function render() {
+    var off = offline(), busy = off || pending > 0;
+    if (wasBusy && !busy) {
+      justSynced = true;
+      clearTimeout(tSynced);
+      tSynced = setTimeout(function () { justSynced = false; render(); }, 2800);
+    }
+    wasBusy = busy;
+    document.body.classList.toggle('is-offline', off);
+
+    var cls = '', html = '';
+    if (off) {
+      cls = 'off';
+      html = '<b>Offline</b><span>You\'re viewing saved information.</span><span>Last synced: ' + fmt(lastSync) + '</span>'
+        + (pending > 0 ? '<span>' + pending + ' change' + (pending === 1 ? '' : 's') + ' will send when you reconnect.</span>' : '');
+    } else if (pending > 0) {
+      cls = 'sync';
+      html = '<b>Syncing…</b><span>' + pending + ' change' + (pending === 1 ? '' : 's') + ' sending</span>';
+    } else if (justSynced) {
+      cls = 'ok';
+      html = '<b>Online</b><span>All changes synced</span>';
+    }
+
+    var el = ensure(), key = cls + '|' + html;
+    if (key !== lastKey) { lastKey = key; if (html) el.innerHTML = html; }
+    el.className = 'net-bar' + (cls ? ' ' + cls + ' show' : '');
+  }
+
+  function refresh() { count().then(function (n) { pending = n; render(); }); render(); }
+
+  function kick() {
+    ['lbChatFlush_', 'lbPayQueueFlush_', 'scQueueFlush_', 'appRefresh_'].forEach(function (n) {
+      try { if (typeof window[n] === 'function') window[n](); } catch (e) {}
+    });
+  }
+
+  function ok() {
+    var was = apiDown;
+    apiDown = false;
+    lastSync = Date.now();
+    try { localStorage.setItem(NET_SYNC_KEY, String(lastSync)); } catch (e) {}
+    if (was) kick();
+    refresh();
+  }
+  function fail() { apiDown = true; refresh(); }
+
+  window.addEventListener('online', function () { apiDown = false; kick(); refresh(); });
+  window.addEventListener('offline', refresh);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+  document.addEventListener('DOMContentLoaded', function () { refresh(); setInterval(refresh, 4000); });
+
+  /* isang hook para sa LAHAT ng module: bawat fetch papunta sa Livity API ay nagre-report dito */
+  var rawFetch = window.fetch;
+  if (rawFetch) {
+    window.fetch = function (input) {
+      var u = typeof input === 'string' ? input : ((input && input.url) || '');
+      var p = rawFetch.apply(this, arguments);
+      if (!CONFIG.api.isApi(u)) return p;
+      return p.then(function (r) { if (r && r.ok) ok(); return r; }, function (e) { fail(); throw e; });
+    };
+  }
+
+  return { offline: offline, lastSync: function () { return lastSync; }, lastSyncLabel: function () { return fmt(lastSync); }, pending: function () { return pending; }, refresh: refresh };
+})();
+/* === END: GLOBAL CONNECTIVITY — SINGLE SOURCE OF TRUTH === */
+
+/* === START: HAPTIC — SINGLE FEEDBACK CONTRACT === */
+/* haptic('selection'|'light'|'medium'|'success'|'warning'|'error')
+   Gamitin lang sa: primary action, selection, success/error, destructive confirm. HINDI sa bawat tap. */
+const HAPTIC = (function () {
+  var KEY = 'livity_haptics_v1';   // '0' = patay (user preference)
+  var PATTERN = {
+    selection: 6,                   // pumili ng tab / pill / mukha
+    light: 10,                      // primary action
+    medium: 18,                     // destructive confirm
+    success: [10, 45, 16],
+    warning: [14, 40, 14],
+    error: [16, 55, 16, 55, 28]
+  };
+  var last = 0, sw = null;
+
+  function enabled() {
+    try { if (localStorage.getItem(KEY) === '0') return false; } catch (e) {}
+    if (typeof CONFIG !== 'undefined' && CONFIG.flags && CONFIG.flags.haptics === false) return false;
+    try { if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return false; } catch (e) {}
+    return true;
+  }
+
+  /* iOS Safari: walang navigator.vibrate. Isang tick lang via <input switch> (iOS 17.4+), at tumatalab LANG sa loob ng tap. */
+  function iosTick() {
+    try {
+      if (!sw) {
+        sw = document.createElement('label');
+        sw.setAttribute('aria-hidden', 'true');
+        sw.style.cssText = 'position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';
+        var i = document.createElement('input');
+        i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
+        sw.appendChild(i);
+        document.body.appendChild(sw);
+      }
+      sw.click();
+    } catch (e) {}
+  }
+
+  function fire(kind) {
+    var p = PATTERN[kind];
+    if (p == null || !enabled()) return false;
+    var now = Date.now();
+    if ((kind === 'selection' || kind === 'light') && now - last < 60) return false; // iwas dobleng tick
+    last = now;
+    try { if (navigator.vibrate) return navigator.vibrate(p); } catch (e) {}
+    iosTick();
+    return false;
+  }
+
+  /* Delegated: tatlong klase lang ng tap ang may haptic. Override: data-haptic="none|selection|light|medium" */
+  var PRIMARY = '.btn.primary, .ra-send, .chat-send-btn';
+  var SELECT = '.lb-pill, .sched-tab, .bottom button, .mo-tabs button, .ra-face, .sched-view-toggle button';
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var o = t.closest('[data-haptic]');
+    if (o) { var k = o.getAttribute('data-haptic'); if (k !== 'none' && !o.disabled) fire(k); return; }
+    var el = t.closest(PRIMARY + ',' + SELECT);
+    if (!el || el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+    fire(el.matches(PRIMARY) ? 'light' : 'selection');
+  });
+
+  return {
+    fire: fire,
+    enabled: enabled,
+    setEnabled: function (on) { try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {} }
+  };
+})();
+function haptic(kind) { return HAPTIC.fire(kind); }
+/* === END: HAPTIC === */
+
+/* === START: UNIFIED ERROR COMPONENT — LOGIC === */
+const ERR = (function () {
+  var WA = contactWaUrl_();
+
+  /** Raw technical message → plain language. Server-written messages pass through. */
+  function friendly(e) {
+    var m = String((e && e.message) || e || '');
+    if (!navigator.onLine || /reach the server|failed to fetch|networkerror|network|unexpected response|responded with status|timeout/i.test(m)) return 'Check your connection and try again.';
+    if (!m || m.length > 140) return 'Please try again in a moment.';
+    return m;
+  }
+
+  /**
+   * ERR.html({
+   *   title:  'Something went wrong'   (optional)
+   *   what:   "We couldn't load your payments."
+   *   error:  Error | string           (optional → shown as the reason)
+   *   retry:  'loadSchedule()'         (optional → shows Try again)
+   *   retryLabel: 'Retry'              (optional)
+   *   admin:  true                     (optional → shows Contact Admin)
+   *   ctx:    'Payments'               (optional → prefilled in the WhatsApp message)
+   *   compact / flat: true             (optional layout variants)
+   * })
+   */
+  function html(o) {
+    o = o || {};
+    var esc = lbEscapeHtml_;
+    var attr = function (s) { return esc(s).replace(/"/g, '&quot;'); };
+    var title = o.title || 'Something went wrong';
+    var why = o.error ? friendly(o.error) : '';
+    var actions = '';
+    if (o.retry) actions += '<button type="button" class="btn primary" onclick="' + attr(o.retry) + '">' + esc(o.retryLabel || 'Try again') + '</button>';
+    if (o.admin) {
+      var msg = 'Hi ' + CONTACT.adminName + ', I\'m having trouble: ' + (o.ctx || o.what || title);
+      actions += '<a class="btn outline" href="' + WA + '?text=' + encodeURIComponent(msg) + '" target="_blank" rel="noopener">Contact Admin</a>';
+    }
+    return '<div class="err-box' + (o.compact ? ' compact' : '') + (o.flat ? ' flat' : '') + '" role="alert">'
+      + '<div class="err-ico" aria-hidden="true">⚠️</div>'
+      + '<div class="err-title">' + esc(title) + '</div>'
+      + (o.what ? '<p class="err-text">' + esc(o.what) + '</p>' : '')
+      + (why ? '<p class="err-why">' + esc(why) + '</p>' : '')
+      + (actions ? '<div class="err-actions">' + actions + '</div>' : '')
+      + '</div>';
+  }
+
+  return { html: html, friendly: friendly };
+})();
+/* === END: UNIFIED ERROR COMPONENT — LOGIC === */
+
+/* === START: MODAL — ONE OVERLAY REGISTRY === */
+/* Pinakataas muna ang order (ito ang isasara ng Esc / Back). Dito lang idadagdag ang bagong modal. */
+const MODAL = (function () {
+  var L = [
+    { id:'scanModal',          label:'Scan attendance',   close:function () { closeScan_(); } },
+    { id:'welcomeModal',       label:'Welcome to Livity', close:function () { closeWelcome(); } },
+    { id:'tutorialModal',      label:'Help',              close:function () { closeTutorial(); } },
+    { id:'galleryModal',       label:'Gallery',           close:function () { closeGalleryLightbox_(); } },
+    { id:'sessionDetailModal', label:'Session details',   close:function () { closeSessionDetail_(); } },
+    { id:'rateModal',          label:'Rate Livity',       close:function () { closeRateModal(); } },
+    { id:'verModal',           label:"What's new",        close:function () { closeVersionModal_(); } },
+    { id:'maintModal',         label:'Under maintenance', close:function () { closeMaintModal(); } },
+    { id:'hdDrawer',           label:'Menu',              close:function () { hdDrawerClose_(); }, locks:false },
+    { id:'livityModal',        label:'Anytime Livity',    close:function () { closeLivityBall(); } }
+  ];
+  function find(id) { for (var i = 0; i < L.length; i++) if (L[i].id === id) return L[i]; return null; }
+  function isOpen(id) { var e = document.getElementById(id); return !!(e && e.classList.contains('open')); }
+  return {
+    all: function () { return L.slice(); },
+    get: find,
+    isOpen: isOpen,
+    anyOpen: function () { return L.some(function (m) { return isOpen(m.id); }); },
+    /* bukas na modal na dapat may scroll lock (hindi kasama ang drawer) */
+    anyLocking: function () { return L.some(function (m) { return m.locks !== false && isOpen(m.id); }); },
+    close: function (id) { var m = find(id); if (m) m.close(); },
+    backOrClose: function (id) { var m = find(id); if (m) (m.back || m.close)(); },
+    setBack: function (id, fn) { var m = find(id); if (m) m.back = fn; },
+    /* Console: MODAL.audit(). Ililista ang lahat ng position:fixed na may z-index, at magbababala kung
+       (a) may z-index sa pagitan ng 1–99 na fixed, (b) hindi tugma ang registry order sa z-index. */
+    audit: function () {
+      var z = function (e) { var v = parseInt(getComputedStyle(e).zIndex, 10); return isNaN(v) ? 0 : v; };
+      var rows = [], bad = [];
+      document.querySelectorAll('body *').forEach(function (e) {
+        var cs = getComputedStyle(e);
+        if (cs.position !== 'fixed' || cs.zIndex === 'auto') return;
+        var v = parseInt(cs.zIndex, 10);
+        rows.push({ z: v, el: (e.id ? '#' + e.id : '') + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/)[0] : e.tagName.toLowerCase()) });
+        if (v < 100) bad.push('Fixed element na may z-index < 100: ' + (e.id || e.className) + ' (' + v + ')');
+      });
+      var prev = Infinity;
+      L.forEach(function (m) {
+        var e = document.getElementById(m.id); if (!e) return;
+        var v = z(e);
+        if (v > prev) bad.push('Registry order mali: ' + m.id + ' (z ' + v + ') ay nasa ilalim ng mas mababang modal.');
+        prev = v;
+      });
+      rows.sort(function (a, b) { return b.z - a.z; });
+      console.table(rows);
+      bad.forEach(function (b) { console.warn('[MODAL.audit] ' + b); });
+      if (!bad.length) console.info('[MODAL.audit] OK');
+      return bad;
+    }
+  };
+})();
+if (typeof CONFIG !== 'undefined' && CONFIG.debug) window.addEventListener('load', function () { setTimeout(function () { MODAL.audit(); }, 1500); });
+/* === END: MODAL === */
+
+/* === START: ACCESSIBILITY — KEYBOARD, FOCUS, SCREEN READER === */
+const A11Y = (function () {
+  /* anumang clickable na hindi native control (backdrops excluded: hindi dapat tab stop) */
+  var CLICKABLE = '[onclick]:not(button):not(a):not(input):not(select):not(textarea):not(label):not([role]):not([tabindex]):not([class*="backdrop"])';
+
+  var MODALS = [
+    ['scanModal', 'Scan attendance', function () { closeScan_(); }],
+    ['welcomeModal', 'Welcome to Livity', function () { closeWelcome(); }],
+    ['rateModal', 'Rate Livity', function () { closeRateModal(); }],
+    ['maintModal', 'Under maintenance', function () { closeMaintModal(); }],
+    ['verModal', 'What\'s new', function () { closeVersionModal_(); }],
+    ['sessionDetailModal', 'Session details', function () { closeSessionDetail_(); }],
+    ['galleryModal', 'Gallery', function () { closeGalleryLightbox_(); }],
+    ['tutorialModal', 'Help', function () { closeTutorial(); }],
+    ['livityModal', 'Anytime Livity', function () { closeLivityBall(); }],
+    ['hdDrawer', 'Menu', function () { hdDrawerClose_(); }]
+  ];
+
+  MODALS = MODAL.all().map(function (m) { return [m.id, m.label, function () { MODAL.close(m.id); }]; });
+
+  /* 1. clickable <div> → role=button + tabindex=0 (static at dynamic) */
+  function enhance(root) {
+    if (!root || root.nodeType !== 1) return;
+    if (root.id === 'appToast') { root.setAttribute('role', 'status'); root.setAttribute('aria-live', 'polite'); }
+    var list = root.matches(CLICKABLE) ? [root] : [];
+    [].push.apply(list, root.querySelectorAll(CLICKABLE));
+    list.forEach(function (el) {
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      if (el.classList.contains('acc-head')) el.setAttribute('aria-expanded', String(!!(el.parentElement && el.parentElement.classList.contains('open'))));
+    });
+  }
+
+  /* 2. Enter / Space = click, gaya ng totoong button */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+    var el = e.target;
+    if (!el || el.nodeType !== 1 || el.getAttribute('role') !== 'button') return;
+    if (/^(BUTTON|A|INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) return;
+    e.preventDefault(); // pigilan ang page scroll sa Space
+    el.click();
+  });
+
+  /* 3. Escape = isara ang pinakataas na modal (o ang tour) */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (typeof tutTour !== 'undefined' && tutTour) { tutTourEnd_(); return; }
+    for (var i = 0; i < MODALS.length; i++) {
+      var m = document.getElementById(MODALS[i][0]);
+      if (m && m.classList.contains('open')) { e.preventDefault(); MODALS[i][2](); return; }
+    }
+  });
+
+  /* 4. sarado ang modal = inert (hindi na matatabbing invisible); bukas = focus papasok, pabalik pagsara */
+  var returns = {};
+  function inertSync(m) {
+    if (m.classList.contains('open')) m.removeAttribute('inert'); else m.setAttribute('inert', '');
+  }
+  function focusSync(m) {
+    var open = m.classList.contains('open');
+    if (open === m._a11yOpen) return; // handoff (close→open sa iisang tick) = walang galaw
+    m._a11yOpen = open;
+    if (open) {
+      returns[m.id] = document.activeElement;
+      setTimeout(function () {
+        if (!m.classList.contains('open') || m.contains(document.activeElement)) return;
+        m.setAttribute('tabindex', '-1');
+        try { m.focus({ preventScroll: true }); } catch (e) {}
+      }, 60);
+    } else {
+      var r = returns[m.id]; delete returns[m.id];
+      if (r && r !== document.body && document.contains(r) && r.focus) { try { r.focus({ preventScroll: true }); } catch (e) {} }
+    }
+  }
+
+  function navCur() {
+    document.querySelectorAll('.bottom button').forEach(function (b) {
+      if (b.classList.contains('active')) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+  }
+
+  function init() {
+    enhance(document.body);
+
+    MODALS.forEach(function (d) {
+      var m = document.getElementById(d[0]);
+      if (!m) return;
+      if (d[0] !== 'hdDrawer') {
+        if (!m.getAttribute('role')) m.setAttribute('role', 'dialog');
+        if (d[0] !== 'livityModal') m.setAttribute('aria-modal', 'true'); // profile mode: nasa labas ng modal ang tab bar
+        if (!m.getAttribute('aria-label') && !m.getAttribute('aria-labelledby')) m.setAttribute('aria-label', d[1]);
+      }
+      m._a11yOpen = m.classList.contains('open');
+      inertSync(m);
+      new MutationObserver(function () { inertSync(m); focusSync(m); }).observe(m, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    /* icon-only buttons na walang pangalan */
+    [['#lbBackBtn', 'Back'], ['.lb-close', 'Close'], ['.tutorial-sheet-close', 'Close'], ['.scan-close', 'Close']].forEach(function (p) {
+      document.querySelectorAll(p[0]).forEach(function (el) { if (!el.hasAttribute('aria-label')) el.setAttribute('aria-label', p[1]); });
+    });
+    /* pang-dekorasyon lang: huwag basahin */
+    document.querySelectorAll('.program .arrow,.program .ico').forEach(function (el) { el.setAttribute('aria-hidden', 'true'); });
+
+    /* floating ball: gumana sa keyboard / VoiceOver (detail===0 = hindi galing sa pointer) */
+    var ball = document.getElementById('livityBall');
+    if (ball) ball.addEventListener('click', function (e) { if (e.detail === 0) { hideLivityHint(); toggleLivityBall(); } });
+
+    /* current page sa bottom nav */
+    var nav = document.querySelector('.bottom');
+    if (nav) new MutationObserver(navCur).observe(nav, { attributes: true, attributeFilter: ['class'], subtree: true });
+    navCur();
+  }
+
+  /* lahat ng bagong render (innerHTML) ay awtomatikong ine-enhance */
+  new MutationObserver(function (ms) {
+    ms.forEach(function (m) { m.addedNodes.forEach(function (n) { enhance(n); }); });
+  }).observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener('DOMContentLoaded', init);
+  return { enhance: enhance };
+})();
+/* === END: ACCESSIBILITY — KEYBOARD, FOCUS, SCREEN READER === */
+
+/* === START: DATA STATE MACHINE — ONE MODEL FOR EVERY RESOURCE === */
+const DATA = (function () {
+  var API = 'script.google.com/macros';
+
+  /* action → config.  id: param na nagpapakilala ng entity · ttl: tagal bago ituring na stale
+     empty(json): true kung walang laman · retry: pang-reload gamit ang umiiral na loader */
+  var RES = {
+    schedule:        { ttl: 10 * 60000, empty: function (j) { return !(j.week || []).some(function (d) { return d.active && (d.sessions || []).length; }); }, retry: function () { return loadSchedule(); } },
+    paymentInfo:     { ttl: 60 * 60000, empty: function (j) { return !(j.methods || []).length; }, retry: function () { return loadPaymentInfo(); } },
+    academyPackages: { ttl: 60 * 60000, empty: function (j) { return !Object.keys(j.packages || {}).length; }, retry: function () { return loadPackages(); } },
+    gallery:         { ttl: 30 * 60000, empty: function (j) { return !(j.items || []).length; }, retry: function () { return loadGallery_(); } },
+    version:         { ttl: 30 * 60000, empty: function (j) { return !j.current; }, retry: function () { return loadVersion_(true); } },
+    messages:        { ttl: 2 * 60000,  id: 'contact',   empty: function (j) { return !(j.messages || []).length; }, retry: function () { return lbLoadChatMessages_(); } },
+    payments:        { ttl: 5 * 60000,  id: 'playerId',  empty: function (j) { return !(j.payments || []).length; }, retry: function () { return appRefreshPayments_(); } },
+    findPlayer:      { ttl: 5 * 60000,  id: 'query',     empty: function (j) { return !(j.players || []).length; }, retry: function () { return pfRefresh_(); } },
+    guardianLookup:  { ttl: 5 * 60000,  id: 'whatsapp',  empty: function (j) { return !(j.players || []).length; } },
+    scanSessions:    { ttl: 5 * 60000,  post: true,      empty: function (j) { return !(j.sessions || []).length; }, retry: function () { return scLoadSessions_(); } }
+  };
+
+  var store = new Map(), lastKey = {}, subs = [], tokenN = 0;
+
+  function keyOf(a, id) { return id ? a + ':' + id : a; }
+
+  function entry(a, id) {
+    var k = keyOf(a, id), s = store.get(k);
+    if (!s) s = { key: k, action: a, id: id || '', status: 'idle', data: null, error: '', updatedAt: 0, inflight: 0, token: 0 };
+    else store.delete(k); // LRU: ilipat sa dulo
+    store.set(k, s);
+    lastKey[a] = k;
+    if (store.size > 60) { // huwag lumaki nang walang hanggan (per-entity keys lang ang binubura)
+      for (var kv of store) { if (kv[1].id && !kv[1].inflight && kv[1] !== s) { store.delete(kv[0]); break; } }
+    }
+    return s;
+  }
+
+  function snap(s) {
+    var has = s.data != null;
+    var ttl = (RES[s.action] || {}).ttl || 300000;
+    var stale = has && (s.status === 'error' || s.status === 'offline' || (s.updatedAt > 0 && Date.now() - s.updatedAt > ttl));
+    return { key: s.key, status: s.status, data: s.data, error: s.error, updatedAt: s.updatedAt, stale: !!stale, refreshing: s.status === 'loading' && has };
+  }
+
+  function emit(s) {
+    var sn = snap(s);
+    subs.slice().forEach(function (fn) { try { fn(sn); } catch (e) {} });
+    try { window.dispatchEvent(new CustomEvent('livity:data', { detail: sn })); } catch (e) {}
+  }
+
+  function set(s, status, patch) {
+    s.status = status;
+    if (patch) for (var p in patch) s[p] = patch[p];
+    emit(s);
+  }
+
+  /* anong request ito? (null = hindi resource, hindi susubaybayan) */
+  function describe(input, init) {
+    var u = typeof input === 'string' ? input : ((input && input.url) || '');
+    if (!CONFIG.api.isApi(u)) return null;
+    var method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    var params = {};
+    if (method === 'POST') {
+      try { params = JSON.parse((init && init.body) || '{}') || {}; } catch (e) { return null; }
+    } else {
+      (u.split('?')[1] || '').split('#')[0].split('&').forEach(function (kv) {
+        var p = kv.split('=');
+        try { params[decodeURIComponent(p[0])] = decodeURIComponent((p[1] || '').replace(/\+/g, ' ')); } catch (e) {}
+      });
+    }
+    var a = params.action;
+    if (!a || !Object.prototype.hasOwnProperty.call(RES, a)) return null;
+    var cfg = RES[a];
+    if (!!cfg.post !== (method === 'POST')) return null;
+    return { action: a, id: cfg.id ? String(params[cfg.id] || '') : '', cfg: cfg };
+  }
+
+  async function settle(s, tok, cfg, r) {
+    var out;
+    try {
+      if (!r.ok) {
+        out = { status: 'error', patch: { error: 'Server responded with status ' + r.status } };
+      } else {
+        var j = await r.clone().json();
+        if (!j || !j.success) out = { status: 'error', patch: { error: (j && j.error) || 'Something went wrong.' } }; // luma na data = nananatili (stale)
+        else out = { status: (cfg.empty && cfg.empty(j)) ? 'empty' : 'success', patch: { data: j, error: '', updatedAt: Date.now() } };
+      }
+    } catch (e) {
+      out = { status: 'error', patch: { error: 'Server returned an unexpected response.' } };
+    }
+    s.inflight--;
+    if (s.token === tok) set(s, out.status, out.patch); // pinakabagong request lang ang nagpapasya
+  }
+
+  /* isang hook para sa lahat: nasa ibabaw ng NET wrapper, kaya network failure = 'offline' */
+  var rawFetch = window.fetch;
+  if (rawFetch) {
+    window.fetch = function (input, init) {
+      var d = describe(input, init);
+      var p = rawFetch.apply(this, arguments);
+      if (!d) return p;
+      var s = entry(d.action, d.id), tok = ++tokenN;
+      s.inflight++; s.token = tok;
+      set(s, 'loading');
+      return p.then(async function (r) {
+        await settle(s, tok, d.cfg, r); // tapusin muna ang state bago maibalik ang response, para tama ang unang render
+        return r;
+      }, function (e) {
+        s.inflight--;
+        if (s.token === tok) set(s, 'offline', { error: ERR.friendly(e) });
+        throw e;
+      });
+    };
+  }
+
+  /* may laman na agad kahit offline ang cold start: galing sa umiiral na schedule cache */
+  try {
+    var sc = JSON.parse(localStorage.getItem('livity_sched_cache_v1') || 'null');
+    if (sc && Array.isArray(sc.week) && sc.week.length) {
+      var s0 = entry('schedule', '');
+      s0.data = { success: true, week: sc.week };
+      s0.updatedAt = Number(sc.at) || 0;
+    }
+  } catch (e) {}
+
+  function get(action, id) {
+    var k = keyOf(action, id), s = store.get(k);
+    if (!s && !id && lastKey[action]) s = store.get(lastKey[action]); // walang id = pinakabago sa family
+    return s ? snap(s) : { key: k, status: 'idle', data: null, error: '', updatedAt: 0, stale: false, refreshing: false };
+  }
+
+  function retry(action, id) {
+    var c = RES[action];
+    return c && c.retry ? c.retry(id) : undefined;
+  }
+
+  /**
+   * DATA.html('payments', { id, what, retry, empty:{title,text,icon,cta}, loadingText, render:(data,snap)=>html })
+   * Isang renderer para sa lahat ng state: loading / offline / error / empty / success (+ "saved copy" kapag stale).
+   */
+  function html(action, o) {
+    o = o || {};
+    var g = get(action, o.id), has = g.data != null;
+    var rt = o.retry || ("DATA.retry('" + action + "'" + (o.id ? ",'" + String(o.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'" : '') + ")");
+    var what = o.what || "We couldn't load this.";
+    if (!has) {
+      if (g.status === 'idle' || g.status === 'loading') return lbLoadingHtml_(o.loadingText || 'Loading…');
+      if (g.status === 'offline') return ERR.html({ title: "You're offline", what: what, retry: rt, compact: o.compact, flat: o.flat });
+      if (g.status === 'error') return ERR.html({ what: what, error: g.error, retry: rt, admin: o.admin !== false, ctx: o.ctx, compact: o.compact, flat: o.flat });
+    }
+    if (g.status === 'empty') {
+      var em = o.empty || {};
+      var ek = em.key || EMPTY_BY_ACTION_[action];
+      return (ek && EMPTY.has(ek)) ? EMPTY.html(ek, em) : lbEmptyState_(em.icon || '', em.title || 'Nothing here yet', em.text || '', em.cta || '');
+    }
+    var body = o.render ? o.render(g.data, g) : '';
+    var note = g.stale
+      ? '<p class="lb-text" style="font-size:11px;color:var(--muted);margin:8px 0 0">📶 Saved copy' + (g.updatedAt ? ' · updated ' + lbSchedAgo_(g.updatedAt) : '') + '</p>'
+      : '';
+    return body + note;
+  }
+
+  function all() { return Array.from(store.values()).map(snap); }
+
+  return {
+    get: get,
+    retry: retry,
+    html: html,
+    all: all,
+    subscribe: function (fn) { subs.push(fn); return function () { subs = subs.filter(function (x) { return x !== fn; }); }; },
+    summary: function () {
+      var o = { loading: 0, error: 0, offline: 0, stale: 0 };
+      all().forEach(function (s) { if (o[s.status] != null) o[s.status]++; if (s.stale) o.stale++; });
+      return o;
+    },
+    table: function () { console.table(all().map(function (s) { return { key: s.key, status: s.status, stale: s.stale, refreshing: s.refreshing, updated: s.updatedAt ? new Date(s.updatedAt).toLocaleTimeString() : '—', error: s.error }; })); }
+  };
+})();
+/* === END: DATA STATE MACHINE === */
+
+/* === START: CONFIRM — SINGLE CONFIRMATION CONTRACT === */
+/* const ok = await CONFIRM.ask({ title, text, confirmLabel, cancelLabel, danger })
+   → true kapag kinumpirma, false kapag Cancel / Esc / tap sa labas / back.
+   CONFIRM.notice({ title, text }) = may OK button lang (kapalit ng alert). */
+const CONFIRM = (function () {
+  var host = null, resolve = null, prevFocus = null, locked = false;
+
+  function close(v) {
+    if (!host) return;
+    var h = host, r = resolve;
+    host = null; resolve = null;
+    window.removeEventListener('keydown', onKey, true);
+    window.removeEventListener('popstate', onPop);
+    h.classList.remove('show');
+    setTimeout(function () { h.remove(); }, 220);
+    if (locked) { locked = false; unlockBodyScroll_(); }
+    if (prevFocus && document.contains(prevFocus) && prevFocus.focus) { try { prevFocus.focus({ preventScroll: true }); } catch (e) {} }
+    if (r) r(v);
+  }
+
+  function onPop() { close(false); }
+
+  /* capture + stopPropagation: ang Esc ay hindi dapat magsara rin ng modal sa ilalim */
+  function onKey(e) {
+    if (!host) return;
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(false); return; }
+    if (e.key === 'Tab') {
+      var b = host.querySelectorAll('button');
+      if (!b.length) return;
+      var first = b[0], last = b[b.length - 1];
+      if (!host.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }
+
+  function ask(o) {
+    o = o || {};
+    if (host) close(false);
+    return new Promise(function (res) {
+      resolve = res;
+      prevFocus = document.activeElement;
+      var esc = lbEscapeHtml_;
+      var danger = o.danger !== false;
+      var hasCancel = o.cancelLabel !== '';
+      host = document.createElement('div');
+      host.className = 'cf-backdrop';
+      host.setAttribute('role', 'alertdialog');
+      host.setAttribute('aria-modal', 'true');
+      host.setAttribute('aria-labelledby', 'cfTitle');
+      host.setAttribute('aria-describedby', 'cfText');
+      host.innerHTML = '<div class="cf-box">'
+        + '<h4 class="cf-title" id="cfTitle">' + esc(o.title || 'Are you sure?') + '</h4>'
+        + '<p class="cf-text" id="cfText">' + esc(o.text || '') + '</p>'
+        + '<div class="cf-acts">'
+        + '<button type="button" class="btn ' + (danger ? 'cf-danger' : 'primary') + '" id="cfOk">' + esc(o.confirmLabel || 'Confirm') + '</button>'
+        + (hasCancel ? '<button type="button" class="btn cf-cancel" id="cfNo">' + esc(o.cancelLabel || 'Cancel') + '</button>' : '')
+        + '</div></div>';
+      document.body.appendChild(host);
+
+      host.addEventListener('click', function (e) { if (e.target === host) close(false); });
+      host.querySelector('#cfOk').addEventListener('click', function () { if (danger) haptic('medium'); close(true); });
+      var no = host.querySelector('#cfNo');
+      if (no) no.addEventListener('click', function () { close(false); });
+      /* huwag mag-trigger ang swipe/drag ng profile sheet habang bukas ito */
+      ['pointerdown', 'touchstart', 'touchend'].forEach(function (t) {
+        host.addEventListener(t, function (e) { e.stopPropagation(); }, { passive: true });
+      });
+
+      window.addEventListener('keydown', onKey, true);
+      window.addEventListener('popstate', onPop);
+      lockBodyScroll_(); locked = true;
+
+      requestAnimationFrame(function () {
+        if (!host) return;
+        host.classList.add('show');
+        (no || host.querySelector('#cfOk')).focus({ preventScroll: true }); // Cancel ang may focus, para hindi aksidenteng matuloy
+      });
+    });
+  }
+
+  return {
+    ask: ask,
+    notice: function (o) { return ask(Object.assign({ confirmLabel: 'OK', cancelLabel: '', danger: false }, o)); }
+  };
+})();
+/* === END: CONFIRM === */
+
+/* === START: VIEWPORT — ONE OWNER (scroll lock + bottom nav + keyboard/visibility reset) === */
+const VIEWPORT = (function () {
+  var lockY = 0, count = 0, nav = null, gen = 0, reconTimer = null;
+
+  /* ---- isolation: itinatago ang bottom nav nang walang layout shift ---- */
+  function isolate(on) {
+    document.documentElement.classList.toggle('app-isolated', on);
+    document.body.classList.toggle('app-isolated', on);
+  }
+
+  /* ---- bottom nav pin (iOS visualViewport) ---- */
+  function pin() {
+    if (!nav) nav = document.querySelector('.bottom');
+    if (!nav || !window.visualViewport) return;
+    var vv = window.visualViewport;
+    var off = window.innerHeight - (vv.height + vv.offsetTop);
+    if (off < 120) off = 0;            // mas maliit sa 120px = toolbar jitter, hindi keyboard
+    nav.style.transform = 'translate3d(-50%,' + (-off) + 'px,0)';
+    nav.style.webkitTransform = nav.style.transform;
+  }
+  function reset() {
+    if (!nav) nav = document.querySelector('.bottom');
+    if (nav) { nav.style.transform = ''; nav.style.webkitTransform = ''; }
+  }
+  /* hintayin ang totoong viewport resize bago i-recompute; fallback timers kung walang event */
+  function settle() {
+    var my = ++gen;
+    reset();
+    if (!window.visualViewport) { pin(); return; }
+    function done() {
+      window.visualViewport.removeEventListener('resize', done);
+      if (my === gen) pin();
+    }
+    window.visualViewport.addEventListener('resize', done);
+    setTimeout(done, 500);
+    setTimeout(function () { if (my === gen) pin(); }, 900);
+  }
+
+  /* ---- scroll lock (counter; handoff = ilipat ang ownership, hindi bagong lock) ---- */
+  function lock(handoff) {
+    if (handoff && count > 0) return;
+    if (count === 0) {
+      lockY = window.scrollY || window.pageYOffset || 0;
+      document.body.style.top = (-lockY) + 'px';
+      document.documentElement.classList.add('scroll-locked');
+      document.body.classList.add('scroll-locked');
+      isolate(true);
+    }
+    count++;
+  }
+  function release(force) {
+    if (count === 0) return;
+    count = force ? 0 : count - 1;
+    if (count === 0) {
+      document.documentElement.classList.remove('scroll-locked');
+      document.body.classList.remove('scroll-locked');
+      document.body.style.top = '';
+      window.scrollTo(0, lockY);
+      isolate(false);
+      reset();
+    }
+  }
+
+  /* Self-heal: kapag may natirang lock pero wala nang bukas na modal (hal. nakalimutang unlock), pakawalan. */
+  function reconcile() {
+    clearTimeout(reconTimer);
+    reconTimer = setTimeout(function () {
+      if (count > 0 && !MODAL.anyLocking() && !document.querySelector('.cf-backdrop')) release(true);
+    }, 450);
+  }
+
+  /* ---- lahat ng viewport guard sa iisang lugar ---- */
+  function bind() {
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', pin);
+    pin();
+    window.addEventListener('orientationchange', function () { setTimeout(pin, 250); });
+    window.addEventListener('pageshow', settle);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(settle, 150); });
+    document.addEventListener('focusout', function (e) {
+      if (e.target && e.target.matches && e.target.matches('input,select,textarea')) { setTimeout(settle, 200); setTimeout(settle, 550); }
+    }, true);
+    var mo = new MutationObserver(function (ms) {
+      for (var i = 0; i < ms.length; i++) {
+        var t = ms[i].target;
+        if (ms[i].attributeName === 'class' && t.classList && !t.classList.contains('open')) { settle(); reconcile(); break; }
+      }
+    });
+    MODAL.all().forEach(function (m) {
+      var e = document.getElementById(m.id);
+      if (e) mo.observe(e, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind); else bind();
+
+  /* compat para sa lumang tawag */
+  window.pinBottomNav_ = pin; window.resetBottomNav_ = reset; window.settleBottomNav_ = settle;
+
+  return {
+    lock: lock,
+    unlock: function () { release(false); },
+    forceUnlock: function () { release(true); },
+    settle: settle, reset: reset, pin: pin, reconcile: reconcile,
+    state: function () { return { locks: count, scrollY: lockY, open: MODAL.all().filter(function (m) { return MODAL.isOpen(m.id); }).map(function (m) { return m.id; }) }; }
+  };
+})();
+function lockBodyScroll_(isHandoff) { VIEWPORT.lock(isHandoff); }
+function unlockBodyScroll_() { VIEWPORT.unlock(); }
+/* === END: VIEWPORT === */
+
+/* === LUMA: ang mga sumusunod hanggang bago ang `const LB_SCHEDULE_UNAVAILABLE_MSG` ay pwede nang burahin === */
 /* === START: SHARED SCROLL LOCK — SINGLE OWNER FOR FULLSCREEN OVERLAYS === */
 let scrollLockY_ = 0;
 let scrollLockCount_ = 0;
@@ -4047,7 +5056,7 @@ document.documentElement.classList.toggle('app-isolated', locked);
 document.body.classList.toggle('app-isolated', locked);
 }
 
-function lockBodyScroll_(isHandoff) {
+function lockBodyScrollOld_(isHandoff) {
 if (isHandoff && scrollLockCount_ > 0) return; // ownership transfer, not a new lock — count stays as-is
 if (scrollLockCount_ === 0) {
 scrollLockY_ = window.scrollY || window.pageYOffset || 0;
@@ -4062,7 +5071,7 @@ setAppIsolation_(true);
 scrollLockCount_++;
 }
 
-function unlockBodyScroll_() {
+function unlockBodyScrollOld_() {
 if (scrollLockCount_ === 0) return;
 scrollLockCount_--;
 if (scrollLockCount_ === 0) {
@@ -4268,7 +5277,7 @@ function lbSchedBanner_() {
   if (lbSchedState_ === 'cached') {
     el.innerHTML = '<div class="notice" style="margin:0 0 12px">📶 Showing your saved schedule · updated ' + lbSchedAgo_(lbSchedAt_) + '. Times may have changed.<br>' + retry + '</div>';
   } else if (lbSchedState_ === 'fallback') {
-    el.innerHTML = '<div class="notice" style="margin:0 0 12px;background:#ffeceb"><b>Schedule unavailable.</b> Showing the default weekly schedule. Please confirm times with <a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Admin JA</a>.<br>' + retry + '</div>';
+    el.innerHTML = ERR.html({ title:'Schedule unavailable', what:'Showing the default weekly schedule. Please confirm times with Admin JA.', retry:'loadSchedule()', admin:true, ctx:'Schedule won\'t load', compact:true });
   } else {
     el.innerHTML = '';
   }
@@ -4298,7 +5307,7 @@ function detailScheduleHtml_(d) {
       lines.push(cx ? '<s>' + line + '</s> <b style="color:var(--red)">Cancelled</b>' : line + (s.status === 'Rescheduled' ? ' <b>Rescheduled</b>' : ''));
     });
   });
-  const wa = '<a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Message Admin JA →</a>';
+  const wa = '<a href="' + contactWaUrl_() + '" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Message ' + CONTACT.adminName + ' →</a>';
   if (lines.length) return lines.join('<br>') + (lbSchedState_ !== 'live' ? '<br><span style="font-size:11px">Saved schedule — may be out of date.</span>' : '');
   return d.programId === 'PRG-PRIV'
     ? 'Private sessions are booked with Admin JA. ' + wa
@@ -4416,7 +5425,7 @@ return `<div class="notice" style="margin-top:10px">Academy players are automati
 }
 
 if (programId === 'PRG-PRIV') {
-return `<a href="https://wa.me/639762675397" target="_blank" rel="noopener" class="btn primary" style="width:100%;margin-top:10px;display:block;text-align:center;box-sizing:border-box;text-decoration:none">Message to Book →</a>`;
+return `<a href="${contactWaUrl_()}" target="_blank" rel="noopener" class="btn primary" style="width:100%;margin-top:10px;display:block;text-align:center;box-sizing:border-box;text-decoration:none">Message to Book →</a>`;
 }
 
 if (programId === 'PRG-REG' || programId === 'PRG-ADV') {
@@ -4427,7 +5436,7 @@ return '';
 }
 
 /* === START: SESSION DETAIL — FULL LIFECYCLE === */
-const LB_RESERVE_API = false;        // true kapag may 'reserveSpot' / 'cancelReservation' na sa GAS
+const LB_RESERVE_API = CONFIG.flags.reserveApi;        // true kapag may 'reserveSpot' / 'cancelReservation' na sa GAS
 const LB_RESERVE_CUTOFF_H = 2;       // reserve at least 2 hours before (galing sa tutorial/policy)
 const LB_RESV_KEY = 'livity_resv_v1';
 
@@ -4495,7 +5504,7 @@ function lbSessionLifeInner_(s, idx) {
   out += row('Who can attend', txt(who));
 
   /* Actions */
-  const wa = function (msg) { return 'https://wa.me/639762675397?text=' + encodeURIComponent(msg); };
+  const wa = function (msg) { return contactWaUrl_(msg); };
   const base = (p ? p.fullName + (p.playerId ? ' (' + p.playerId + ')' : '') : 'my player') + ' — ' + lbShortProgramName_(s.programName) + ', ' + day + ' ' + lbFormatTimeRange_(s.startTime, s.endTime) + ' · ' + s.venue;
   let actions = '';
 
@@ -4539,11 +5548,12 @@ async function lbResvAct_(op, idx) {
   if (!s || !p) return;
   const day = lbCurrentDayName_;
   const base = p.fullName + ' (' + p.playerId + ') — ' + lbShortProgramName_(s.programName) + ', ' + day + ' ' + lbFormatTimeRange_(s.startTime, s.endTime) + ' · ' + s.venue;
+if (op === 'cancel' && LB_RESERVE_API && !(await CONFIRM.ask({ title: 'Cancel your reservation?', text: lbShortProgramName_(s.programName) + ' · ' + day + ' ' + lbFormatTimeRange_(s.startTime, s.endTime) + '\nYour spot will be released.', confirmLabel: 'Cancel reservation', cancelLabel: 'Keep my spot' }))) return;
 
   /* walang backend pa: WhatsApp muna */
   if (!LB_RESERVE_API) {
     const msg = (op === 'reserve' ? 'Hi Admin JA, I would like to reserve a spot: ' : 'Hi Admin JA, I would like to cancel my reservation: ') + base;
-    window.open('https://wa.me/639762675397?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    window.open(contactWaUrl_(msg), '_blank', 'noopener');
     return;
   }
 
@@ -4641,7 +5651,7 @@ groups[name].push({ day: d.day, startTime: s.startTime, endTime: s.endTime, venu
 });
 
 if (order.length === 0) {
-container.innerHTML = lbEmptyState_('◷', 'No sessions this week', 'Nothing is scheduled this week. Check back soon or message Admin JA.', '');
+container.innerHTML = EMPTY.html('schedule', { title:'No sessions this week', text:'Nothing is scheduled this week. Check back soon or message Admin.' });
 return;
 }
 
@@ -4795,7 +5805,7 @@ const tagLabel = lbSessionTagLabel_(s.programName, s.notes);
 const tagHtml = !tagLabel ? '' :
 isPrivate
 ? `<div class="event-tags">${tagLabel}</div>`
-: `<div class="event-tags" onclick="openSessionDetail_(${i})">${tagLabel} ›</div>`;
+: `<button type="button" class="event-tags" onclick="openSessionDetail_(${i})" aria-haspopup="dialog">${tagLabel} ›</button>`;
 const cx_ = s.status === 'Cancelled';
 return `
 <div class="event"${cx_ ? ' style="opacity:.6"' : ''}>
@@ -4803,7 +5813,7 @@ return `
 <div class="event-title">${lbShortProgramName_(s.programName)}</div>
 ${lbSessionStatusHtml_(s)}
 <a href="${lbMapsLink_(s.venue)}" target="_blank" rel="noopener" class="event-venue" style="text-decoration:underline;text-decoration-color:var(--line);display:inline-block">📍 ${s.venue}</a>
-${tagHtml}
+${fmWhoHtml_(s)}${tagHtml}
 </div>
 `;
 }).join('');}
@@ -4816,7 +5826,7 @@ let lbBackTarget = 'menu';
 let lbEnrollStep = 0;
 
 /* === START: LIVITY ENROLL — API + PROGRAM-AWARE STATE === */
-const LIVITY_API_URL = 'https://script.google.com/macros/s/AKfycbw47vUpk4xO8sypOsMlNxTn-zTQpUWAIS0YXtW5Qb-xp2UpexOki6xW5uxeDzxTYtQOWw/exec';
+const LIVITY_API_URL = CONFIG.api.url;
 
 const LIVITY_PAYMENT_INFO_FALLBACK = {
 gcash: { number:'09762675397', accountName:'Livity Training & Academy' },
@@ -5337,9 +6347,7 @@ ${ctxHelp_('enroll')}
 /* === START: LIVITY — GENERIC BACKEND FETCH WRAPPER === */
 async function doFetch(action, payload) {
 
-if (!LIVITY_API_URL || LIVITY_API_URL.indexOf('PASTE_YOUR') === 0) {
-throw new Error('LIVITY_API_URL is not set yet — paste your Apps Script /exec URL first.');
-}
+CONFIG.api.assertReady();
 
 const body = JSON.stringify({ action, ...payload });
 
@@ -5419,6 +6427,7 @@ if (/reach the server|unexpected response|status/i.test(e.message || '')) lbReco
 function lbShowSuccess_(result) {
 navMarkKnown_();
 lbDraftOff_ = true; lbDraftClear_(); lbRefSave_(result);
+TOAST.success('Enrollment submitted');
 if (lbForm.whatsapp) { pfSave_({ q: lbForm.whatsapp, pid: (pfLoad_() || {}).pid || '' }); setTimeout(pfRefresh_, 1500); }
 document.getElementById('lbTitle').textContent = 'Payment Submitted';
 document.getElementById('lbBackBtn').style.display = 'none';
@@ -5533,7 +6542,7 @@ Submitted: { bg:'#eef4ff', bd:'#b7d0f7', fg:'var(--navy)', head:'🕓 PAYMENT SE
 Overdue: { bg:'#ffeceb', bd:'#f7c9c6', fg:'var(--red)', head:'🔴 PAYMENT OVERDUE', when:'', note:'Please settle this payment or message Admin JA.' },
 Rejected: { bg:'#ffeceb', bd:'#f7c9c6', fg:'var(--red)', head:'🔴 PAYMENT NOT VERIFIED', when:'', note:"We couldn't match this payment. Check the amount and reference number, then resubmit." },
 Cancelled: { bg:'#f5f2ea', bd:'#e2e2e2', fg:'var(--muted)', head:'⚪ PAYMENT CANCELLED', when:'', note:'This payment was cancelled. No action needed.' },
-Expired: { bg:'#f5f2ea', bd:'#e2e2e2', fg:'var(--muted)', head:'⚪ PAYMENT EXPIRED', when:'', note:'This payment request expired. <a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Message Admin JA for a new one →</a>' }
+Expired: { bg:'#f5f2ea', bd:'#e2e2e2', fg:'var(--muted)', head:'⚪ PAYMENT EXPIRED', when:'', note:'This payment request expired. <a href="' + contactWaUrl_() + '" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Message ' + CONTACT.adminName + ' for a new one →</a>' }
 };
 const st = map[p.status] || { bg:'#f5f2ea', bd:'#e2e2e2', fg:'var(--text)', head:'PAYMENT DUE', when:'', note:'' };
 
@@ -5576,6 +6585,7 @@ const ref = btn.dataset.ref || '';
 const done = function () {
 btn.textContent = 'Copied ✓';
 setTimeout(function () { btn.textContent = 'Copy Reference'; }, 1800);
+TOAST.success('Reference copied');
 };
 const fallback = function () {
 const ta = document.createElement('textarea');
@@ -5608,7 +6618,10 @@ if (!json.success) throw new Error(json.error || 'Could not load payments.');
 lbPayments = { loading:false, balanceDue: json.balanceDue, payments: json.payments };
 lbPayApply_(json);
 } catch (e) {
-lbPayments = { loading:false, error: e.message, balanceDue:0, payments:[] };
+const sv_ = DATA.get('payments', String(lbTopup.selected.playerId)).data;
+lbPayments = (sv_ && sv_.success)
+? { loading:false, stale:true, balanceDue: sv_.balanceDue, payments: sv_.payments }
+: { loading:false, error: e.message, offline: !navigator.onLine, balanceDue:0, payments:[] };
 }
 lbBody().innerHTML = lbRenderPaymentsBody_();
 }
@@ -5637,13 +6650,13 @@ return 'pending';
 }
 
 function lbRenderPaymentsBody_() {
-const back = `<button class="back" style="margin-bottom:10px" onclick="lbBackToHub_()">← Back</button>`;
+const back = `<button class="back" style="margin-bottom:10px" onclick="lbBackToHub_()">← Back</button>` + fmForHtml_();
 
 if (lbPayments.loading) {
 return back + lbLoadingHtml_('Checking your payments…');
 }
 if (lbPayments.error) {
-return back + `<p class="lb-text" style="color:var(--red)">${lbPayments.error}</p>`;
+return back + ERR.html({ title: lbPayments.offline ? "You're offline" : undefined, what:"We couldn't load your payments.", error:lbPayments.error, retry:'lbOpenPayments_()', admin:!lbPayments.offline, ctx:'Payments won\'t load' });
 }
 
 const balanceHtml = lbPayments.balanceDue > 0
@@ -5654,7 +6667,7 @@ if (lbPayments.payments.length === 0) {
 /* === START: PAYMENTS — REMOVE DUPLICATE TITLE (EMPTY) === */
 return back + (lbPayments.balanceDue > 0 ? balanceHtml : '') +
 /* === END: PAYMENTS — REMOVE DUPLICATE TITLE (EMPTY) === */ /* === START: PAYMENTS EMPTY — NO ICON EDIT === */
-`<div class="panel">${lbEmptyState_('', 'No payment history yet', 'Your payments will appear here after you enroll or top up.', '')}</div>`
+`<div class="panel">${EMPTY.html('payments')}</div>`
 /* === END: PAYMENTS EMPTY — NO ICON EDIT === */;
 }
 
@@ -5672,15 +6685,62 @@ return `
 
 /* === START: PAYMENTS — REMOVE DUPLICATE TITLE === */
 return back + lbPaymentHeroHtml_() +
-/* === END: PAYMENTS — REMOVE DUPLICATE TITLE === */ lbPayDuePanelsHtml_() + (lbPayments.payments.some(function (p) { return p.status === 'Submitted'; }) ? ctxHelp_('payment') : '') + balanceHtml + `<div class="panel" style="padding:0 16px">${rows}</div>`;
+/* === END: PAYMENTS — REMOVE DUPLICATE TITLE === */ lbPayDuePanelsHtml_() + (lbPayments.payments.some(function (p) { return p.status === 'Submitted'; }) ? ctxHelp_('payment') : '') + balanceHtml + `<div class="panel" style="padding:0 16px">${rows}</div>` + (lbPayments.stale ? '<p class="lb-text" style="font-size:11px;color:var(--muted);margin:8px 0 0">📶 Saved copy · updated ' + lbSchedAgo_(DATA.get('payments', String(lbTopup.selected.playerId)).updatedAt) + '</p>' : '');
 }
 /* === END: PAYMENTS & BALANCE — SCREEN === */
+
+/* === START: FIND PLAYER — INPUT CHECK, THROTTLE, STATE HTML === */
+const LB_FIND_FAIL_KEY = 'livity_find_fail_v1';
+const LB_FIND_MAX_FAILS = 5, LB_FIND_WINDOW_MS = 5 * 60000, LB_FIND_LOCK_MS = 60000;
+
+function lbFindFailsGet_() {
+  try { return (JSON.parse(localStorage.getItem(LB_FIND_FAIL_KEY) || '[]') || []).filter(function (t) { return Date.now() - t < LB_FIND_WINDOW_MS; }); } catch (e) { return []; }
+}
+function lbFindFailAdd_() {
+  const a = lbFindFailsGet_(); a.push(Date.now());
+  try { localStorage.setItem(LB_FIND_FAIL_KEY, JSON.stringify(a)); } catch (e) {}
+}
+function lbFindFailClear_() { try { localStorage.removeItem(LB_FIND_FAIL_KEY); } catch (e) {} }
+function lbFindLockLeftMs_() {
+  const a = lbFindFailsGet_();
+  if (a.length < LB_FIND_MAX_FAILS) return 0;
+  return Math.max(0, a[a.length - 1] + LB_FIND_LOCK_MS - Date.now());
+}
+
+/** '' = ok. Phone-like input lang ang vine-validate; may letters = Player ID, ang server ang magpapasya. */
+function lbFindCheck_(q) {
+  const s = String(q || '').trim();
+  if (!/[a-z0-9]/i.test(s)) return 'Enter a mobile number or Player ID.';
+  if (!/[a-z]/i.test(s) && /^[\d\s()+\-]+$/.test(s)) {
+    const d = s.replace(/\D/g, '');
+    if (d.length < 10 || d.length > 13) return "That mobile number doesn't look right. Use the number from registration, e.g. 0917 123 4567.";
+  }
+  return '';
+}
+
+function lbFindErrHtml_(e) {
+  const off = !navigator.onLine;
+  return ERR.html({ title: off ? "You're offline" : 'Something went wrong', what: off ? 'Connect to the internet to find your player.' : "We couldn't search right now.", error: off ? '' : e, retry: 'lbSubmitTopupFind_()', admin: !off, ctx: 'Find my player won\'t work', compact: true });
+}
+
+function lbFindLockedHtml_(ms) {
+  const msg = encodeURIComponent("Hi Admin JA, I can't find my player in the app. Can you help?");
+  return '<div class="err-box compact" role="alert"><div class="err-ico" aria-hidden="true">⏳</div><div class="err-title">Too many attempts</div>'
+    + '<p class="err-text">Please wait ' + Math.max(1, Math.ceil(ms / 1000)) + ' seconds and try again, or message Admin JA and we\'ll find your player for you.</p>'
+    + '<div class="err-actions"><a class="btn outline" href="' + contactWaUrl_(decodeURIComponent(msg)) + '" target="_blank" rel="noopener">Contact Admin</a></div></div>';
+}
+/* === END: FIND PLAYER — INPUT CHECK, THROTTLE, STATE HTML === */
 
 async function lbSubmitTopupFind_() {
 const input = document.getElementById('topupQuery');
 const query = input ? input.value.trim() : '';
 const err = document.getElementById('lbErr');
+const slot0_ = document.getElementById('lbFindEmpty');
 if (!query) { if (err) err.textContent = 'Please enter a mobile number or Player ID.'; return; }
+const bad_ = lbFindCheck_(query);
+if (bad_) { if (slot0_) slot0_.innerHTML = ''; if (err) err.textContent = bad_; return; }
+const lock_ = lbFindLockLeftMs_();
+if (lock_ > 0) { if (slot0_) slot0_.innerHTML = lbFindLockedHtml_(lock_); return; }
 
 lbTopup.query = query;
 const fBtn_ = document.getElementById('lbFindBtn');
@@ -5695,13 +6755,17 @@ const res = await fetch(LIVITY_API_URL + '?action=findPlayer&query=' + encodeURI
 const json = await res.json();
 if (!json.success) throw new Error(json.error || 'Search failed.');
 if (!json.players || json.players.length === 0) {
+lbFindFailAdd_();
 const emptySlot = document.getElementById('lbFindEmpty');
 if (emptySlot) emptySlot.innerHTML = lbNoPlayerHtml_();
 else if (err) err.textContent = "We couldn't find a player with that number/ID. Please check and try again, or WhatsApp Admin JA.";
 return;
 }
 lbTopup.players = json.players;
-pfSave_({ q: query, pid: (pfLoad_() || {}).pid || '' });
+const qSave_ = (/[a-z]/i.test(query) && json.players[0] && json.players[0].whatsapp) || query;
+pfSave_({ q: qSave_, pid: (pfLoad_() || {}).pid || '' });
+lbTopup.query = qSave_;
+lbFindFailClear_();
 navMarkKnown_();
 const okSlot_ = document.getElementById('lbFindEmpty');
 if (!okSlot_) return; // user left this screen while we were searching
@@ -5719,25 +6783,141 @@ lbBody().innerHTML = lbRenderTopupPlayerList_();
 }
 } catch (e) {
 const failSlot_ = document.getElementById('lbFindEmpty');
-if (failSlot_) failSlot_.innerHTML = '';
-if (err) err.textContent = "We couldn't reach the server (" + e.message + "). Please try again.";
+if (failSlot_) failSlot_.innerHTML = /too many|limit|attempt/i.test(e.message || '') ? lbFindLockedHtml_(LB_FIND_LOCK_MS) : lbFindErrHtml_(e);
+if (err) err.textContent = '';
 } finally {
 const fb_ = document.getElementById('lbFindBtn');
 if (fb_) { fb_.disabled = false; fb_.textContent = 'View My Player →'; }
 }
 }
 
+/* === START: FAMILY — MY PLAYERS (switcher, list, per-player context) === */
+function fmPlayers_() {
+  if (lbTopup && lbTopup.players && lbTopup.players.length) return lbTopup.players;
+  const s = pfSnapLoad_();
+  return s ? s.players : [];
+}
+function fmActive_() { return (lbTopup && lbTopup.selected) || pfSnapPlayer_(); }
+
+/** First name; kapag magkapareho ang first name sa pamilya, dagdagan ng initial ng apelyido. */
+function fmShort_(p, list) {
+  const parts = String(p.fullName || '?').trim().split(/\s+/);
+  const dup = list.some(function (x) { return x !== p && String(x.fullName || '').trim().split(/\s+/)[0].toLowerCase() === parts[0].toLowerCase(); });
+  return (dup && parts.length > 1) ? parts[0] + ' ' + parts[parts.length - 1].charAt(0) + '.' : parts[0];
+}
+
+function fmAvatar_(p, size, tag) {
+  const photo = (pfPhotoGet_(p.playerId) || p.photoUrl || '').replace(/'/g, '%27');
+  tag = tag || 'span';
+  return '<' + tag + ' class="pf-mini" aria-hidden="true" style="width:' + size + 'px;height:' + size + 'px;font-size:' + Math.round(size * 0.36) + 'px;flex-shrink:0' + (photo ? ';background-image:url(\'' + photo + '\')' : '') + '">' + (photo ? '' : pfInitials_(p.fullName)) + '</' + tag + '>';
+}
+
+/** "For Ben · LVT-001" — lalabas lang kapag 2+ ang players. */
+function fmForHtml_() {
+  const list = fmPlayers_(), p = fmActive_();
+  if (list.length < 2 || !p) return '';
+  return '<div style="display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:12px;font-weight:700;color:var(--muted)">' + fmAvatar_(p, 22) + '<span>For <b style="color:var(--text)">' + lbEscapeHtml_(p.fullName) + '</b> · ' + lbEscapeHtml_(p.playerId) + '</span></div>';
+}
+
+/** Isang tap na lipat ng player (hub at Home). */
+function fmSwitcherHtml_() {
+  const list = fmPlayers_();
+  if (list.length < 2) return '';
+  const act = fmActive_();
+  const chips = list.map(function (p) {
+    const on = !!(act && act.playerId === p.playerId);
+    return '<button type="button" class="lb-pill' + (on ? ' sel' : '') + '" aria-pressed="' + on + '" onclick="fmSwitch_(\'' + String(p.playerId).replace(/'/g, "\\'") + '\')" style="display:inline-flex;align-items:center;gap:7px;padding:5px 13px 5px 5px;margin:0">' + fmAvatar_(p, 24) + lbEscapeHtml_(fmShort_(p, list)) + '</button>';
+  }).join('');
+  return '<div role="group" aria-label="Switch player" style="margin:0 0 12px"><div style="font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:0 2px 6px">Viewing player</div><div style="display:flex;flex-wrap:wrap;gap:8px">' + chips + '<button type="button" class="lb-pill" onclick="fmAdd_()" style="margin:0">＋ Add</button></div></div>';
+}
+
+/** Sino sa pamilya ang may active na package sa session na ito. */
+function fmWhoHtml_(s) {
+  const list = fmPlayers_(), pid = lbSessionProgramId_(s);
+  if (!list.length || !pid) return '';
+  const who = list.filter(function (p) {
+    return (p.relationships || []).some(function (r) { return r.programId === pid && r.state === 'active'; });
+  });
+  if (!who.length) return '';
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + who.map(function (p) {
+    return '<span class="pay-badge paid" style="margin:0;font-size:11px">✓ ' + lbEscapeHtml_(fmShort_(p, list)) + '</span>';
+  }).join('') + '</div>';
+}
+
+function fmSwitch_(pid) {
+  const list = fmPlayers_();
+  const p = list.filter(function (x) { return x.playerId === pid; })[0];
+  if (!p) return;
+  const cur = fmActive_();
+  const changed = !cur || cur.playerId !== p.playerId;
+  lbTopup.players = list;
+  lbTopup.selected = p;
+  if (changed) { // huwag dalhin ang pinili/binabayaran ng nakaraang bata
+    lbTopup.packageKey = ''; lbTopup.activeProgramId = ''; lbTopup.paymentMethod = '';
+    lbPayments = { loading:true, balanceDue:0, payments:[] };
+    lbPayCur = null; lbPayOpen_ = false;
+  }
+  pfSave_({ q: (pfLoad_() || {}).q || lbTopup.query || '', pid: p.playerId });
+  pfSnapSave_();
+  pfReflect_(); // tab avatar + Home
+  if (lbScheduleWeek && lbScheduleActiveDay) renderScheduleDay(lbScheduleActiveDay);
+  const m = document.getElementById('livityModal');
+  if (m && m.classList.contains('open')) {
+    lbBody().innerHTML = lbRenderPlayerHub_();
+    document.getElementById('lbTitle').textContent = p.fullName;
+    lbBody().scrollTop = 0;
+  }
+  if (changed) appToast_('Now viewing ' + String(p.fullName || '').trim().split(/\s+/)[0]);
+}
+
+function fmAdd_() {
+  const m = document.getElementById('livityModal');
+  if (!(m && m.classList.contains('open'))) openProfile_();
+  if (lbTopup.selected) lbOpenAddChild_();
+}
+
 function lbRenderTopupPlayerList_() {
+  const t_ = document.getElementById('lbTitle'); if (t_) t_.textContent = 'My Players';
+  const list = lbTopup.players || [], act = fmActive_(), esc = lbEscapeHtml_;
+  if (!list.length) return EMPTY.html('players');
+  const rows = list.map(function (p) {
+    const on = !!(act && act.playerId === p.playerId);
+    const st = lbAcctState_(p), rels = p.relationships || [];
+    const left = rels.filter(function (r) { return r.state === 'active' && lbCounted_(r); }).reduce(function (n, r) { return n + Math.max(0, Number(r.remaining) || 0); }, 0);
+    const progs = rels.map(function (r) { return lbShortProgramName_(r.programName); }).join(' + ') || p.programName || '';
+    const q = String(p.playerId).replace(/'/g, "\\'");
+    return `<button type="button" class="lb-pkg ${on ? 'sel' : ''}" style="gap:12px" aria-current="${on}" onclick="fmSwitch_('${q}')">
+${fmAvatar_(p, 42, 'div')}
+<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800">${esc(p.fullName)}</div>
+<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px">${esc(p.playerId)}${p.category ? ' · ' + esc(p.category) : ''}</div>
+<div style="font-size:11px;font-weight:600;color:var(--muted);margin-top:2px">${esc(progs)}${left ? ' · ' + left + ' left' : ''}</div>
+<div class="pay-badge ${st.cls}" style="margin:6px 0 0;font-size:10px">${st.label}</div></div>
+${on ? '<div class="pay-badge paid" style="margin:0;flex-shrink:0">✓ Viewing</div>' : '<div style="font-size:20px;color:#8d826e">›</div>'}
+</button>`;
+  }).join('');
+  return `
+<h5 class="lb-step-title">My Players</h5>
+<p class="lb-text">${list.length} player${list.length === 1 ? '' : 's'} on this number. Payments, schedule and QR follow the player you pick.</p>
+${rows}
+<button class="lb-item" onclick="lbOpenAddChild_()">
+<span class="lb-ico">${pfIco_('plus', 20)}</span> Add Player
+</button>
+`;
+}
+/* === END: FAMILY — MY PLAYERS === */
+
+function lbRenderTopupPlayerListOld_() {
 const opts = lbTopup.players.map(function (p, i) {
 return `
 <button type="button" class="lb-pkg" onclick="lbSelectTopupPlayer_(${i})">
-<b>${p.fullName}</b>
+<div style="min-width:0"><b style="display:block">${p.fullName}</b><span style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-top:2px">${p.playerId}${p.category ? ' · ' + p.category : ''}</span>${/inactive/i.test(String(p.status || '')) ? '<span class="pay-badge overdue" style="font-size:11px;margin-top:4px">Inactive</span>' : ''}</div>
 <span>${p.programName}</span>
 </button>
 `;
 }).join('');
 return `
 <h5 class="lb-step-title">Your Players</h5>
+<p class="lb-text">${lbTopup.players.length} players found. Tap yours.${new Set(lbTopup.players.map(function (x) { return String(x.fullName || '').trim().toLowerCase(); })).size < lbTopup.players.length ? ' Some share the same name, so check the Player ID.' : ''}</p>
 ${opts}
 <button class="lb-item" onclick="lbOpenAddChild_()">
 <span class="lb-ico">${pfIco_('plus', 20)}</span> Add Player
@@ -5821,7 +7001,7 @@ function lbSessionsHubHtml_(rels) {
   const privNote = privNoPack
     ? `<div style="${core.length ? 'border-top:1px solid var(--line);margin-top:14px;padding-top:12px;' : 'margin-top:12px;'}font-size:13px;font-weight:700;color:var(--text)">Private Training<div style="font-size:12px;font-weight:600;color:var(--muted);margin-top:2px">Booked through Admin JA</div></div>`
     : '';
-  if (!core.length) return (privNote || `<div style="margin-top:12px;font-size:14px;font-weight:700;color:var(--text)">No sessions yet</div>`) + ctxHelp_('sessions');
+  if (!core.length) return (privNote || EMPTY.html('sessions')) + ctxHelp_('sessions');
 
   const blocks = core.map(function (r, i) {
     const b = lbSessionsBlockCore_(r, { dark:false, cta:true, label: lbShortProgramName_(r.programName) });
@@ -5940,6 +7120,7 @@ ${info.badge}
 return `
 <button class="back" style="margin-bottom:10px" onclick="lbBackToHub_()">← Back</button>
 <h5 class="lb-step-title">Sessions & Top Up</h5>
+${fmForHtml_()}
 <p class="lb-text">Pick a program to see its sessions or top up.</p>
 ${relCards}
 `;
@@ -6047,7 +7228,7 @@ return `
 ${Number(lbCurrentRel_('PRG-PRIV').total) > 0 ? lbSessionsBlock_(lbCurrentRel_('PRG-PRIV'), { dark:false, cta:false }) : ''}
 ${lbPrivatePackPickerHtml_()}
 <p class="lb-text" style="margin-top:10px">Private sessions are booked with your coach. Message Admin JA to pick a time.</p>
-<a href="https://wa.me/639762675397" target="_blank" rel="noopener" class="btn primary" style="width:100%;display:block;text-align:center;box-sizing:border-box;text-decoration:none">Message Admin JA →</a>
+<a href="${contactWaUrl_()}" target="_blank" rel="noopener" class="btn primary" style="width:100%;display:block;text-align:center;box-sizing:border-box;text-decoration:none">Message ${CONTACT.adminName} →</a>
 `;
 }
 
@@ -6127,6 +7308,7 @@ if (err) err.textContent = "We couldn't process your payment (" + e.message + ")
 }
 
 function lbShowTopupSuccess_(result) {
+TOAST.success('Top-up submitted');
 document.getElementById('lbTitle').textContent = 'Send Your Payment';
 document.getElementById('lbBackBtn').style.display = 'none';
 lbBody().innerHTML = `
@@ -6294,6 +7476,7 @@ if (err) err.textContent = "We couldn't add this program (" + e.message + "). Pl
 }
 
 function lbShowAddProgramSuccess_(result) {
+TOAST.success('Program added');
 document.getElementById('lbTitle').textContent = 'Payment Submitted';
 document.getElementById('lbBackBtn').style.display = 'none';
 lbBody().innerHTML = `
@@ -6399,7 +7582,7 @@ ${lbLoadingHtml_('Loading conversation…')}
 <button class="chat-send-btn" onclick="lbSendChatMessage_()">Send</button>
 </div>
 <p class="lb-text" style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px">
-Prefer WhatsApp? <a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="color:var(--royal);font-weight:700;text-decoration:none">Message Admin directly →</a>
+Prefer WhatsApp? <a href="${contactWaUrl_()}" target="_blank" rel="noopener" style="color:var(--royal);font-weight:700;text-decoration:none">Message Admin directly →</a>
 </p>
 `;
 }
@@ -6437,7 +7620,7 @@ const qk = document.querySelector('#lbBody .chat-quick'); if (qk) qk.style.displ
 if (list.length === 0) {
 if (!lbChatLoaded_ && !lbChatLoadFailed_) return; // spinner stays while the first load is running
 if (!lbChatLoaded_) { box.innerHTML = ''; return; } // banner already says it failed
-box.innerHTML = `<div class="chat-empty"><b style="display:block;font-size:13px;color:var(--text);margin-bottom:4px">No messages yet.</b>Ask Admin anything about training, payment, or schedule.</div>`;
+box.innerHTML = EMPTY.html('messages', { compact:true });
 return;
 }
 
@@ -6522,7 +7705,8 @@ m.status = 'queued'; m.error = '';
 lbOutboxSave_(); lbChatPaint_(); lbChatFlush_();
 }
 
-function lbChatDiscard_(id) {
+async function lbChatDiscard_(id) {
+if (!(await CONFIRM.ask({ title: 'Delete this message?', text: "It hasn't been sent and can't be recovered.", confirmLabel: 'Delete message' }))) return;
 lbChatOutbox_ = lbOutboxLoad_().filter(function (x) { return x.id !== id; });
 lbOutboxSave_(); lbChatPaint_();
 }
@@ -6567,7 +7751,7 @@ return last.sender === 'Admin' ? 'Admin replied' + (lbChatTime_(last) ? ' · ' +
 function lbChatBannerHtml_() {
 if (!navigator.onLine) return '<div class="notice" style="margin:0 0 8px">📶 You\'re offline. Messages are saved and will send when you reconnect.</div>';
 if (lbChatClosed_) return '<div class="notice" style="margin:0 0 8px"><b>This conversation is closed.</b><br><button type="button" class="chat-act" onclick="lbChatStartNew_()">Start a new conversation</button></div>';
-if (lbChatLoadFailed_ && !lbChatLoaded_) return '<div class="notice" style="margin:0 0 8px;background:#ffeceb">Couldn\'t load your conversation. <button type="button" class="chat-act" onclick="lbLoadChatMessages_()">Try again</button></div>';
+if (lbChatLoadFailed_ && !lbChatLoaded_) return ERR.html({ what:"We couldn't load your conversation.", retry:'lbLoadChatMessages_()', compact:true });
 return '';
 }
 
@@ -6838,6 +8022,11 @@ renderGallery_();
 function renderGallery_() {
 const grid = document.getElementById('galleryGrid');
 if (!grid) return;
+if (lbGalleryItems.length === 0 && DATA.get('gallery').status !== 'success') {
+grid.style.display = 'block';
+grid.innerHTML = DATA.html('gallery', { loadingText:'Loading photos…', what:"We couldn't load the gallery.", retry:'loadGallery_()', compact:true });
+return;
+}
 if (lbGalleryItems.length === 0 && lbGalState_ === 'loading') {
 grid.style.display = 'block';
 grid.innerHTML = lbLoadingHtml_('Loading photos…');
@@ -6845,12 +8034,12 @@ return;
 }
 if (lbGalleryItems.length === 0 && lbGalState_ === 'error') {
 grid.style.display = 'block';
-grid.innerHTML = lbEmptyState_('', "Couldn't load the gallery", 'Check your connection and try again.', '<button type="button" class="btn outline" style="padding:10px 16px;font-size:13px" onclick="loadGallery_()">Try again</button>');
+grid.innerHTML = ERR.html({ what:"We couldn't load the gallery.", retry:'loadGallery_()', compact:true });
 return;
 }
 if (lbGalleryItems.length === 0) {
 grid.style.display = 'block';
-grid.innerHTML = `<p class="lb-text" style="color:var(--muted);text-align:center;padding:16px 0;margin:0">No photos or videos yet — check back soon.</p>`;
+grid.innerHTML = EMPTY.html('gallery');
 return;
 }
 grid.style.display = 'grid';
@@ -7046,10 +8235,172 @@ function pfPhotoGet_(pid) { try { return localStorage.getItem(PF_PHOTO_KEY + pid
 function pfPhotoSet_(pid, data) { try { localStorage.setItem(PF_PHOTO_KEY + pid, data); return true; } catch (e) { return false; } }
 function pfPhotoDel_(pid) { try { localStorage.removeItem(PF_PHOTO_KEY + pid); } catch (e) {} }
 
-function pfPickPhoto_() {
-const f = document.getElementById('pfFile');
-if (f) f.click();
+/* === START: PLAYER PHOTO — FULL LIFECYCLE === */
+const PF_PHOTO_MAX_BYTES = 15 * 1024 * 1024;
+// state: idle | preview | uploading | uploaded | confirm | removing | failed
+let pfPh = { state:'idle', draft:'', error:'', failedOp:'', tok:0 };
+
+/** Avatar tap at "Replace" ay dumadaan na rito. */
+function pfPickPhoto_() { pfPhotoOpen_(''); }
+
+function pfPhotoOpen_(state) {
+  if (!lbTopup.selected) return;
+  pfPh = { state: state || 'idle', draft:'', error:'', failedOp:'', tok: pfPh.tok + 1 };
+  const t = document.getElementById('lbTitle'); if (t) t.textContent = 'Player Photo';
+  pfPhotoPaint_(true);
 }
+
+function pfPhotoChoose_() {
+  const f = document.getElementById('pfPhotoFile');
+  if (f) f.click();
+}
+
+function pfPhotoErrMsg_(e) {
+  return navigator.onLine ? ERR.friendly(e) : "You're offline. Connect to the internet and try again.";
+}
+
+function pfPhotoFail_(op, msg) {
+  pfPh.state = 'failed'; pfPh.failedOp = op; pfPh.error = msg;
+  pfPhotoPaint_();
+}
+
+function pfPhotoPaint_(isOpen) {
+  const p = lbTopup.selected;
+  if (!p || (!isOpen && !document.getElementById('pfPhBox'))) return;
+  const esc = lbEscapeHtml_, s = pfPh.state;
+  const first = String(p.fullName || 'the player').trim().split(/\s+/)[0];
+  const cur = pfPhotoGet_(p.playerId) || p.photoUrl || '';
+  const useDraft = !!pfPh.draft && (s === 'preview' || s === 'uploading' || (s === 'failed' && pfPh.failedOp === 'upload'));
+  const shown = String(useDraft ? pfPh.draft : cur).replace(/'/g, '%27');
+  const grey = 'background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)';
+  const greyRed = 'background:#f5f2ea;border-color:#f5f2ea;color:var(--red)';
+  const danger = 'background:var(--red);color:#fff';
+  const btn = function (label, cls, fn, style, dis) {
+    return '<button type="button" class="btn ' + cls + '" style="width:100%;margin-top:8px' + (style ? ';' + style : '') + '"' + (dis ? ' disabled' : '') + ' onclick="' + fn + '">' + label + '</button>';
+  };
+  const link = function (label, fn) {
+    return '<button type="button" class="pf-photo-rm" style="display:block;margin:12px auto 0" onclick="' + fn + '">' + label + '</button>';
+  };
+  let head = '', sub = '', acts = '', busy = false, tone = 'var(--text)';
+
+  if (s === 'idle') {
+    head = cur ? 'Current photo' : 'No photo yet';
+    sub = cur ? 'Replace it or remove it anytime.' : 'Add a photo so coaches can recognise ' + first + ' at check-in.';
+    acts = cur
+      ? btn('Replace photo', 'primary', 'pfPhotoChoose_()') + btn('Remove photo', 'outline', "pfPhotoRemove_()", greyRed)
+      : btn('Choose photo', 'primary', 'pfPhotoChoose_()');
+  } else if (s === 'preview') {
+    head = 'Preview';
+    sub = "This is how it will look. It isn't saved until you tap Save photo.";
+    acts = btn('Save photo', 'primary', 'pfPhotoSave_()') + btn('Choose a different photo', 'outline', 'pfPhotoChoose_()', grey) + link('Cancel', "pfPhotoOpen_('')");
+  } else if (s === 'uploading') {
+    head = 'Uploading…'; sub = 'Please keep this screen open.'; busy = true;
+    acts = btn('Uploading…', 'primary', '', 'opacity:.5', true);
+  } else if (s === 'uploaded') {
+    head = '✓ Photo updated'; tone = '#1f7a3a';
+    sub = 'Coaches will see it at check-in.';
+    acts = btn('Done', 'primary', 'lbBackToHub_()');
+  } else if (s === 'confirm') {
+    head = 'Remove this photo?';
+    sub = 'It will be removed from this device and from Livity. You can add a new one anytime.';
+    acts = btn('Remove photo', 'primary', 'pfPhotoDoRemove_()', danger) + btn('Keep photo', 'outline', "pfPhotoOpen_('')", grey);
+  } else if (s === 'removing') {
+    head = 'Removing…'; busy = true;
+    acts = btn('Removing…', 'primary', '', 'opacity:.5', true);
+  } else if (s === 'failed') {
+    tone = 'var(--red)'; sub = pfPh.error;
+    if (pfPh.failedOp === 'upload') {
+      head = 'Upload failed';
+      acts = btn('Try again', 'primary', 'pfPhotoSave_()') + btn('Choose a different photo', 'outline', 'pfPhotoChoose_()', grey) + link('Cancel', "pfPhotoOpen_('')");
+    } else if (pfPh.failedOp === 'remove') {
+      head = "Couldn't remove photo";
+      acts = btn('Try again', 'primary', 'pfPhotoDoRemove_()') + link('Keep photo', "pfPhotoOpen_('')");
+    } else {
+      head = "Couldn't use that photo";
+      acts = btn('Choose another photo', 'primary', 'pfPhotoChoose_()') + link('Cancel', "pfPhotoOpen_('')");
+    }
+  }
+
+  const initials = shown ? '' : esc(pfInitials_(p.fullName));
+  lbBody().innerHTML =
+    '<input type="file" id="pfPhotoFile" accept="image/*" hidden onchange="pfPhotoPicked_(this)">'
+    + '<div class="pf-card" style="text-align:center">'
+    + '<div id="pfPhBox" role="img" aria-label="' + esc(p.fullName) + (shown ? ' photo' : ', no photo') + '" style="width:132px;height:132px;border-radius:50%;margin:8px auto 14px;display:grid;place-items:center;background:#000 center/cover no-repeat' + (shown ? ";background-image:url('" + shown + "')" : '') + ';color:#fff;font-size:42px;font-weight:800;box-shadow:0 0 0 3px #fff,0 0 0 4px var(--line)">' + initials + '</div>'
+    + '<div role="status" aria-live="polite">' + (busy ? '<div class="lb-spinner" style="margin-bottom:10px"></div>' : '')
+    + '<div style="font-size:17px;font-weight:850;color:' + tone + '">' + head + '</div>'
+    + (sub ? '<p class="lb-text" style="margin:6px 0 0">' + esc(sub) + '</p>' : '') + '</div>'
+    + acts + '</div>';
+}
+
+function pfPhotoPicked_(input) {
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f || !document.getElementById('pfPhBox')) return;
+  if (!/^image\//i.test(f.type || '')) return pfPhotoFail_('pick', "That file isn't an image. Choose a JPG or PNG photo.");
+  if (f.size > PF_PHOTO_MAX_BYTES) return pfPhotoFail_('pick', 'That photo is too large. Choose one under 15 MB.');
+  const bad = function () { pfPhotoFail_('pick', "We couldn't read that photo. Try a different one."); };
+  const rd = new FileReader();
+  rd.onerror = bad;
+  rd.onload = function () {
+    const img = new Image();
+    img.onerror = bad;
+    img.onload = function () {
+      if (!document.getElementById('pfPhBox')) return; // lumabas na sa screen
+      const S = 320, c = document.createElement('canvas');
+      c.width = S; c.height = S;
+      const m = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+      pfPh.draft = c.toDataURL('image/jpeg', 0.82);
+      pfPh.state = 'preview'; pfPh.error = ''; pfPh.failedOp = '';
+      pfPhotoPaint_();
+    };
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+}
+
+async function pfPhotoSave_() {
+  const p = lbTopup.selected;
+  if (!p || !pfPh.draft || pfPh.state === 'uploading') return;
+  const tok = ++pfPh.tok, draft = pfPh.draft;
+  pfPh.state = 'uploading'; pfPh.error = '';
+  pfPhotoPaint_();
+  try {
+    const r = await doFetch('savePhoto', { playerId: p.playerId, contact: p.whatsapp, image: draft });
+    pfPhotoSet_(p.playerId, draft);          // saka lang i-save sa device kapag nakumpirma ng server
+    p.photoUrl = r.photoUrl || p.photoUrl || '';
+    const live = tok === pfPh.tok && document.getElementById('pfPhBox') && lbTopup.selected === p;
+    if (lbTopup.selected === p) pfSnapSave_();
+    pfReflect_();
+    if (live) { pfPh.state = 'uploaded'; pfPh.draft = ''; pfPhotoPaint_(); }
+    else appToast_('Photo updated ✓');
+  } catch (e) {
+    if (tok === pfPh.tok && document.getElementById('pfPhBox')) { pfPh.draft = draft; pfPhotoFail_('upload', pfPhotoErrMsg_(e)); }
+    else TOAST.error("Photo didn't upload");
+  }
+}
+
+async function pfPhotoDoRemove_() {
+  const p = lbTopup.selected;
+  if (!p || pfPh.state === 'removing') return;
+  const tok = ++pfPh.tok;
+  pfPh.state = 'removing'; pfPh.error = '';
+  pfPhotoPaint_();
+  try {
+    await doFetch('removePhoto', { playerId: p.playerId, contact: p.whatsapp });
+    pfPhotoDel_(p.playerId);                 // buburahin lang sa device kapag nabura na sa server
+    p.photoUrl = '';
+    const live = tok === pfPh.tok && document.getElementById('pfPhBox') && lbTopup.selected === p;
+    if (lbTopup.selected === p) pfSnapSave_();
+    pfReflect_();
+    appToast_('Photo removed');
+    if (live) { pfPh.state = 'idle'; pfPhotoPaint_(); }
+  } catch (e) {
+    if (tok === pfPh.tok && document.getElementById('pfPhBox')) pfPhotoFail_('remove', pfPhotoErrMsg_(e));
+    else TOAST.error("Photo wasn't removed");
+  }
+}
+/* === END: PLAYER PHOTO — FULL LIFECYCLE === */
 
 function pfPhotoChosen_(input) {
 const file = input.files && input.files[0];
@@ -7074,12 +8425,9 @@ rd.readAsDataURL(file);
 input.value = '';
 }
 
-function pfPhotoRemove_() {
-if (!lbTopup.selected) return;
-pfPhotoDel_(lbTopup.selected.playerId);
-doFetch('removePhoto', { playerId: lbTopup.selected.playerId, contact: lbTopup.selected.whatsapp }).catch(function () {});
-lbTopup.selected.photoUrl = '';
-lbBody().innerHTML = lbRenderPlayerHub_();
+async function pfPhotoRemove_() {
+  if (!(await CONFIRM.ask({ title: 'Remove this photo?', text: 'It will be removed from this device and from Livity. You can add a new one anytime.', confirmLabel: 'Remove photo', cancelLabel: 'Keep photo' }))) return;
+  pfPhotoDoRemove_();
 }
 
 /* overrides (last declaration wins) — walang "Enter it once…" text na */
@@ -7384,7 +8732,7 @@ ${nextHtml}
 <button class="lb-item" onclick="lbOpenAddChild_()">
 <span class="lb-ico">${pfIco_('user', 20)}</span> Add Another Player
 </button>
-${multi ? `<button class="lb-item" onclick="lbBody().innerHTML=lbRenderTopupPlayerList_()"><span class="lb-ico">${pfIco_('swap', 20)}</span> Other players</button>` : ''}
+${multi ? `<button class="lb-item" onclick="lbBody().innerHTML=lbRenderTopupPlayerList_()"><span class="lb-ico">${pfIco_('users', 20)}</span> My Players</button>` : ''}
 ${/* === START: SUPPORT SECTION CALL === */ pfSupportHtml_() /* === END: SUPPORT SECTION CALL === */}
 ${lbProfileMode ? `<button class="lb-item" onclick="pfSwitch_()"><span class="lb-ico">${pfIco_('swap', 20)}</span><span><b style="display:block;font-size:13px">Not you? Switch player</b><span style="font-size:11px;color:var(--muted)">Forget this device</span></span></button>` : ''}
 `;
@@ -7409,7 +8757,7 @@ pfRefresh_();
 });
 /* === END: PROFILE LIGHT CARD + PERSIST + REFLECT — LOGIC === */
 /* === START: QR PASS + LIVE SCAN — LOGIC === */
-const PF_QR_BASE = 'https://livityportal.artiplay.app/';
+const PF_QR_BASE = CONFIG.branding.portalUrl;
 const PF_QR_KEY = 'livity_pfqr_v1_'; // + playerId + token → QR image (offline sa gate)
 let scPending_ = '';
 
@@ -7486,7 +8834,199 @@ if (c) { const du_ = c.toDataURL('image/png'); try { localStorage.setItem(ck, du
 });
 }
 
+/* === START: QR PASS — FULL LIFECYCLE (Player ID QR) === */
+let pfQr = { tok:0 };
+let pfQrWake_ = null;
+
+function pfQrKey_(p) { return PF_QR_KEY + p.playerId + '_' + p.qrToken; }
+
+/** QR image (data URL): cache muna, kung wala ay kunin sa canvas na kaka-draw lang. */
+function pfQrData_(p) {
+  try { const c = localStorage.getItem(pfQrKey_(p)); if (c) return c; } catch (e) {}
+  const cv = document.querySelector('#pfQrBox canvas');
+  try { return cv ? cv.toDataURL('image/png') : ''; } catch (e) { return ''; }
+}
+
+/** Burahin ang QR cache ng lumang token ng player na ito. */
+function pfQrCleanup_(p) {
+  try {
+    const pre = PF_QR_KEY + p.playerId + '_', keep = pfQrKey_(p), rm = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf(pre) === 0 && k !== keep) rm.push(k);
+    }
+    rm.forEach(function (k) { localStorage.removeItem(k); });
+  } catch (e) {}
+}
+
+function pfQrFile_(p) { return 'livity-qr-' + String(p.playerId || 'player').replace(/[^A-Za-z0-9_-]/g, '') + '.png'; }
+function pfQrBack_() { return '<button class="back" style="margin-bottom:10px" onclick="lbBackToHub_()">← Back</button>'; }
+
 async function pfShowQr_() {
+  const p0 = lbTopup.selected;
+  if (!p0) return;
+  const tok = ++pfQr.tok;
+  document.getElementById('lbTitle').textContent = 'My QR Pass';
+  lbBody().innerHTML = pfQrBack_() + fmForHtml_() + '<div id="pfQrLoading">' + lbLoadingHtml_('Preparing your QR…') + '</div>';
+  if (!p0.qrToken) await pfRefresh_();
+  if (tok !== pfQr.tok || !document.getElementById('pfQrLoading')) return; // umalis na sa screen
+  const p = lbTopup.selected || p0;
+  if (!p.qrToken) {
+    const off = !navigator.onLine;
+    lbBody().innerHTML = pfQrBack_() + fmForHtml_() + ERR.html({
+      title: off ? "You're offline" : "QR isn't ready",
+      what: off ? 'Connect to the internet once to load your QR. After that it works offline.' : "We couldn't load your QR right now.",
+      retry: 'pfShowQr_()', admin: !off, ctx: "My QR Pass won't load", compact: true
+    });
+    return;
+  }
+  pfQrRender_(p);
+}
+
+function pfQrRender_(p) {
+  const esc = lbEscapeHtml_;
+  const first = String(p.fullName || '').trim().split(/\s+/)[0] || 'the player';
+  const inactive = /inactive/i.test(String(p.status || ''));
+  const grey = 'background:#f5f2ea;border-color:#f5f2ea;color:var(--text);padding:12px 4px;font-size:12px';
+  lbBody().innerHTML = pfQrBack_() + fmForHtml_() + `
+<div class="pf-card" style="text-align:center">
+<div class="pay-badge pending" style="margin:0 0 6px">PLAYER ID QR</div>
+<p class="lb-text" style="font-size:12px;margin:0 0 10px">Identifies ${esc(first)}. Attendance is recorded only when a coach scans it at training.</p>
+<div class="pf-qrbox" id="pfQrBox"></div>
+<div class="next-session-title" style="font-size:18px">${esc(p.fullName)}</div>
+<div class="next-session-venue">Player ID: ${esc(p.playerId)}</div>
+<div id="pfQrStatus" role="status" aria-live="polite" style="font-size:12px;font-weight:750;min-height:16px;margin-top:8px;color:var(--muted)">Checking QR…</div>
+${inactive ? '<p class="lb-text" style="color:var(--red);font-weight:700;margin:8px 0 0">This player is inactive. The QR may not be accepted until Admin JA reactivates it.</p>' : ''}
+</div>
+<button type="button" class="btn primary" style="width:100%;margin:2px 0 8px" onclick="pfQrBright_()">Bright screen for scanning</button>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+<button type="button" class="btn outline" style="${grey}" onclick="pfQrShare_()">Share</button>
+<button type="button" class="btn outline" style="${grey}" onclick="pfQrSave_()">Save image</button>
+<button type="button" class="btn outline" style="${grey}" id="pfQrRefBtn" onclick="pfQrRefresh_()">Refresh</button>
+</div>
+<p class="lb-text" style="font-size:11px;color:var(--muted);margin:0 0 12px">Anyone with this image can check in as ${esc(first)}. Share it only with a trusted guardian or coach.</p>
+<div class="session-detail-label" style="margin-top:4px">How check-in works</div>
+<div class="panel" style="padding:12px 14px;margin-bottom:10px">
+<p class="lb-text" style="margin:0 0 6px"><b>1.</b> Show this Player ID QR to the coach.</p>
+<p class="lb-text" style="margin:0 0 6px"><b>2.</b> The coach scans it in the staff scanner for that day's session.</p>
+<p class="lb-text" style="margin:0 0 6px"><b>3.</b> Present or Late is recorded then, not when you open this screen.</p>
+<p class="lb-text" style="font-size:11px;color:var(--muted);margin:8px 0 0">Scanning it with a normal phone camera shows nothing unless it's a staff device. No QR? Tell the coach the Player ID. Once loaded, the QR is saved on this device and works without internet.</p>
+</div>`;
+  pfQrCleanup_(p);
+  pfDrawQr_(p);
+}
+
+/* ---- Bright screen: puting overlay, malaking QR, naka-on ang screen ---- */
+function pfQrBright_() {
+  const p = fmActive_();
+  if (!p) return;
+  const src = pfQrData_(p);
+  if (!src) { TOAST.warn('QR not ready yet'); return; }
+  pfQrBrightClose_();
+  const esc = lbEscapeHtml_;
+  const o = document.createElement('div');
+  o.id = 'pfQrBright';
+  o.setAttribute('role', 'dialog');
+  o.setAttribute('aria-modal', 'true');
+  o.setAttribute('aria-label', 'QR for ' + (p.fullName || 'player'));
+  o.setAttribute('tabindex', '-1');
+  o.style.cssText = 'position:fixed;inset:0;z-index:calc(var(--z-full) + 10);background:#fff;color:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;touch-action:none;cursor:pointer';
+  o.innerHTML = '<img alt="" src="' + src + '" style="width:min(86vw,64vh,440px);height:auto;image-rendering:pixelated">'
+    + '<div style="font-size:22px;font-weight:850">' + esc(p.fullName) + '</div>'
+    + '<div style="font-size:15px;font-weight:700;color:#5a5a5a">' + esc(p.playerId) + '</div>'
+    + '<div style="font-size:12px;color:#8e8e93;margin-top:8px">Tap anywhere to close</div>';
+  o.addEventListener('pointerdown', function (e) { e.stopPropagation(); }); // huwag mag-trigger ang swipe ng profile sheet
+  o.addEventListener('click', pfQrBrightClose_);
+  document.body.appendChild(o);
+  document.addEventListener('keydown', pfQrBrightKey_);
+  try { o.focus({ preventScroll: true }); } catch (e) {}
+  try {
+    if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) {
+      if (document.getElementById('pfQrBright')) pfQrWake_ = l; else l.release();
+    }, function () {});
+  } catch (e) {}
+}
+function pfQrBrightKey_(e) { if (e.key === 'Escape') pfQrBrightClose_(); }
+function pfQrBrightClose_() {
+  const o = document.getElementById('pfQrBright');
+  if (o) o.remove();
+  document.removeEventListener('keydown', pfQrBrightKey_);
+  if (pfQrWake_) { try { pfQrWake_.release(); } catch (e) {} pfQrWake_ = null; }
+}
+
+/* ---- Save / Share: PNG na may pangalan, ID, at label ---- */
+function pfQrCompose_(p, cb) {
+  const src = pfQrData_(p);
+  if (!src) return cb(null);
+  const img = new Image();
+  img.onerror = function () { cb(null); };
+  img.onload = function () {
+    const W = 640, H = 860, c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+    x.textAlign = 'center';
+    x.fillStyle = '#0B2F64'; x.font = '800 26px -apple-system,Segoe UI,sans-serif';
+    x.fillText('LIVITY · PLAYER ID QR', W / 2, 64);
+    x.imageSmoothingEnabled = false;
+    x.drawImage(img, 80, 100, 480, 480);
+    x.fillStyle = '#000'; x.font = '800 34px -apple-system,Segoe UI,sans-serif';
+    x.fillText(String(p.fullName || ''), W / 2, 650, 560);
+    x.fillStyle = '#5a5a5a'; x.font = '700 26px -apple-system,Segoe UI,sans-serif';
+    x.fillText(String(p.playerId || ''), W / 2, 700, 560);
+    x.font = '600 20px -apple-system,Segoe UI,sans-serif';
+    x.fillText('Show this to the coach at check-in.', W / 2, 780, 580);
+    x.fillText('Attendance is recorded when staff scans it.', W / 2, 812, 580);
+    try { c.toBlob(function (b) { cb(b || null); }, 'image/png'); } catch (e) { cb(null); }
+  };
+  img.src = src;
+}
+
+function pfQrSave_() {
+  const p = fmActive_();
+  if (!p) return;
+  pfQrCompose_(p, function (b) {
+    if (!b) { appToast_('QR not ready yet'); return; }
+    const u = URL.createObjectURL(b), a = document.createElement('a');
+    a.href = u; a.download = pfQrFile_(p);
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+    appToast_('QR image downloaded');
+  });
+}
+
+function pfQrShare_() {
+  const p = fmActive_();
+  if (!p) return;
+  pfQrCompose_(p, function (b) {
+    if (!b) { appToast_('QR not ready yet'); return; }
+    let d = null;
+    try { d = { files: [new File([b], pfQrFile_(p), { type: 'image/png' })], title: 'Livity QR — ' + p.fullName, text: 'Livity Player ID QR for ' + p.fullName }; } catch (e) {}
+    if (d && navigator.share && navigator.canShare && navigator.canShare(d)) navigator.share(d).catch(function () {}); // cancel = tahimik
+    else pfQrSave_(); // walang share sheet: i-download na lang
+  });
+}
+
+/* ---- Refresh: kunin ang pinakabagong token, i-redraw ---- */
+async function pfQrRefresh_() {
+  const p0 = fmActive_();
+  if (!p0) return;
+  const btn = document.getElementById('pfQrRefBtn');
+  const reset = function () { const b = document.getElementById('pfQrRefBtn'); if (b) { b.disabled = false; b.textContent = 'Refresh'; } };
+  if (!navigator.onLine) { TOAST.warn("You're offline. Showing the saved QR."); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Refreshing…'; }
+  const oldTok = p0.qrToken;
+  const ok = await pfRefresh_();
+  const p = lbTopup.selected || p0;
+  if (!document.getElementById('pfQrBox')) return;
+  if (ok === false || !p.qrToken) { reset(); TOAST.warn("Couldn't refresh. Showing the saved QR."); return; }
+  try { localStorage.removeItem(pfQrKey_(p)); } catch (e) {} // gumawa ulit para sigurado
+  appToast_(p.qrToken !== oldTok ? 'QR updated' : 'QR is up to date ✓');
+  pfQrRender_(p);
+}
+/* === END: QR PASS — FULL LIFECYCLE === */
+
+async function pfShowQrOld_() {
 const p0 = lbTopup.selected;
 if (!p0) return;
 document.getElementById('lbTitle').textContent = 'My QR Pass';
@@ -7634,7 +9174,7 @@ return `<div id="payPanel"><div style="font-size:18px;font-weight:850;color:var(
 const methods = lbMethodsList_();
 const list = methods.length ? methods.map(function (m) {
 return `<div class="pay-method"><div style="min-width:0"><div class="pay-m-name">${esc(m.name)}<span class="pay-m-type">${esc(m.type)}</span></div><div class="pay-acct">${esc(m.accountNumber)}</div><div class="pay-m-holder">${esc(m.accountName)}${m.notes ? ' · ' + esc(m.notes) : ''}</div></div><button type="button" class="pay-copy" data-copy="${attr(m.accountNumber)}" onclick="lbPayCopy_(this)">Copy</button></div>`;
-}).join('') : `<div class="notice">Payment details aren't available right now. <a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Message Admin JA →</a></div>`;
+}).join('') : `<div class="notice">Payment details aren't available right now. <a href="${contactWaUrl_()}" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Message Admin JA →</a></div>`;
 const opts = methods.map(function (m) { return `<option value="${attr(m.name)}">${esc(m.name)}</option>`; }).join('');
 
 return `
@@ -7674,7 +9214,7 @@ function lbPayToggle_(which) {
 
 function lbPayCopy_(btn) {
 const t = btn.getAttribute('data-copy') || '';
-const done = function () { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); };
+const done = function () { btn.textContent = 'Copied ✓'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); TOAST.success('Account number copied'); };
 const fallback = function () {
 const ta = document.createElement('textarea');
 ta.value = t; ta.setAttribute('readonly', '');
@@ -7710,7 +9250,7 @@ function lbPayResubmitHtml_(pay, head, note) {
     + '<input class="lb-input" id="payRef" placeholder="Reference number" autocapitalize="characters" autocomplete="off">'
     + '<div class="lb-err" id="payErr"></div>'
     + '<button type="button" class="btn primary" id="payBtn" style="width:100%" onclick="lbPaySubmit_()">Resubmit Payment Details →</button>'
-    + '<a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;font-size:12px;font-weight:800;color:var(--royal);text-decoration:none">Need help? Message Admin JA →</a>'
+    + '<a href="' + contactWaUrl_() + '" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;font-size:12px;font-weight:800;color:var(--royal);text-decoration:none">Need help? Message Admin JA →</a>'
     + '</div>';
 }
 
@@ -7839,10 +9379,19 @@ lbRenderPlayerHub_ = function () {
   const n = (lbTopup.players || []).length;
   const chip = '<div class="pay-badge ' + s.cls + '" style="margin-top:12px">' + s.label + '</div>'
     + (s.msg ? '<p class="lb-text" style="margin:6px 0 0">' + s.msg + '</p>' : '')
-    + (n > 1 ? '<button type="button" class="pf-photo-rm" onclick="lbBody().innerHTML=lbRenderTopupPlayerList_()">Switch player · ' + n + ' on this number</button>' : '');
+    ;
   return h.replace('<div class="next-session-meta" style="margin-top:14px">', chip + '<div class="next-session-meta" style="margin-top:14px">');
 };
 /* === END: ACCOUNT STATE === */
+
+/* === START: FAMILY — SWITCHER SA HUB === */
+const lbHubBase6_ = lbRenderPlayerHub_;
+lbRenderPlayerHub_ = function () {
+  const h = lbHubBase6_();
+  const s = fmSwitcherHtml_();
+  return s ? h.replace('<div id="lbHubDue"></div>', s + '<div id="lbHubDue"></div>') : h;
+};
+/* === END: FAMILY — SWITCHER SA HUB === */
 
 /* ---- submit + offline queue (fail-safe) ---- */
 function lbPayQueueGet_() { try { return JSON.parse(localStorage.getItem(PAY_QUEUE_KEY) || '[]'); } catch (e) { return []; } }
@@ -7912,12 +9461,13 @@ lbPayQueueAdd_(job); // i-save muna sa device bago i-send
 
 const r = await lbPaySend_(job, false);
 const panel = document.getElementById('payPanel');
-if (r.ok) { if (panel) panel.innerHTML = lbPayDoneHtml_(r.result); return; }
+if (r.ok) { TOAST.success('Payment details sent'); if (panel) panel.innerHTML = lbPayDoneHtml_(r.result); return; }
 if (r.permanent) {
 if (err) err.textContent = r.error;
 if (btn) { btn.disabled = false; btn.textContent = 'Send Payment Details →'; }
 return;
 }
+TOAST.info('Saved. Will send when you\'re online');
 if (panel) panel.innerHTML = `<div class="pay-badge pending">📶 Saved on this device</div><p class="lb-text" style="margin-top:8px">We couldn't reach the server. Your reference number is saved and will be sent automatically once you're online — no need to send it again.</p>`;
 }
 /* === END: PAYMENT PANEL EDIT === */
@@ -7986,6 +9536,7 @@ ${shownPlayer ? '<div style="text-align:center;font-size:13px;color:#c8c4bb;marg
 <div style="text-align:left">
 ${scDiagRow_('Player ID', lbEscapeHtml_(playerId || '—'))}
 ${scDiagRow_('QR Format', formatOk ? '✓ Valid' : '✕ Unrecognized', formatOk ? '#34C759' : '#FF453A')}
+${scDiagRow_('QR Type', 'Player ID QR (identity only)')}
 ${scDiagRow_('Local Player', cachedPlayer ? '✓ Found' : '✕ Not in local cache', cachedPlayer ? '#34C759' : '#FF9F0A')}
 ${scDiagRow_('QR Token', tokenLine, tokenColor)}
 ${scDiagRow_('Decoder', lbEscapeHtml_(manual ? 'Manual entry' : scDecoderLabel_))}
@@ -8032,7 +9583,7 @@ const q = new URLSearchParams(location.search);
 const id = q.get('lvt');
 if (!id) return;
 const t = q.get('t') || '';
-history.replaceState(null, '', location.pathname);
+history.replaceState(history.state, '', location.pathname + (location.hash || ''));
 if (!scKey_()) return; // hindi staff device — walang ipapakita
 scPending_ = id + '.' + t;
 openScan_();
@@ -8067,6 +9618,113 @@ window.scrollTo(0,0);
 
 }
 
+
+/* === START: PROGRAM DETAIL — CONSISTENT SECTIONS + CTA HIERARCHY === */
+const DETAIL_PAY_RULE_ = 'Payment is due within 12 hours after the session ends. Still unpaid by 5:00 PM the following day: flat ₱100 overdue penalty.';
+const DETAIL_BOOK_RULE_ = [
+  'Reserve your spot at least 2 hours before the session.',
+  'Walk-ins: max 2 per calendar month; the 3rd onward is charged at 1.5×.',
+  DETAIL_PAY_RULE_
+];
+const DETAIL_WEATHER_ = [
+  'If weather cancels training within the first 45 minutes, the session is not deducted.',
+  'If training runs more than 45 minutes, it counts as completed.'
+];
+/* TODO: kumpirmahin ang listahang ito sa Academy */
+const DETAIL_BRING_ = ['Football shoes or sneakers', 'Shin guards', 'Water bottle', 'Your Player ID QR (My Livity → My QR Pass)'];
+
+const DETAIL_EXTRA_ = {
+  regular: {
+    ages: 'Ages 4+ · all levels · players grouped by skill level, not age',
+    req: ['Ages 4+. Beginners and non-beginners welcome.', 'Pick the player\'s age category when you register (U5–U7, U9–U13, U15+).'],
+    validity: function () { return '5-session package: valid and consumable within 30 days from the first training day. Top-up is available while sessions remain. Single sessions and assessments are priced separately.'; },
+    bring: DETAIL_BRING_,
+    attend: DETAIL_BOOK_RULE_
+  },
+  private: {
+    ages: 'Ages 4+ · 1-on-1 or small group',
+    req: ['Ages 4+. Beginners and non-beginners welcome.', 'Sessions are booked in advance with Admin JA.'],
+    validity: function () {
+      const k = Object.keys(lbPrivatePacks || {});
+      const days = k.length ? (lbPrivatePacks[k[0]].validityDays || 30) : 0;
+      return days
+        ? 'Private packs bought online are valid ' + days + ' days from your first session. Otherwise, the rate is confirmed by your coach.'
+        : 'The rate and validity are confirmed by your coach after you submit your request.';
+    },
+    bring: DETAIL_BRING_,
+    attend: ['Private sessions are booked with Admin JA. Message to pick a time.', 'Booking is required at least 2 hours before the session.', DETAIL_PAY_RULE_]
+  },
+  advanced: {
+    ages: 'U11+ · by assessment',
+    req: ['Assessment required before joining.', 'Ages 13+ (12 & below require Coach\'s Assessment).', 'Strong technical and tactical foundation.'],
+    validity: function () { return 'Paid per session. There is no package to expire.'; },
+    bring: DETAIL_BRING_,
+    attend: DETAIL_BOOK_RULE_
+  },
+  academy: {
+    ages: 'U5 · U7 · U9 · U11 · U13 · team pathway',
+    req: ['Ages U5–U13.', 'One-time Membership of ₱' + LB_MEMBERSHIP_FEE.toLocaleString() + ' (includes 2 jersey sets).', 'Academy players are expected at every session.'],
+    validity: function () { return 'Academy packages are valid for 30 days from the first training day (U5–U13). The one-time Membership (₱' + LB_MEMBERSHIP_FEE.toLocaleString() + ') does not use a session.'; },
+    bring: DETAIL_BRING_.concat(['Your Livity jersey (2 sets come with Membership)']),
+    attend: ['Academy players are automatically expected to attend.', 'Notify Admin by 2:00 PM Thursday or 10:00 PM Friday for Saturday.', DETAIL_PAY_RULE_]
+  }
+};
+
+function detailSec_(title, body) {
+  return '<div class="panel"><h3>' + title + '</h3>' + body + '</div>';
+}
+function detailList_(arr) {
+  return '<ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.65;color:#5e5a52">' + arr.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ul>';
+}
+
+/** Isang primary lang bawat program; ang iba ay mas mahina (grey) para malinaw ang hierarchy. */
+function detailCtaHtml_(k) {
+  const full = 'width:100%;display:block;text-align:center;box-sizing:border-box;text-decoration:none';
+  const grey = 'width:100%;margin-top:8px;background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)';
+  const note = function (t) { return '<p style="font-size:11px;color:var(--muted);margin:8px 2px 0;text-align:center">' + t + '</p>'; };
+  const gate = function (id) { return "lbGateThenEnroll_('" + id + "')"; };
+  const ask = '<button type="button" class="btn outline" style="' + grey + '" onclick="moChat_()">Ask Admin JA</button>';
+  const rates = '<button type="button" class="pf-photo-rm" style="display:block;margin:12px auto 0" onclick="show(\'pricing\')">See all rates →</button>';
+  let h = '';
+
+  if (k === 'regular') {
+    h = '<button type="button" class="btn primary" style="' + full + '" onclick="' + gate('PRG-REG') + '">Register for Regular Training →</button>'
+      + note('We check first if the player is already registered, so you never sign up twice.') + ask;
+  } else if (k === 'private') {
+    h = '<button type="button" class="btn primary" style="' + full + '" onclick="' + gate('PRG-PRIV') + '">Request Private Training →</button>'
+      + note('Your coach confirms the rate and schedule after you submit.') + ask;
+  } else if (k === 'advanced') {
+    const msg = encodeURIComponent('Hi Admin JA, I would like to request an Advanced Performance assessment. Player name and age: ');
+    h = '<a class="btn primary" style="' + full + '" href="' + contactWaUrl_(decodeURIComponent(msg)) + '" target="_blank" rel="noopener">Request Assessment →</a>'
+      + note('Advanced is by assessment. Admin JA will arrange it with Coach Sam.')
+      + '<button type="button" class="btn outline" style="' + grey + '" onclick="' + gate('PRG-ADV') + '">Already assessed? Register →</button>' + ask;
+  } else if (k === 'academy') {
+    h = '<button type="button" class="btn primary" style="' + full + '" onclick="' + gate('PRG-ACAD') + '">Register for Academy →</button>'
+      + note('Includes the one-time Membership (' + '₱' + LB_MEMBERSHIP_FEE.toLocaleString() + '), 2 jersey sets.') + ask;
+  }
+  return '<div class="panel" style="margin-top:4px">' + h + rates + '</div>';
+}
+
+function detailOld_(k) {
+  const d = data[k], x = DETAIL_EXTRA_[k];
+  document.getElementById('detail').innerHTML = `
+<button class="back" onclick="show('programs')">← Programs</button>
+<div class="section-title"><h2>${d.title}</h2></div>
+<p style="color:var(--muted);font-size:13px">${d.sub}</p>
+${detailSec_("Who it's for", '<p style="margin:0 0 8px"><b>' + x.ages + '</b></p><p style="margin:0">' + d.best + '</p>')}
+${detailSec_('What you get', '<p style="margin:0 0 10px">' + d.what + '</p><div class="tags" style="margin-bottom:10px">' + d.focus.map(function (f) { return '<span class="tag">' + f + '</span>'; }).join('') + '</div><p style="margin:0">' + d.dev + '</p>')}
+${detailSec_('Requirements', detailList_(x.req))}
+${detailSec_('Schedule & Locations', '<p style="margin:0">' + detailScheduleHtml_(d) + '</p>')}
+${detailPricingHtml_(k)}
+${detailSec_('Package validity', '<p style="margin:0">' + x.validity() + '</p>')}
+${detailSec_('What to bring', detailList_(x.bring))}
+${detailSec_('Attendance rules', detailList_(x.attend))}
+${detailSec_('Weather rules', detailList_(DETAIL_WEATHER_))}
+${detailCtaHtml_(k)}
+`;
+  show('detail');
+}
+/* === END: PROGRAM DETAIL — CONSISTENT SECTIONS + CTA HIERARCHY === */
 
 /* === START: PROGRAM DETAIL — PRICING PANEL === */
 const DETAIL_REGULAR_RATES = [
@@ -8227,6 +9885,122 @@ show('detail');
 }
 
 
+/* === START: PRICING — PACKAGE COMPARISON + RULES AT PURCHASE === */
+const PRICE_VALID_DAYS_ = 30;
+const PRICE_REG_SESSIONS_ = 5;
+const PRICE_REG_BORN_ = { 'U5–U7':'Born 2019+', 'U9–U13':'Born 2013–2018', 'U15+':'Born 2012–' };
+/* TODO: kumpirmahin ang dalawang ito sa Academy — ito ang wording ko, hindi galing sa file */
+const PRICE_EXPIRE_ = 'When the ' + PRICE_VALID_DAYS_ + ' days end, unused sessions expire with the package. Top up or buy a new package to keep training.';
+const PRICE_REFUND_ = 'Packages are non-transferable and non-refundable. If weather cancels training within the first 45 minutes, that session is not deducted.';
+
+function pricePeso_(n) { return '₱' + Number(n).toLocaleString(); }
+
+function priceRow_(name, sub, sessions, price) {
+  const per = (sessions > 0 && price != null) ? pricePeso_(Math.round(price / sessions)) : '—';
+  return '<div class="pc-row"><span>' + name + (sub ? '<small>' + sub + '</small>' : '') + '</span>'
+    + '<span>' + (sessions > 0 ? sessions : '—') + '</span>'
+    + '<span>' + (price != null ? pricePeso_(price) : 'By coach') + '</span>'
+    + '<span>' + per + '</span></div>';
+}
+
+function priceGroup_(title, who, valid, rows, extra) {
+  return '<div class="pc-grp"><h3>' + title + '</h3><p class="pc-who"><b>Who can buy:</b> ' + who + '</p>'
+    + '<div class="pc-row pc-h"><span>Package</span><span>Sessions</span><span>Price</span><span>Per session</span></div>'
+    + rows
+    + '<div class="pc-meta"><b>Valid for:</b> ' + valid + '</div>' + (extra || '') + '</div>';
+}
+
+function renderPricing_() {
+  let b = document.getElementById('pricingBody');
+  if (!b) {
+    const t = document.querySelector('#pricing .section-title');
+    if (!t) return;
+    b = document.createElement('div');
+    b.id = 'pricingBody';
+    t.after(b);
+  }
+  const esc = lbEscapeHtml_, V = PRICE_VALID_DAYS_;
+
+  const reg = DETAIL_REGULAR_RATES.map(function (r) {
+    return priceRow_(r.cat, (PRICE_REG_BORN_[r.cat] || '') + ' · Single ' + pricePeso_(r.single) + ' · Assessment ' + pricePeso_(r.assess) + ' · Top-up ' + pricePeso_(r.topup), PRICE_REG_SESSIONS_, r.pkg);
+  }).join('');
+
+  const acad = Object.keys(lbPackages).map(function (k) {
+    const p = lbPackages[k], d = String(LB_PACKAGE_DESC[k] || p.label).split(' — ');
+    return priceRow_(esc(d[0]), esc(d[1] || (p.sessions + ' Academy sessions')), p.sessions, p.price);
+  }).join('') + priceRow_('Membership', 'One-time · required · includes 2 jersey sets', 0, LB_MEMBERSHIP_FEE);
+
+  const pk = Object.keys(lbPrivatePacks || {});
+  const priv = pk.length
+    ? pk.map(function (k) { return priceRow_('Private pack', '', lbPrivatePacks[k].sessions, lbPrivatePacks[k].price); }).join('')
+    : priceRow_('Private session', 'Rate depends on coach & schedule', 0, null);
+  const privValid = pk.length ? ((lbPrivatePacks[pk[0]].validityDays || V) + ' days from your first session') : 'Confirmed by your coach together with the rate';
+
+  b.innerHTML =
+    '<div class="pc-banner"><b>Packages are valid for ' + V + ' days from the first training day.</b>Use your sessions within that window. Top-up is available while sessions remain.</div>'
+    + priceGroup_('Regular Training', "Ages 4+, all levels. Choose the player's age category.", V + ' days from the first training day', reg, '<div class="pc-meta">Single sessions and assessments are priced separately (see each age group).</div>')
+    + priceGroup_('Academy Training', 'Players U5–U13 (U5 · U7 · U9 · U11 · U13). Membership required.', V + ' days from the first training day', acad, '<div class="pc-meta"><b>First purchase:</b> package + Membership. The Membership is charged once and does not use a session.</div><div class="pc-meta">Mixed packages include Private sessions, so their per-session price is not the same as Regular.</div>')
+    + priceGroup_('Advanced Performance', 'U11+ by assessment. Request an assessment first.', 'Paid per session, so there is no package to expire', priceRow_('Per session', 'U11+ · by assessment', 1, 1300))
+    + priceGroup_('Private Training', 'Ages 4+. Sessions are booked with Admin JA.', privValid, priv)
+    + '<div class="pc-grp"><h3>Package rules</h3>'
+    + '<div class="pc-meta"><b>Validity:</b> Regular and Academy packages last ' + V + ' days from the first training day. Advanced is paid per session.</div>'
+    + '<div class="pc-meta"><b>If sessions expire:</b> ' + esc(PRICE_EXPIRE_) + '</div>'
+    + '<div class="pc-meta"><b>Refunds &amp; cancellations:</b> ' + esc(PRICE_REFUND_) + '</div>'
+    + '<div class="pc-meta"><b>Top-up:</b> Available while sessions remain.</div></div>'
+    + '<button type="button" class="btn outline" style="width:100%;margin:0 0 12px;background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)" onclick="moChat_()">Questions about packages? Ask Admin JA</button>';
+}
+
+/* i-update ang page kapag dumating na ang packages mula sa Sheet */
+const loadPackagesPc_ = loadPackages;
+loadPackages = async function () {
+  try { return await loadPackagesPc_.apply(this, arguments); } finally { renderPricing_(); }
+};
+renderPricing_();
+
+/* ---- "Package rules" box: lalabas sa mismong purchase screens ---- */
+function rbHtml_(pid) {
+  if (!pid) return '';
+  const esc = lbEscapeHtml_, adv = pid === 'PRG-ADV', priv = pid === 'PRG-PRIV';
+  const pk = Object.keys(lbPrivatePacks || {});
+  let valid = PRICE_VALID_DAYS_ + ' days from the first training day.';
+  if (adv) valid = 'Paid per session, so there is no package to expire.';
+  else if (priv) valid = pk.length ? ((lbPrivatePacks[pk[0]].validityDays || PRICE_VALID_DAYS_) + ' days from your first session.') : 'Confirmed by your coach with the rate.';
+  const row = function (l, t) { return '<div class="pc-rule"><b>' + l + '</b>' + t + '</div>'; };
+  return '<div class="pc-rules" role="note"><div class="pc-rules-t">Package rules</div>'
+    + row('Valid for', esc(valid))
+    + ((adv || (priv && !pk.length)) ? '' : row('If sessions expire', esc(PRICE_EXPIRE_)))
+    + row('Refunds', esc(PRICE_REFUND_)) + '</div>';
+}
+
+function rbInject_(h, box) {
+  const m = '<div class="lb-err" id="lbErr"></div>';
+  let i = h.indexOf(m);
+  if (i < 0) i = h.lastIndexOf('<button class="btn primary"');
+  return i < 0 ? h + box : h.slice(0, i) + box + h.slice(i);
+}
+
+(function () {
+  function wrap(name, pidFn) {
+    const base = window[name];
+    if (typeof base !== 'function') return;
+    window[name] = function () { return rbInject_(base.apply(this, arguments), rbHtml_(pidFn())); };
+  }
+  const enrollPid = function () { return lbForm.programId; };
+  const topupPid = function () { return lbTopup.activeProgramId; };
+  const addPid = function () { return lbAddProgram.programId; };
+  // Enroll
+  wrap('lbStepPackage', enrollPid); wrap('lbStepPayment', enrollPid); wrap('lbStepReview', enrollPid);
+  // Top-up
+  wrap('lbRenderTopupRegular_', function () { return 'PRG-REG'; });
+  wrap('lbRenderTopupAcademyPackage_', function () { return 'PRG-ACAD'; });
+  wrap('lbRenderTopupAdvanced_', function () { return 'PRG-ADV'; });
+  wrap('lbRenderTopupPrivateUnavailable_', function () { return 'PRG-PRIV'; });
+  wrap('lbRenderTopupPayment_', topupPid);
+  // Add another program
+  wrap('lbRenderAddProgramPackage_', addPid); wrap('lbRenderAddProgramPayment_', addPid);
+})();
+/* === END: PRICING — PACKAGE COMPARISON + RULES AT PURCHASE === */
+
 /* === START: WELCOME POPUP — LOGIC === */
 const WELCOME_KEY = 'livity_welcome_seen_v1'; // palitan ang v1 → v2 para lumabas ulit sa lahat
 
@@ -8255,7 +10029,7 @@ if (!seen) setTimeout(openWelcome, 400);
 /* === END: WELCOME POPUP — LOGIC === */
 
 /* === START: APP MAINTENANCE — LOGIC === */
-const APP_MAINTENANCE = true; // true = maintenance modal, false = normal link papunta sa app
+const APP_MAINTENANCE = CONFIG.flags.maintenance; // true = maintenance modal, false = normal link papunta sa app
 
 function appLinkClick(e) {
 if (!APP_MAINTENANCE) return true;
@@ -8328,7 +10102,7 @@ if (send) send.disabled = false;
 /* === START: RATE US — SUBMIT LIFECYCLE === */
 const RATE_KEY = 'livity_rate_v1';          // { sent:{rating,at}, pending:{id,rating,text,ts,error} }
 const RATE_ANON_KEY = 'livity_anon_v1';
-const RATE_COOLDOWN_MS = 7 * 86400000;      // isang rating kada 7 araw bawat device
+const RATE_COOLDOWN_MS = CONFIG.cache.rateCooldownMs;      // isang rating kada 7 araw bawat device
 let rateSending_ = false;
 
 function rateLoad_() { try { return JSON.parse(localStorage.getItem(RATE_KEY) || 'null') || {}; } catch (e) { return {}; } }
@@ -8369,7 +10143,8 @@ function rateEntryHtml_() {
   return rateModalForm();
 }
 
-function rateDiscard_() {
+async function rateDiscard_() {
+  if (!(await CONFIRM.ask({ title: 'Discard your feedback?', text: "It hasn't been sent yet.", confirmLabel: 'Discard' }))) return;
   const st = rateLoad_(); delete st.pending; rateSave_(st);
   rateSelected = '';
   ratePaint_(rateModalForm());
@@ -8951,7 +10726,7 @@ document.addEventListener(t, function(e) { e.preventDefault(); });
 
 /* === START: GLOBAL HAPTIC TAP — DELEGATED, APPLIES ACROSS WHOLE APP === */
 (function () {
-if (!('vibrate' in navigator)) return; // desktop / unsupported — no-op, safe
+return; // legacy per-tap vibrate, pinalitan ng HAPTIC. Pwede mong burahin ang buong GLOBAL HAPTIC TAP block.
 
 var SELECTOR = 'button, .btn, .lb-item, .lb-pkg, .lb-pill, .quick button, .program, .price, .sched-tab, .event-tags, .coach, .acc-head, .tutorial-role-card, .pay-copy, .pf-avatar, .pay-method, [onclick]';
 var lastTap = 0;
@@ -9227,7 +11002,7 @@ el.innerHTML = scConnRow_('Internet', '✓ Online', '#34C759') + scConnRow_('Ser
 
 const start = Date.now();
 try {
-const res = await fetch(LIVITY_API_URL + '?action=scanPing', { cache: 'no-store' });
+const res = await fetch(CONFIG.api.scannerUrl + '?action=scanPing', { cache: 'no-store' });
 const ms = Date.now() - start;
 if (!res.ok) throw new Error('bad status');
 await res.json();
@@ -9335,7 +11110,9 @@ function scShow_(kind, title, sub) {
 const box = scEl_('scResult'), cam = scEl_('scCam');
 if (!box) return;
 box.className = 'sc-result ' + kind;
-box.innerHTML = '<b>' + lbEscapeHtml_(title) + '</b>' + (sub ? '<span>' + lbEscapeHtml_(sub) + '</span>' : '');
+box.innerHTML = kind === 'err'
+? ERR.html({ title:title, what:sub, flat:true })
+: '<b>' + lbEscapeHtml_(title) + '</b>' + (sub ? '<span>' + lbEscapeHtml_(sub) + '</span>' : '');
 if (cam) cam.className = 'sc-cam ' + kind;
 }
 
@@ -9423,13 +11200,13 @@ requestAnimationFrame(scTick_);
 
 document.addEventListener('visibilitychange', function () {
 if (document.hidden && scStream) scStop_();
-if (!document.hidden && window.resetBottomNav_) setTimeout(window.resetBottomNav_, 100);
+/* visibility reset: VIEWPORT na ang may-ari */
 });
 /* === END: SCAN MODAL — LOGIC === */
 
 /* === START: SCAN → LIVITY BACKEND (nasa ilalim para manalo sa lumang declarations) === */
 async function scApi_(action, params) {
-const res = await fetch(LIVITY_API_URL, {
+const res = await fetch(CONFIG.api.scannerUrl, {
 method: 'POST',
 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
 body: JSON.stringify(Object.assign({ action: action, key: scKey_() }, params || {})),
@@ -9496,7 +11273,7 @@ scBusy = true; scLastCode = code; scLastAt = now;
 staffTouch_();
 if (!scSession) {
 await scRunDiagnostic_(code, manual);
-if (navigator.vibrate) navigator.vibrate([8]);
+haptic('light');
 clearTimeout(scFlashTimer);
 scFlashTimer = setTimeout(function () { scBusy = false; const cam = scEl_('scCam'); if (cam) cam.className = 'sc-cam'; }, SC_RESULT_MS);
 return;
@@ -9528,7 +11305,7 @@ scShow_('err', 'Could not record', String(e.message || 'No connection').slice(0,
 }
 }
 
-if (navigator.vibrate) navigator.vibrate(kind === 'err' ? [12, 8, 12] : [10, 6, 20]);
+haptic(kind === 'err' ? 'error' : (kind === 'late' ? 'warning' : (kind === 'dup' ? 'light' : 'success')));
 clearTimeout(scFlashTimer);
 scFlashTimer = setTimeout(function () {
 scBusy = false;
@@ -9556,7 +11333,89 @@ return `<div role="status" aria-live="polite" style="text-align:center;padding:2
 }
 /* === END: LOADING STATES === */
 
-/* === START: EMPTY STATES === */
+/* === START: EMPTY — ONE EMPTY-STATE CONTRACT === */
+/* EMPTY.html(key, overrides?)
+   overrides: { title, text, icon, primary:{label,go|href|wa}, secondary:{...}, compact:true }
+   go = JS string para sa onclick · href = link · wa = WhatsApp message (sumusunod sa CONTACT) */
+PF_ICO.image = '<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>';
+PF_ICO.grid  = '<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>';
+
+/* aling empty state ang lalabas kapag 'empty' ang DATA resource */
+const EMPTY_BY_ACTION_ = { schedule:'schedule', payments:'payments', messages:'messages', gallery:'gallery', findPlayer:'players', guardianLookup:'players', academyPackages:'programs' };
+
+const EMPTY = (function () {
+  var D = {
+    schedule: { icon:'clock', title:'No sessions scheduled',
+      text:'Nothing is scheduled right now. Check back soon or message Admin.',
+      primary:{ label:'Refresh schedule', go:'loadSchedule()' },
+      secondary:{ label:'Message Admin', wa:'Hi Admin JA, when is the next training?' } },
+    payments: { icon:'card', title:'No payments yet',
+      text:'Your payments will appear here after you enroll or top up.',
+      primary:{ label:'Top up sessions', go:'lbOpenSessions_()' },
+      secondary:{ label:'Ask Admin', go:"lbGoTo('askadmin')" } },
+    sessions: { icon:'ticket', title:'No sessions yet',
+      text:'Choose a program to start training. Sessions show up here once Livity confirms your payment.',
+      primary:{ label:'Choose a program', go:'lbOpenAddProgram_()' },
+      secondary:{ label:'Ask Admin', go:"lbGoTo('askadmin')" } },
+    players: { icon:'users', title:'No player found',
+      text:"We couldn't find a player with that mobile number or Player ID. Check it and try again, or register if you're new.",
+      primary:{ label:'Register a new player', go:"lbStartDirectEnroll('')" },
+      secondary:{ label:'Message Admin', wa:"Hi Admin JA, I can't find my player in the app. Can you help?" } },
+    messages: { icon:'chat', title:'No messages yet',
+      text:'Ask Admin anything about training, payment, or schedule.',
+      primary:{ label:'Write a message', go:"var i=document.getElementById('chatInput');if(i)i.focus()" },
+      secondary:{ label:'WhatsApp', wa:'Hi Admin JA, I have a question.' } },
+    gallery: { icon:'image', title:'No photos yet',
+      text:'Photos and videos from training will show up here.',
+      primary:{ label:'Refresh', go:'loadGallery_()' },
+      secondary:{ label:'See programs', go:"show('programs')" } },
+    programs: { icon:'grid', title:'No programs available',
+      text:"We couldn't show the programs right now.",
+      primary:{ label:'Refresh', go:'appRefresh_(true)' },
+      secondary:{ label:'Message Admin', wa:'Hi Admin JA, which programs are open?' } },
+    search: { icon:'search', title:'No results',
+      text:'Nothing matched your search. Try a different word or number.',
+      primary:{ label:'Clear search', go:"var i=document.querySelector('#lbBody input');if(i){i.value='';i.focus()}" },
+      secondary:{ label:'Ask Admin', go:"lbGoTo('askadmin')" } }
+  };
+
+  var esc = lbEscapeHtml_;
+  function q(s) { return esc(s).replace(/"/g, '&quot;'); }
+
+  function act(a, cls) {
+    if (!a || !a.label) return '';
+    if (a.wa || a.href) {
+      var u = a.href || ((typeof contactWaUrl_ === 'function') ? contactWaUrl_(a.wa) : 'https://wa.me/');
+      return '<a class="btn ' + cls + '" href="' + q(u) + '" target="_blank" rel="noopener">' + esc(a.label) + '</a>';
+    }
+    return '<button type="button" class="btn ' + cls + '" onclick="' + q(a.go || '') + '">' + esc(a.label) + '</button>';
+  }
+
+  function html(key, o) {
+    o = o || {};
+    var d = D[key];
+    if (!d) {
+      if (typeof CONFIG !== 'undefined' && CONFIG.debug) console.warn('[EMPTY] Unknown key: ' + key);
+      d = { icon:'', title:'Nothing here yet', text:'' };
+    }
+    var pri = o.primary !== undefined ? o.primary : d.primary;
+    var sec = o.secondary !== undefined ? o.secondary : d.secondary;
+    if (!pri && typeof CONFIG !== 'undefined' && CONFIG.debug) console.warn('[EMPTY] "' + key + '" has no primary action');
+    var text = o.text !== undefined ? o.text : d.text;
+    var acts = act(pri, 'primary') + act(sec, 'outline em-sec');
+    return '<div class="em' + (o.compact ? ' compact' : '') + '" role="status" data-empty="' + esc(key) + '">'
+      + lbEmptyIcon_(o.icon !== undefined ? o.icon : d.icon)
+      + '<div class="em-title">' + esc(o.title || d.title) + '</div>'
+      + (text ? '<p class="em-text">' + esc(text) + '</p>' : '')
+      + (acts ? '<div class="em-acts">' + acts + '</div>' : '')
+      + '</div>';
+  }
+
+  return { html: html, has: function (k) { return !!D[k]; }, keys: function () { return Object.keys(D); } };
+})();
+/* === END: EMPTY === */
+
+/* === START: EMPTY STATES (lumang helper, fallback na lang) === */
 function lbEmptyState_(icon, title, text, ctaHtml) {
 return `<div style="text-align:center;padding:18px 8px">
 ${lbEmptyIcon_(icon)}
@@ -9566,15 +11425,28 @@ ${ctaHtml ? `<div style="margin-top:14px">${ctaHtml}</div>` : ''}
 </div>`;
 }
 
-function lbNoPlayerHtml_() {
+function lbNoPlayerHtml_() { return EMPTY.html('players'); }
+function lbNoPlayerHtmlOld_() {
 return lbEmptyState_('🔎', 'No player found',
 "We couldn't find a player with that mobile number or Player ID. Check it and try again, or register if you're new.",
 `<button type="button" class="btn primary" style="width:100%;margin-bottom:8px" onclick="lbStartDirectEnroll('')">Register a New Player →</button>
-<a href="https://wa.me/639762675397" target="_blank" rel="noopener" class="btn outline" style="width:100%;display:block;text-align:center;box-sizing:border-box;text-decoration:none">Message Admin JA</a>`);
+<a href="${contactWaUrl_()}" target="_blank" rel="noopener" class="btn outline" style="width:100%;display:block;text-align:center;box-sizing:border-box;text-decoration:none">Message ${CONTACT.adminName}</a>`);
 }
 
 /** A day with no sessions isn't a dead end — point to the next training day. */
 function lbScheduleEmptyHtml_(day) {
+  const weekEmpty = !!lbScheduleWeek && !lbScheduleWeek.some(function (d) { return d.active && (d.sessions || []).length; });
+  if (weekEmpty) return EMPTY.html('schedule', { title:'No sessions this week', text:'Nothing is scheduled this week. Check back soon or message Admin.' });
+  const next = findNextSession_();
+  const o = { title: day === WEEK_DAY_ORDER[getTodayIndex_()] ? 'No sessions today' : 'No sessions on ' + day };
+  if (next) {
+    const when = next.isToday ? 'Today' : next.day;
+    o.text = 'Next training: ' + when + ' · ' + lbFormatTimeRange_(next.session.startTime, next.session.endTime) + '.';
+    if (next.day !== day) o.primary = { label:'Go to ' + when, go:"renderScheduleDay('" + next.day + "')" };
+  }
+  return EMPTY.html('schedule', o);
+}
+function lbScheduleEmptyHtmlOld_(day) {
 const next = findNextSession_();
 const when = next ? (next.isToday ? 'Today' : next.day) : '';
 const text = next
@@ -9651,8 +11523,15 @@ function pfLogout_() {
 appToast_('Logged out');
 }
 
-function pfSwitch_() {
-  if (!confirm('Log out on this device?\n\nYour saved player, photo and QR will be removed from this phone.')) return;
+async function pfSwitch_() {
+  const unsent = lbOutboxLoad_().length;
+  const ok = await CONFIRM.ask({
+    title: 'Log out on this device?',
+    text: 'Your saved player, photo and QR will be removed from this phone.'
+      + (unsent ? '\n\n' + unsent + ' unsent message' + (unsent === 1 ? '' : 's') + ' will be deleted.' : ''),
+    confirmLabel: 'Log out'
+  });
+  if (!ok) return;
   pfLogout_();
 }
 /* === END: LOGOUT === */
@@ -9660,6 +11539,7 @@ function pfSwitch_() {
 function acc(el) {
 
 el.parentElement.classList.toggle('open');
+el.setAttribute('aria-expanded', String(el.parentElement.classList.contains('open')));
 
 el.querySelector('span').textContent =
 el.parentElement.classList.contains('open')
@@ -9669,7 +11549,7 @@ el.parentElement.classList.contains('open')
 }
 
 /* === START: STABLE BOTTOM NAV — iOS VISUALVIEWPORT FIX === */
-(function () {
+(function () { return; // DISABLED: nasa VIEWPORT na. Burahin ang buong block.
 var nav = null;
 var settleGen = 0;
 
@@ -9732,7 +11612,7 @@ setTimeout(function () { if (myGen === settleGen) pinBottomNav(); }, 900);
 /* === END: STABLE BOTTOM NAV — iOS VISUALVIEWPORT FIX === */
 
 /* === START: GLOBAL VIEWPORT-SHIFT GUARD — catches ANY modal close or keyboard dismiss === */
-(function () {
+(function () { return; // DISABLED: nasa VIEWPORT na. Burahin ang buong block.
 function safeReset() {
 if (window.settleBottomNav_) window.settleBottomNav_();
 }
@@ -9953,8 +11833,8 @@ document.addEventListener('DOMContentLoaded', loadVersion_);
 
 /* === START: AUTO REFRESH — focus / interval / manual ↻ === */
 let appRefreshing_ = false, appLastRefresh_ = 0;
-const APP_REFRESH_MIN_MS = 15000;   // pinakamabilis na pagitan ng dalawang refresh
-const APP_REFRESH_TICK_MS = 45000;  // auto-refresh habang bukas ang app
+const APP_REFRESH_MIN_MS = CONFIG.cache.refreshMinMs;   // pinakamabilis na pagitan ng dalawang refresh
+const APP_REFRESH_TICK_MS = CONFIG.cache.refreshTickMs;  // auto-refresh habang bukas ang app
 
 /** True kapag may tina-type sa loob ng modal — huwag i-re-render. */
 function appTyping_() {
@@ -9962,7 +11842,93 @@ const a = document.activeElement;
 return !!(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.closest && a.closest('#livityModal'));
 }
 
-function appToast_(t) {
+/* === START: TOAST — SINGLE FEEDBACK CONTRACT === */
+/* TOAST.success|info|warn|error(msg, { ms, action:{ label, fn } })
+   Isa lang ang nakikita sa isang oras; ang bago ay pumapalit sa luma. Parehong mensahe sa loob ng 1.2s = isang beses lang. */
+const TOAST = (function () {
+  var el, icoEl, txtEl, actEl, timer = null, lastKey = '', lastAt = 0;
+  var DUR = { success: 2200, info: 2200, warn: 3600, error: 4800 };
+  var ICON = { success: '✓', info: 'i', warn: '!', error: '✕' };
+
+  function ensure() {
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'toastHost';
+    el.className = 'toast';
+    el.setAttribute('aria-atomic', 'true');
+    icoEl = document.createElement('span'); icoEl.className = 'toast-ico'; icoEl.setAttribute('aria-hidden', 'true');
+    txtEl = document.createElement('span'); txtEl.style.minWidth = '0';
+    actEl = document.createElement('button'); actEl.type = 'button'; actEl.className = 'toast-act'; actEl.style.display = 'none';
+    el.appendChild(icoEl); el.appendChild(txtEl); el.appendChild(actEl);
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function hide() {
+    clearTimeout(timer); timer = null;
+    if (el) el.classList.remove('show', 'has-act');
+  }
+
+  function show(msg, o) {
+    o = o || {};
+    msg = String(msg == null ? '' : msg).trim();
+    if (!msg) return;
+    var type = DUR[o.type] ? o.type : 'info';
+    var key = type + '|' + msg, now = Date.now();
+    if (key === lastKey && now - lastAt < 1200) return;   // double-tap / double-fire guard
+    lastKey = key; lastAt = now;
+    haptic(type === 'success' ? 'success' : (type === 'error' ? 'error' : (type === 'warn' ? 'warning' : '')));
+
+    ensure();
+    el.className = 'toast ' + type;
+    el.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    el.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
+    icoEl.textContent = ICON[type];
+    txtEl.textContent = msg;
+
+    var a = o.action;
+    if (a && a.label && typeof a.fn === 'function') {
+      actEl.textContent = a.label;
+      actEl.style.display = '';
+      actEl.onclick = function () { hide(); try { a.fn(); } catch (e) {} };
+      el.classList.add('has-act');
+    } else {
+      actEl.style.display = 'none';
+      actEl.onclick = null;
+    }
+
+    // huwag magpatong sa connectivity bar
+    var nb = document.getElementById('netBar');
+    el.style.bottom = (nb && nb.classList.contains('show')) ? 'calc(158px + env(safe-area-inset-bottom,0px))' : '';
+
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(timer);
+    timer = setTimeout(hide, o.ms || DUR[type] + (a ? 2500 : 0));
+  }
+
+  return {
+    show: show, hide: hide,
+    success: function (m, o) { show(m, Object.assign({}, o, { type: 'success' })); },
+    info:    function (m, o) { show(m, Object.assign({}, o, { type: 'info' })); },
+    warn:    function (m, o) { show(m, Object.assign({}, o, { type: 'warn' })); },
+    error:   function (m, o) { show(m, Object.assign({}, o, { type: 'error' })); }
+  };
+})();
+
+/** Compat: lahat ng lumang appToast_('...') ay dumadaan na sa TOAST. Nagtatapos sa ✓ = success. */
+function appToast_(t, type) {
+  var m = String(t == null ? '' : t), ty = type;
+  if (!ty) {
+    if (/\s*✓\s*$/.test(m)) { ty = 'success'; m = m.replace(/\s*✓\s*$/, ''); }
+    else ty = 'info';
+  }
+  return TOAST.show(m, { type: ty });
+}
+/* === END: TOAST === */
+
+/* LUMA — hindi na tinatawag, pwede nang burahin ang buong function na ito */
+function appToastLegacy_(t) {
 let el = document.getElementById('appToast');
 if (!el) {
 el = document.createElement('div');
@@ -10028,7 +11994,7 @@ if (pfSnapLoad_() || lbTopup.selected) jobs.push(pfRefresh_().then(function (r) 
 if (modalOpen && lbTopup.selected && document.getElementById('lbTitle').textContent === 'Payments') jobs.push(appRefreshPayments_());
 if (document.getElementById('chatMessages') && lbChatContact) jobs.push(lbLoadChatMessages_());
 await Promise.all(jobs);
-if (manual) appToast_(ok ? 'Updated ✓' : 'No connection — showing saved data');
+if (manual) if (ok) TOAST.success('Updated'); else TOAST.warn('No connection. Showing saved data.');
 } finally {
 appRefreshing_ = false;
 if (btn) btn.classList.remove('spin');
@@ -10116,6 +12082,302 @@ toggleLivityBallBase_();
 };
 /* === END: PROFILE = SAME ECOSYSTEM === */
 
+/* === START: BACK NAVIGATION — OPTION A (top-left back + swipe back + browser back) === */
+const NAVH = (function () {
+  var ROOT = ['home', 'programs', 'schedule'];
+  var PARENT = { detail: 'programs', pricing: 'programs', enroll: 'home' };
+  var NAMES = { home: 'Home', programs: 'Programs', schedule: 'Schedule', detail: 'Program', pricing: 'Pricing', enroll: 'Enroll' };
+  var CHEV = '<svg viewBox="0 0 12 20" aria-hidden="true"><path d="M10 2 2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* pinakataas muna: ito ang isasara ng back */
+  var OVERLAYS = [
+    ['scanModal', function () { closeScan_(); }],
+    ['welcomeModal', function () { closeWelcome(); }],
+    ['tutorialModal', function () { closeTutorial(); }],
+    ['hdDrawer', function () { hdDrawerClose_(); }],
+    ['galleryModal', function () { closeGalleryLightbox_(); }],
+    ['sessionDetailModal', function () { closeSessionDetail_(); }],
+    ['rateModal', function () { closeRateModal(); }],
+    ['verModal', function () { closeVersionModal_(); }],
+    ['maintModal', function () { closeMaintModal(); }],
+    ['livityModal', function () { lbBackOrClose(); }]
+  ];
+
+  OVERLAYS = MODAL.all().map(function (m) { return [m.id, function () { MODAL.backOrClose(m.id); }]; });
+  MODAL.setBack('livityModal', function () { lbBackOrClose(); }); // sa loob ng Anytime Livity, Back = isang hakbang muna bago isara
+  var stack = ['home'], keys = [undefined], cur = { v: 'home', n: 0 };
+  var have = false, skip = 0, popping = false, closeTimer = null, detailKey, deepWait = false;
+
+  function el(id) { return document.getElementById(id); }
+  function isOpen(o) { var e = el(o[0]); return !!(e && e.classList.contains('open')); }
+  function anyOpen() { return OVERLAYS.some(isOpen); }
+
+  /* ---------- deep links (hash routes) ---------- */
+  function base() { return location.pathname + location.search; }
+
+  function hashFor(s) {
+    if (s.v === 'programs') return '#/programs';
+    if (s.v === 'detail') return s.k ? '#/programs/' + encodeURIComponent(s.k) : '#/programs';
+    if (s.v === 'schedule' || s.v === 'pricing' || s.v === 'enroll') return '#/' + s.v;
+    return '';
+  }
+  function urlFor(s) { return base() + hashFor(s); }
+
+  function parseHash(h) {
+    var p = String(h || '').replace(/^#\/?/, '').split('?')[0].split('/').filter(Boolean).map(function (x) {
+      try { return decodeURIComponent(x).toLowerCase(); } catch (e) { return x.toLowerCase(); }
+    });
+    var a = p[0] || '';
+    if (a === 'programs') return (p[1] && Object.prototype.hasOwnProperty.call(data, p[1])) ? { v: 'detail', k: p[1] } : { v: 'programs' };
+    if (a === 'schedule' || a === 'pricing' || a === 'enroll') return { v: a };
+    if (a === 'player') return { v: 'home', player: ['payments', 'sessions', 'qr'].indexOf(p[1]) > -1 ? p[1] : 'hub' };
+    return { v: 'home' };
+  }
+
+  /* My Livity ay overlay: ang URL niya ay sumusunod sa kasalukuyang screen sa loob */
+  function playerRoute() {
+    var m = el('livityModal');
+    if (!(lbProfileMode && m && m.classList.contains('open'))) return null;
+    var t = (el('lbTitle') || {}).textContent || '';
+    var sub = (t === 'Payments' || t === 'Receipt') ? 'payments' : (t === 'My QR Pass' ? 'qr' : (t === 'Sessions' ? 'sessions' : ''));
+    return '#/player' + (sub ? '/' + sub : '');
+  }
+
+  function urlSync() {
+    if (!have) return;
+    var pr = playerRoute();
+    if (!pr) return;
+    var u = base() + pr;
+    if (location.pathname + location.search + location.hash !== u) { try { history.replaceState(history.state, '', u); } catch (e) {} }
+  }
+
+  function openPlayer(sub) {
+    if (sub === 'payments') hdOpenPay_();
+    else if (sub === 'sessions') hdOpenSessions_();
+    else if (sub === 'qr') hdOpenQr_();
+    else openProfile_();
+  }
+
+  /* hash na binago ng user / link na may #/…, walang state */
+  function external() {
+    clearTimeout(closeTimer);
+    have = false;
+    var r = parseHash(location.hash);
+    var t = { v: r.v, k: r.k, n: cur.n + 1 };
+    history.replaceState(t, '', urlFor(t));
+    stack.length = t.n; stack[t.n] = t.v;
+    keys.length = t.n; keys[t.n] = t.k;
+    cur = t; detailKey = t.k;
+    deepWait = r.v === 'detail' && !lbScheduleWeek;
+    showView(t);
+    if (r.player) openPlayer(r.player);
+    sync();
+  }
+
+  /* may back ba ang header ng modal ngayon? (wala sa menu, success screens, o profile root) */
+  function lbCanStep() {
+    var b = el('lbBackBtn');
+    return !!b && b.style.display !== 'none' && !b.classList.contains('at-root');
+  }
+  function lbBackOrClose() { if (lbCanStep()) lbHeaderBack_(); else closeLivityBall(); }
+
+  /* ---------- top-left back buttons ---------- */
+  function skin() {
+    var prev = cur.n > 0 ? stack[cur.n - 1] : (PARENT[cur.v] || 'home');
+    var label = NAMES[prev] || 'Back';
+    document.querySelectorAll('.view > .back').forEach(function (b) {
+      b.setAttribute('onclick', 'NAVH.back()');
+      b.setAttribute('aria-label', 'Back to ' + label);
+      b.innerHTML = CHEV + '<span>' + label + '</span>';
+    });
+  }
+
+  /* ---------- history ---------- */
+  function showView(s) { // walang bagong history entry
+    popping = true;
+    try { if (s.v === 'detail' && s.k) detail(s.k); else show(s.v); }
+    finally { popping = false; }
+  }
+
+  function go(s) {
+    stack.length = s.n + 1; stack[s.n] = s.v;
+    keys.length = s.n + 1; keys[s.n] = s.k;
+    cur = { v: s.v, k: s.k, n: s.n };
+    showView(s);
+  }
+
+  function record(id) {
+    var k = id === 'detail' ? detailKey : undefined;
+    if (cur.v === id && cur.k === k) return;
+    var st;
+    if (have) { // may overlay entry: gawing view entry (hal. tab tap habang bukas ang profile/drawer)
+      have = false;
+      st = { v: id, k: k, n: cur.n + 1 };
+      history.replaceState(st, '', urlFor(st));
+    } else {
+      st = { v: id, k: k, n: cur.n + 1 };
+      history.pushState(st, '', urlFor(st));
+    }
+    stack.length = st.n; stack[st.n] = id;
+    keys.length = st.n; keys[st.n] = k;
+    cur = st;
+  }
+
+  /* back button / swipe back: sabay ang screen at ang history (synchronous, para sa animation) */
+  function back() {
+    var t;
+    if (cur.n > 0) {
+      var n = cur.n - 1;
+      t = { v: stack[n], k: keys[n], n: n };
+      skip++; go(t); history.back();
+    } else {
+      t = { v: PARENT[cur.v] || 'home', n: 0 };
+      go(t); history.replaceState(t, '', urlFor(t));
+    }
+  }
+
+  /* ---------- overlays = isang history entry ---------- */
+  function sync() {
+    var open = anyOpen();
+    if (open && !have) {
+      have = true;
+      var pr = playerRoute();
+      if (pr) history.pushState({ ov: 1, n: cur.n }, '', base() + pr);
+      else history.pushState({ ov: 1, n: cur.n }, '');
+    } else if (!open && have) {
+      clearTimeout(closeTimer); // may delay para sa close→reopen handoffs
+      closeTimer = setTimeout(function () {
+        if (have && !anyOpen()) { have = false; skip++; history.back(); }
+      }, 90);
+    }
+  }
+
+  function closeTop() {
+    for (var i = 0; i < OVERLAYS.length; i++) {
+      if (!isOpen(OVERLAYS[i])) continue;
+      try { OVERLAYS[i][1](); } catch (e) {}
+      return;
+    }
+  }
+
+  window.addEventListener('popstate', function (e) {
+    if (skip > 0) { skip--; return; }
+    if (!e.state) { external(); return; } // hash na binago ng user o link
+    if (have) { have = false; closeTop(); sync(); return; } // browser/Android back = isara ang pinakataas na overlay
+    var s = e.state || { v: 'home', n: 0 };
+    if (!s.v) return;
+    go(s);
+  });
+
+  /* ---------- wrappers ---------- */
+  const showNavBase_ = show;
+  show = function (id) {
+    var r = showNavBase_.apply(this, arguments);
+    if (!popping) record(id);
+    skin();
+    return r;
+  };
+
+  const detailNavBase_ = detail;
+  detail = function (k) { detailKey = k; return detailNavBase_.apply(this, arguments); };
+
+  /* swipe-back sa sub-screen = totoong history pop */
+  const swSwitchBase_ = swSwitch_;
+  swSwitch_ = function (id) {
+    if (id !== 'profile' && PARENT[cur.v] === id && (cur.n === 0 || stack[cur.n - 1] === id)) { back(); return; }
+    return swSwitchBase_.apply(this, arguments);
+  };
+
+  /* deep-linked detail: i-render ulit nang isang beses pag dumating na ang schedule */
+  const rnsDeepBase_ = renderNextSession_;
+  renderNextSession_ = function () {
+    var r = rnsDeepBase_.apply(this, arguments);
+    if (deepWait && lbScheduleWeek && cur.v === 'detail' && cur.k) {
+      deepWait = false;
+      var y = window.scrollY;
+      showView(cur);
+      window.scrollTo(0, y);
+    }
+    return r;
+  };
+
+  /* may sariling title ang Sessions, gaya ng Payments, para makilala ang route */
+  const lbOpenSessionsBase_ = lbOpenSessions_;
+  lbOpenSessions_ = function () {
+    var r = lbOpenSessionsBase_.apply(this, arguments);
+    if (lbProfileMode && el('lbTitle')) el('lbTitle').textContent = 'Sessions';
+    return r;
+  };
+
+  /* header back ng modal: Enroll = isang step pabalik; player sub-screen = balik sa hub */
+  const lbHeaderBackBase_ = lbHeaderBack_;
+  lbHeaderBack_ = function () {
+    if (lbScreen === 'enroll' && lbEnrollStep > (lbEnrollSkipProgram_ ? 1 : 0)) { lbPrevEnroll(); return; }
+    if (!lbProfileMode && lbScreen === 'topupFind' && lbTopup.selected && !el('lbHubDue') && !el('topupQuery')) { lbBackToHub_(); return; }
+    return lbHeaderBackBase_.apply(this, arguments);
+  };
+
+  /* ---------- init ---------- */
+  try { history.scrollRestoration = 'manual'; } catch (e) {}
+  var boot = parseHash(location.hash);
+  try {
+    /* entry 0 = Home, tapos ang target sa ibabaw nito: may babalikan ang Back */
+    history.replaceState({ v: 'home', n: 0 }, '', urlFor({ v: 'home' }));
+    if (boot.v !== 'home') {
+      var bs = { v: boot.v, k: boot.k, n: 1 };
+      history.pushState(bs, '', urlFor(bs));
+      stack = ['home', bs.v]; keys = [undefined, bs.k]; cur = bs; detailKey = bs.k;
+      deepWait = bs.v === 'detail' && !lbScheduleWeek;
+      showView(bs);
+    }
+  } catch (e) {}
+  if (boot.player) {
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(function () { openPlayer(boot.player); }, 0); });
+  }
+
+  function lbBackSync() {
+    var b = el('lbBackBtn');
+    if (b) b.classList.toggle('at-root', !!(lbProfileMode && (el('pfFile') || el('topupQuery'))));
+    urlSync();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    skin();
+
+    var lb = el('lbBackBtn');
+    if (lb) lb.innerHTML = CHEV;
+    var body = el('lbBody'), modal = el('livityModal');
+    if (body) new MutationObserver(lbBackSync).observe(body, { childList: true });
+    if (modal) new MutationObserver(lbBackSync).observe(modal, { attributes: true, attributeFilter: ['class'] });
+    var ttl = el('lbTitle');
+    if (ttl) new MutationObserver(lbBackSync).observe(ttl, { childList: true, characterData: true, subtree: true });
+
+    OVERLAYS.forEach(function (o) {
+      var e = el(o[0]);
+      if (e) new MutationObserver(sync).observe(e, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    /* swipe-back sa loob ng Anytime Livity (profile mode ay may sariling swipe) */
+    if (modal) {
+      var x0 = 0, y0 = 0, ok = false;
+      modal.addEventListener('touchstart', function (e) {
+        var t = e.touches[0];
+        x0 = t.clientX; y0 = t.clientY;
+        ok = e.touches.length === 1 && !lbProfileMode && !(e.target.closest && e.target.closest('input,textarea,select,.chat-messages'));
+      }, { passive: true });
+      modal.addEventListener('touchend', function (e) {
+        if (!ok) return;
+        ok = false;
+        var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+        if (dx > 80 && dx > Math.abs(dy) * 1.6 && lbCanStep()) lbHeaderBack_();
+      }, { passive: true });
+    }
+  });
+
+  return { back: back, skin: skin };
+})();
+/* === END: BACK NAVIGATION — OPTION A === */
+
 /* === START: SMART SWIPE — APPLE-STYLE (drag-follow, spring, haptics) === */
 const SW_CFG_ = {
   slop: 10,         // layo ng galaw bago mag-decide kung horizontal o vertical
@@ -10136,7 +12398,7 @@ function swSwitch_(id) { if (id === 'profile') openProfile_(); else show(id); }
   var SKIP = 'input,textarea,select,video,.mo-snap,.mo-tabs,.sched-tabs,.chat-messages,#scanModal,.tut-card,.tutorial-sheet,#hdDrawer,[data-noswipe]';
   var st = null;
 
-  function tick(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+  function tick(p) { haptic(p >= 10 ? 'light' : 'selection'); }
 
   /* may horizontal scroller ba sa ilalim ng daliri? (carousel, tabs, table) — hayaan siya */
   function hScroller(el) {
@@ -10336,8 +12598,8 @@ swipeGo_(SW_TABS_[n], dx < 0 ? -1 : 1);
 }, { passive: true });
 })();
 /* === END: SWIPE NAV — TABS + SUB-SCREENS === */
-const MO_TABS_ = [['story','Story'],['philosophy','Philosophy'],['mission','Mission'],['values','Values'],['team','Team'],['voices','Voices'],['gallery','Gallery'],['rules','Policies']];
-let moTab_ = 'story', moQ_ = { age:'', goal:'' }, moGalLoaded_ = false;
+const MO_TABS_ = [['story','Story'],['philosophy','Philosophy'],['mission','Mission'],['values','Values'],['team','Coaches'],['voices','Voices'],['gallery','Gallery'],['rules','Policies']];
+let moTab_ = 'about', moQ_ = { age:'', goal:'' }, moGalLoaded_ = false;
 
 /* ---- hero stats (live mula sa Schedule sheet) ---- */
 function moCount_(el, n) {
@@ -10359,7 +12621,7 @@ const moRNS_ = renderNextSession_;
 renderNextSession_ = function () { moRNS_.apply(this, arguments); moStats_(); };
 
 function moShare_() {
-const d = { title:'Livity Training & Academy', text:'Train like a pro with Livity.', url: location.origin + '/' };
+const d = { title: CONFIG.branding.name, text: CONFIG.branding.shareText, url: CONFIG.branding.portalUrl };
 if (navigator.share) navigator.share(d).catch(function () {});
 else if (navigator.clipboard) navigator.clipboard.writeText(d.url).then(function () { appToast_('Link copied ✓'); });
 else appToast_(d.url);
@@ -10428,18 +12690,76 @@ return '<div class="mo-sec" style="margin-top:6px">Our vision</div>'
 + v.map(function (x) { return '<button type="button" class="mo-val" style="--c:' + x[4] + '" onclick="this.classList.toggle(\'on\')"><em>' + x[0] + '</em><b>' + x[1] + '</b><p>' + x[2] + '</p><p class="x">' + x[3] + '</p></button>'; }).join('') + '</div>';
 }
 
-function moPanelTeam_() {
-const mem = [
-['J','Admin JA','Private Training Session / Training','<a class="mo-chip" href="https://wa.me/639762675397" target="_blank" rel="noopener">WhatsApp</a><button type="button" class="mo-chip" onclick="moChat_()">Chat</button>'],
-['C','Admin Chelsi','Academy','<button type="button" class="mo-chip" onclick="moChat_()">Ask in chat</button>'],
-['S','Coach Sam','Advanced Performance Assessment','<button type="button" class="mo-chip" onclick="moChat_()">Ask in chat</button>']
+/* === START: COACHES — DATA + CARD + ASK === */
+// TODO: palitan ang bio / photoUrl ng totoong laman. programs = key ng `data` (regular/private/advanced/academy).
+const MO_COACHES_ = [
+  { id:'ja', initial:'J', name:'Admin JA', role:'Admin · Training & Private', spec:'Private & small-group training',
+    programs:['private','regular'], photoUrl:'',
+    bio:'Handles private bookings and day-to-day training questions. Message to pick a session time.' },
+  { id:'chelsi', initial:'C', name:'Admin Chelsi', role:'Admin · Academy', spec:'Academy team pathway (U5–U13)',
+    programs:['academy'], photoUrl:'',
+    bio:'Looks after Academy players, attendance and membership questions.' },
+  { id:'sam', initial:'S', name:'Coach Sam', role:'Coach · Advanced Performance', spec:'Assessments & advanced training',
+    programs:['advanced'], photoUrl:'',
+    bio:'Runs the Advanced Performance assessment for players U11+ and leads the Pro Session.' }
 ];
+
+/** Live mula sa Schedule: araw + oras ng sessions ng mga program ng coach. */
+function moCoachAvail_(keys) {
+  const pids = keys.map(function (k) { return data[k] && data[k].programId; });
+  const w = lbScheduleWeek || LIVITY_SCHEDULE_FALLBACK, out = [];
+  w.forEach(function (d) {
+    if (!d.active) return;
+    (d.sessions || []).forEach(function (s) {
+      if (s.status === 'Cancelled' || pids.indexOf(lbSessionProgramId_(s)) < 0) return;
+      out.push(d.day.slice(0, 3) + ' · ' + lbFormatTimeRange_(s.startTime, s.endTime));
+    });
+  });
+  return out.filter(function (x, i, a) { return a.indexOf(x) === i; });
+}
+
+function moCoachCard_(c) {
+  const esc = lbEscapeHtml_;
+  const first = c.name.replace(/^(Admin|Coach)\s+/, '');
+  const photo = String(c.photoUrl || '').replace(/'/g, '%27');
+  const av = '<div class="mo-coach-av"' + (photo ? ' style="background-image:url(\'' + photo + '\')"' : '') + ' aria-hidden="true">' + (photo ? '' : esc(c.initial)) + '</div>';
+  const chips = c.programs.map(function (k) {
+    return '<button type="button" class="mo-chip" onclick="detail(\'' + k + '\')">' + esc(lbShortProgramName_(data[k].title)) + '</button>';
+  }).join('');
+  const av2 = moCoachAvail_(c.programs);
+  const availHtml = av2.length
+    ? av2.map(function (x) { return '<div style="font-size:12.5px;color:var(--text);padding:2px 0">' + esc(x) + '</div>'; }).join('')
+    : '<div style="font-size:12.5px;color:var(--muted)">Booked through Admin JA</div>';
+  const wa = contactWaUrl_('Hi Admin JA, I have a question about ' + c.name + ': ');
+  return '<div class="mo-coach">'
+    + '<div class="mo-coach-h">' + av + '<div style="min-width:0"><b>' + esc(c.name) + '</b><div class="mo-coach-role">' + esc(c.role) + '</div><span class="mo-coach-spec">' + esc(c.spec) + '</span></div></div>'
+    + '<p class="mo-coach-bio">' + esc(c.bio) + '</p>'
+    + '<div class="mo-coach-lbl">Programs</div><div class="mo-btns" style="flex-wrap:wrap;margin-top:0">' + chips + '</div>'
+    + '<div class="mo-coach-lbl">Availability</div>' + availHtml
+    + '<div class="mo-btns" style="margin-top:14px"><button type="button" class="mo-chip" onclick="moAskCoach_(\'' + c.id + '\')">Ask about ' + esc(first) + '</button>'
+    + '<a class="mo-chip" href="' + wa + '" target="_blank" rel="noopener">WhatsApp</a></div></div>';
+}
+
+/** Binubuksan ang Ask Admin at nilalagay ang panimulang mensahe. */
+function moAskCoach_(id) {
+  const c = MO_COACHES_.filter(function (x) { return x.id === id; })[0];
+  if (!c) return;
+  const msg = 'Hi Admin JA, I have a question about ' + c.name + ': ';
+  moChat_();
+  setTimeout(function () {
+    const i = document.getElementById('chatInput');
+    if (i) { i.value = msg; try { i.focus(); } catch (e) {} }
+  }, 350);
+}
+/* === END: COACHES — DATA + CARD + ASK === */
+
+function moPanelTeam_() {
 /* === START: WHO WE ARE IN TEAM === */
 return '<div class="mo-sec" style="margin-top:6px">Who we are</div>'
 + '<div class="panel"><p style="margin:0">Livity Training and Football Academy is committed to creating meaningful opportunities for growth, engagement, and positive impact in our community, bringing people together and inspiring excellence among our athletes and coaches.</p></div>'
-+ '<div class="mo-sec">Meet the team</div>'
++ '<div class="mo-sec">Meet the coaches <i>tap a program</i></div>'
 /* === END: WHO WE ARE IN TEAM === */
-+ mem.map(function (m) { return '<div class="mo-mem"><div class="avatar">' + m[0] + '</div><div style="min-width:0"><b>' + m[1] + '</b><span>' + m[2] + '</span><div class="mo-btns">' + m[3] + '</div></div></div>'; }).join('')
++ MO_COACHES_.map(moCoachCard_).join('')
 + '<div class="mo-sec">Where we train</div>'
 + moVenues_().map(function (x) { return '<div class="mo-ven"><div><b>' + lbEscapeHtml_(x.v) + '</b><span>' + x.days + '</span></div><a class="mo-chip" href="' + lbMapsLink_(x.v) + '" target="_blank" rel="noopener">Directions</a></div>'; }).join('');
 }
@@ -10470,11 +12790,67 @@ return '<div class="mo-sec" style="margin-top:6px">Quick facts</div><div class="
 + '<p class="mo-note" style="text-align:center;margin-top:12px">Questions? <a href="#" onclick="moChat_();return false" style="color:var(--royal);font-weight:800;text-decoration:none">Ask Admin →</a></p>';
 }
 
+/* === START: MORE — 7-TAB STRUCTURE (About / Coaches / Venues / Contact) === */
+function moDet_(title, inner, open) {
+  return '<details class="mo-det"' + (open ? ' open' : '') + '><summary>' + title + '</summary>' + inner + '</details>';
+}
+function moTxt_(t) {
+  return '<div style="padding:0 16px 14px;font-size:13px;line-height:1.6;color:#5e5a52">' + t + '</div>';
+}
+
+function moPanelAbout_() {
+  const vals = [
+    '<b>Excellence</b> — train like a pro, at every age.',
+    '<b>Inclusivity</b> — beginners and non-beginners train side by side.',
+    '<b>Development</b> — growth over wins, with guided repetition.',
+    '<b>Community</b> — players, parents and coaches building the Academy together.',
+    '<b>Discipline</b> — consistency turns practice into progress.',
+    '<b>Integrity</b> — honest feedback and fair policies.'
+  ];
+  return '<div class="mo-quote" style="margin-top:6px"><small>OUR PHILOSOPHY</small><h3>Train Like a Pro.</h3><p>Every player deserves professional-level coaching, structure, and care, regardless of age or skill level.</p></div>'
+    + '<div class="mo-sec">About Livity</div>'
+    + moDet_('Who we are', moTxt_('Livity Training and Football Academy is committed to creating meaningful opportunities for growth, engagement, and positive impact in our community, bringing people together and inspiring excellence among our athletes and coaches.'), true)
+    + moDet_('Mission', moTxt_('To empower individuals through Livity training programs, meaningful experiences, and collaborative partnerships that create lasting value for our community.'))
+    + moDet_('Vision', moTxt_('To be a leading football academy recognized for excellence, inclusivity, and positive impact, inspiring individuals to reach their full potential and contribute to a better future.'))
+    + moDet_('Philosophy', moTxt_('Growth happens through consistency, discipline, and a supportive environment where players are pushed to improve while feeling like they belong.'))
+    + moDet_('Core values', '<ul>' + vals.map(function (v) { return '<li>' + v + '</li>'; }).join('') + '</ul>')
+    + '<button type="button" class="btn primary" style="width:100%;margin-top:8px" onclick="show(\'programs\')">Explore programs →</button>';
+}
+
+function moPanelCoaches_() {
+  return '<div class="mo-sec" style="margin-top:6px">Meet the coaches <i>tap a program</i></div>'
+    + MO_COACHES_.map(moCoachCard_).join('');
+}
+
+function moPanelVenues_() {
+  return '<div class="mo-sec" style="margin-top:6px">Where we train</div>'
+    + moVenues_().map(function (x) {
+      return '<div class="mo-ven"><div><b>' + lbEscapeHtml_(x.v) + '</b><span>' + x.days + '</span></div><a class="mo-chip" href="' + lbMapsLink_(x.v) + '" target="_blank" rel="noopener">Directions</a></div>';
+    }).join('');
+}
+
+function moPanelContact_() {
+  const row = function (t, s, tag) { return '<' + tag + ' class="hd-row"'; };
+  const btn = function (t, s, a) {
+    return '<button type="button" class="hd-row" onclick="' + a + '"><div><b>' + t + '</b><span>' + s + '</span></div><i>›</i></button>';
+  };
+  const link = function (t, s, href, ext) {
+    return '<a class="hd-row" style="text-decoration:none" href="' + href + '"' + (ext ? ' target="_blank" rel="noopener"' : '') + '><div><b>' + t + '</b><span>' + s + '</span></div><i>›</i></a>';
+  };
+  return '<div class="mo-sec" style="margin-top:6px">Get in touch</div>'
+    + btn('Ask Admin', 'Chat inside the app', 'moChat_()')
+    + link('WhatsApp', 'Admin JA · 0976 267 5397', 'https://wa.me/639762675397', true)
+    + link('Email', 'livityacademy22@gmail.com', 'mailto:livityacademy22@gmail.com', false)
+    + '<div class="mo-sec">Spread the word</div>'
+    + btn('Share Livity', 'Send the app to a friend', 'moShare_()');
+}
+/* === END: MORE — 7-TAB STRUCTURE === */
+
 /* ---- shell ---- */
 function moDraw_() {
 const b = document.getElementById('moBody');
 if (!b) return;
-b.innerHTML = ({ story:moPanelStory_, philosophy:moPanelPhilosophy_, mission:moPanelMission_, values:moPanelValues_, team:moPanelTeam_, voices:moPanelVoices_, gallery:moPanelGallery_, rules:moPanelRules_ })[moTab_]();
+b.innerHTML = (({ about:moPanelAbout_, coaches:moPanelCoaches_, gallery:moPanelGallery_, rules:moPanelRules_, venues:moPanelVenues_, testimonials:moPanelVoices_, contact:moPanelContact_ })[moTab_] || moPanelAbout_)();
 b.classList.remove('mo-in'); void b.offsetWidth; b.classList.add('mo-in');
 document.querySelectorAll('#moTabs button').forEach(function (x) { x.classList.toggle('on', x.dataset.k === moTab_); });
 const on = document.querySelector('#moTabs button.on');
@@ -10485,13 +12861,14 @@ if (lbGalState_ === 'ready') renderGallery_();
 else loadGallery_(); // idle/error: fetch; loading: renders spinner
 }
 }
-function moSet_(k) { moTab_ = k; moDraw_(); }
+const MO_ALIAS_ = { story:'about', philosophy:'about', mission:'about', values:'about', team:'coaches', voices:'testimonials' };
+function moSet_(k) { moTab_ = MO_ALIAS_[k] || k; moDraw_(); }
 
 /* === START: LOGO MIRROR EDIT === */
 // Isang source lang: ang hero logo (#heroLogoImg). Palitan lang doon, susunod na ang card.
 function moLogoSrc_() {
 var h = document.getElementById('heroLogoImg');
-return (h && h.getAttribute('src')) || '/logo-512.png';
+return (h && h.getAttribute('src')) || CONFIG.branding.logo;
 }
 /* === END: LOGO MIRROR EDIT === */
 
@@ -10501,7 +12878,7 @@ if (!el) return;
 el.innerHTML = ''
 + '<div class="mo-hero"><div class="mo-id"><img src="' + moLogoSrc_() + '" alt="Livity logo" width="76" height="76"><div><h2>LIVITY</h2><span>Training &amp; Football Academy</span></div></div>'
 + '<div class="mo-stats"><div><b id="moStProg">0</b><small>Programs</small></div><div><b id="moStDays">0</b><small>Days / week</small></div><div><b id="moStVen">0</b><small>Venues</small></div></div>'
-+ '<div class="mo-acts"><button type="button" onclick="moShare_()">Share</button><a href="https://wa.me/639762675397" target="_blank" rel="noopener">WhatsApp</a><a href="mailto:livityacademy22@gmail.com">Email</a></div></div>'
++ '</div>'
 + '<div class="mo-tabs" id="moTabs">' + MO_TABS_.map(function (t) { return '<button type="button" data-k="' + t[0] + '" onclick="moSet_(\'' + t[0] + '\')">' + t[1] + '</button>'; }).join('') + '</div>'
 + '<div id="moBody"></div>';
 moDraw_();
@@ -10586,7 +12963,7 @@ function lbDraftLoad_() {
   try {
     const d = JSON.parse(localStorage.getItem(LB_DRAFT_KEY) || 'null');
     if (!d || !d.form) return null;
-    if (Date.now() - d.savedAt > 14 * 86400000) { localStorage.removeItem(LB_DRAFT_KEY); return null; } // 14 days
+    if (Date.now() - d.savedAt > CONFIG.cache.draftMaxAgeMs) { localStorage.removeItem(LB_DRAFT_KEY); return null; } // 14 days
     return d;
   } catch (e) { return null; }
 }
@@ -10647,8 +13024,14 @@ function lbDraftResume_() {
   lbBody().scrollTop = 0;
 }
 
-function lbDraftDiscard_(restart) {
-  if (!restart && !confirm('Cancel this enrollment?\n\nEverything you entered will be removed from this device.')) return;
+async function lbDraftDiscard_(restart) {
+  const has = lbDraftLoad_() || lbForm.firstName || lbForm.lastName || lbForm.dob || lbForm.age;
+  if (has) {
+    const ok = await CONFIRM.ask(restart
+      ? { title: 'Start over?', text: 'Your saved enrollment will be erased and you will begin with a blank form.', confirmLabel: 'Start over' }
+      : { title: 'Cancel this enrollment?', text: 'Everything you entered will be removed from this device.', confirmLabel: 'Cancel enrollment', cancelLabel: 'Keep editing', });
+    if (!ok) return;
+  }
   lbDraftClear_();
   lbForm = lbBlankForm_(restart ? lbForm.programId : '');
   lbGoTo(restart ? 'enroll' : 'menu');
@@ -10746,7 +13129,7 @@ function hdGreeting_(p) {
   var h = new Date().getHours();
   var g = h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening');
   /* === START: GREETING NAME EDIT — same as Profile tab (player fullName) === */
-var n = (p && p.fullName) ? String(p.fullName).trim().split(/\s+/)[0] : '';
+var n = (p && p.fullName && fmPlayers_().length < 2) ? String(p.fullName).trim().split(/\s+/)[0] : '';
 /* === END: GREETING NAME EDIT === */
   return g + (n ? ', ' + lbEscapeHtml_(n) : '');
 }
@@ -10794,7 +13177,7 @@ function hdRender_() {
         + '<div class="next-session-meta">' + (next.isToday ? 'Today' : next.day) + ' · ' + lbFormatTimeRange_(next.session.startTime, next.session.endTime) + '</div>'
         + '<div class="next-session-venue">' + lbEscapeHtml_(next.session.venue) + '</div>'
         + '<div class="next-session-link">View schedule →</div></div>'
-      : '<div class="panel" style="margin:0 0 14px">' + lbEmptyState_('◷', 'No training scheduled', "We'll show your next session here.", '') + '</div>';
+      : '<div class="panel" style="margin:0 0 14px">' + EMPTY.html('schedule', { title:'No training scheduled', text:"We'll show your next session here." }) + '</div>';
   }
 
   /* QUICK ACTIONS */
@@ -10826,9 +13209,10 @@ function hdRender_() {
 
   /* DISCOVER */
   var disc = '<div style="height:6px"></div>';
+  if (p && !rels.length) mine = '<div class="mo-sec">My training</div><div class="panel" style="margin:0 0 6px">' + EMPTY.html('programs', { title:'No programs yet', text:'Add a program to start training.', primary:{ label:'Add a program', go:'hdOpenAddProg_()' } }) + '</div>';
 
   el.innerHTML = '<div class="hd-greet"><h2>' + hdGreeting_(p) + '</h2>' + (p ? '<div class="pay-badge ' + lbAcctState_(p).cls + '">' + lbAcctState_(p).label + '</div>' : '<span>Here\'s your training at a glance.</span>') + '</div>'
-    + nextHtml + quick + mine + prog + disc;
+    + fmSwitcherHtml_() + nextHtml + quick + mine + prog + disc;
 }
 
 (function () {
@@ -10847,7 +13231,7 @@ function hdRender_() {
 /* === END: HOME DASHBOARD — LOGIC === */
 /* === START: STAFF MODULE — auth boundary para sa Scanner === */
 const STAFF_META_KEY = 'livity_staff_v1';      // { name, role, since, last }
-const STAFF_TTL_MS = 12 * 3600 * 1000;         // auto sign-out kapag idle ng 12h (kung walang pending scans)
+const STAFF_TTL_MS = CONFIG.cache.staffTtlMs;         // auto sign-out kapag idle ng 12h (kung walang pending scans)
 
 function staffMeta_() { try { return JSON.parse(localStorage.getItem(STAFF_META_KEY) || 'null'); } catch (e) { return null; } }
 function staffMetaSet_(o) { try { localStorage.setItem(STAFF_META_KEY, JSON.stringify(o)); } catch (e) {} }
@@ -10897,7 +13281,7 @@ async function staffSignIn_() {
   if (!name || !key) { err.textContent = 'Enter your name and the staff key.'; return; }
   btn.disabled = true; btn.textContent = 'Checking…'; err.textContent = '';
   try {
-    const res = await fetch(LIVITY_API_URL, {
+    const res = await fetch(CONFIG.api.scannerUrl, {
       method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ action: 'scanSessions', key: key }), redirect: 'follow'
     });
@@ -10919,10 +13303,10 @@ async function staffSignIn_() {
 async function staffSignOut_() {
   const pending = await scPendingCount_();
   if (pending > 0) {
-    alert('You still have ' + pending + ' unsynced scan' + (pending === 1 ? '' : 's') + '.\n\nConnect to the internet and wait for sync to finish before signing out.');
+    await CONFIRM.notice({ title: "Can't sign out yet", text: 'You still have ' + pending + ' unsynced scan' + (pending === 1 ? '' : 's') + '.\n\nConnect to the internet and wait for sync to finish before signing out.' });
     return;
   }
-  if (!confirm('Sign out of Livity Staff?\n\nCached players and sessions will be removed from this device.')) return;
+  if (!(await CONFIRM.ask({ title: 'Sign out of Livity Staff?', text: 'The staff key and cached players and sessions will be removed from this device.', confirmLabel: 'Sign out' }))) return;
   scStop_();
   await Promise.all(['players', 'sessions', 'attendance', 'meta'].map(scIdbClear_));
   closeScan_();
