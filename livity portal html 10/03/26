@@ -2908,8 +2908,9 @@ Explore Programs →
 
 <div class="content">
 
-<!-- === START: ENROLL BUTTON MOVED TO HAMBURGER DRAWER === -->
-<!-- === END: ENROLL BUTTON MOVED TO HAMBURGER DRAWER === -->
+<!-- === START: HOME DASHBOARD HOST === -->
+<div id="homeDash"></div>
+<!-- === END: HOME DASHBOARD HOST === -->
 
 <!-- === START: CTA MOVED TO HAMBURGER DRAWER === -->
 <!-- === END: CTA MOVED TO HAMBURGER DRAWER === -->
@@ -3934,25 +3935,13 @@ Coach Sam — Advanced Assessment
 <b>LIVITY</b>
 <button type="button" class="tutorial-sheet-close" onclick="hdDrawerClose_()" aria-label="Close menu">✕</button>
 </div>
-<div id="homeDash"></div>
-
-<!-- === START: DRAWER ENROLL BUTTON === -->
-<button type="button" class="btn outline" style="width:100%;margin:14px 0 0" onclick="show('enroll')">
-↗ Enroll a New Player
-</button>
-<!-- === END: DRAWER ENROLL BUTTON === -->
-
-<!-- === START: DRAWER CTA === -->
-<div class="cta" style="margin-top:6px">
-<h2>Develop. Compete. Belong.</h2>
-<p>
-Explore the Livity pathway and find
-the training environment that matches
-your player's needs and goals.
-</p>
-<button class="btn primary" onclick="show('programs')">Find Your Program →</button>
-</div>
-<!-- === END: DRAWER CTA === -->
+<!-- === START: DRAWER SECONDARY MENU === -->
+<button type="button" class="lb-pkg" onclick="show('enroll')"><b>Enroll a New Player</b><span>›</span></button>
+<button type="button" class="lb-pkg" onclick="moChat_()"><b>Ask Admin</b><span>›</span></button>
+<button type="button" class="lb-pkg" onclick="openTutorial()"><b>Help &amp; Tour</b><span>›</span></button>
+<button type="button" class="lb-pkg" onclick="moShare_()"><b>Share App</b><span>›</span></button>
+<button type="button" class="lb-pkg" onclick="pfWhatsNew_()"><b>What's New</b><span>›</span></button>
+<!-- === END: DRAWER SECONDARY MENU === -->
 </aside>
 <!-- === END: HOME DRAWER — MARKUP === -->
 
@@ -4000,9 +3989,10 @@ Schedule
 <button
 data-v="player"
 onclick="openProfile_()"
+aria-label="My Livity"
 >
 <b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c.8-3.6 3.8-5.5 7.5-5.5s6.7 1.9 7.5 5.5"/></svg></b>
-Profile
+My Livity
 </button>
 
 </nav>
@@ -4243,6 +4233,70 @@ const LIVITY_SCHEDULE_FALLBACK = [
 let lbScheduleWeek = null;
 let lbScheduleActiveDay = null;
 
+/* === START: SCHEDULE STATE MODEL === */
+const LB_SCHED_CACHE_KEY = 'livity_sched_cache_v1';
+let lbSchedState_ = 'loading', lbSchedAt_ = 0;
+
+function lbSchedSave_(week) {
+  lbSchedAt_ = Date.now();
+  try { localStorage.setItem(LB_SCHED_CACHE_KEY, JSON.stringify({ week: week, at: lbSchedAt_ })); } catch (e) {}
+}
+function lbSchedCacheLoad_() {
+  try {
+    const o = JSON.parse(localStorage.getItem(LB_SCHED_CACHE_KEY) || 'null');
+    return (o && Array.isArray(o.week) && o.week.length) ? o : null;
+  } catch (e) { return null; }
+}
+function lbSchedAgo_(ms) {
+  const m = Math.max(1, Math.round((Date.now() - ms) / 60000));
+  return m < 60 ? m + ' min ago' : (m < 1440 ? Math.round(m / 60) + ' h ago' : Math.round(m / 1440) + ' d ago');
+}
+
+function lbSchedBanner_() {
+  const el = document.getElementById('schedBanner');
+  if (!el) return;
+  const retry = '<button type="button" class="pf-photo-rm" style="margin:6px 0 0" onclick="loadSchedule()">Try again</button>';
+  if (lbSchedState_ === 'cached') {
+    el.innerHTML = '<div class="notice" style="margin:0 0 12px">📶 Showing your saved schedule · updated ' + lbSchedAgo_(lbSchedAt_) + '. Times may have changed.<br>' + retry + '</div>';
+  } else if (lbSchedState_ === 'fallback') {
+    el.innerHTML = '<div class="notice" style="margin:0 0 12px;background:#ffeceb"><b>Schedule unavailable.</b> Showing the default weekly schedule. Please confirm times with <a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Admin JA</a>.<br>' + retry + '</div>';
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+/** Cancelled / Rescheduled — galing sa Schedule sheet (status, statusNote, newDate, newStart, newEnd). */
+function lbSessionStatusHtml_(s) {
+  const note = s.statusNote ? '<div class="event-venue">' + lbEscapeHtml_(s.statusNote) + '</div>' : '';
+  if (s.status === 'Cancelled') return '<div class="pay-badge overdue" style="margin:6px 0 0">Cancelled</div>' + note;
+  if (s.status === 'Rescheduled') {
+    const when = (s.newStart && s.newEnd) ? ' → ' + (s.newDate ? lbEscapeHtml_(s.newDate) + ' · ' : '') + lbFormatTimeRange_(s.newStart, s.newEnd) : '';
+    return '<div class="pay-badge pending" style="margin:6px 0 0">Rescheduled' + when + '</div>' + note;
+  }
+  return '';
+}
+
+/** Para sa "Schedule & Locations" ng Program Detail (dati: laging "unavailable"). */
+function detailScheduleHtml_(d) {
+  if (!lbScheduleWeek) return lbEscapeHtml_(LB_SCHEDULE_UNAVAILABLE_MSG);
+  const lines = [];
+  lbScheduleWeek.forEach(function (day) {
+    if (!day.active) return;
+    (day.sessions || []).forEach(function (s) {
+      if (lbSessionProgramId_(s) !== d.programId) return;
+      const cx = s.status === 'Cancelled';
+      const line = day.day.slice(0, 3) + ' · ' + lbFormatTimeRange_(s.startTime, s.endTime) + ' · ' + lbEscapeHtml_(s.venue);
+      lines.push(cx ? '<s>' + line + '</s> <b style="color:var(--red)">Cancelled</b>' : line + (s.status === 'Rescheduled' ? ' <b>Rescheduled</b>' : ''));
+    });
+  });
+  const wa = '<a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Message Admin JA →</a>';
+  if (lines.length) return lines.join('<br>') + (lbSchedState_ !== 'live' ? '<br><span style="font-size:11px">Saved schedule — may be out of date.</span>' : '');
+  return d.programId === 'PRG-PRIV'
+    ? 'Private sessions are booked with Admin JA. ' + wa
+    : 'No sessions scheduled for this program right now. ' + wa;
+}
+/* === END: SCHEDULE STATE MODEL === */
+
 function lbFormatTime12_(t) {
 if (!t || t.indexOf(':') === -1) return t || '';
 const parts = t.split(':');
@@ -4344,6 +4398,7 @@ lockBodyScroll_();
 /** The action a session card offers depends on what actually happens for that program — never "Register". */
 function lbSessionActionHtml_(s) {
 const programId = lbSessionProgramId_(s);
+if (s.status === 'Cancelled') return `<div class="notice" style="margin-top:10px"><b>This session is cancelled.</b>${s.statusNote ? '<br>' + lbEscapeHtml_(s.statusNote) : ''}</div>`;
 
 if (programId === 'PRG-ACAD') {
 return `<div class="notice" style="margin-top:10px">Academy players are automatically expected to attend. No booking needed — just show up, or message Admin JA if you can't make it.</div>`;
@@ -4377,9 +4432,14 @@ const res = await fetch(LIVITY_API_URL + '?action=schedule');
 const json = await res.json();
 if (!json.success || !json.week) throw new Error('bad schedule payload');
 lbScheduleWeek = json.week;
+lbSchedState_ = 'live';
+lbSchedSave_(json.week);
 } catch (e) {
-lbScheduleWeek = LIVITY_SCHEDULE_FALLBACK;
+const c_ = lbSchedCacheLoad_();
+if (c_) { lbScheduleWeek = c_.week; lbSchedState_ = 'cached'; lbSchedAt_ = c_.at; }
+else { lbScheduleWeek = LIVITY_SCHEDULE_FALLBACK; lbSchedState_ = 'fallback'; }
 }
+lbSchedBanner_();
 
 const todayName = WEEK_DAY_ORDER[(new Date().getDay() + 6) % 7];
 lbScheduleActiveDay = lbScheduleWeek.some(function (d) { return d.day === todayName; })
@@ -4422,12 +4482,12 @@ if (!d.active) return;
 (d.sessions || []).forEach(function (s) {
 const name = lbShortProgramName_(s.programName);
 if (!groups[name]) { groups[name] = []; order.push(name); }
-groups[name].push({ day: d.day, startTime: s.startTime, endTime: s.endTime, venue: s.venue, notes: s.notes });
+groups[name].push({ day: d.day, startTime: s.startTime, endTime: s.endTime, venue: s.venue, notes: s.notes, status: s.status, statusNote: s.statusNote, newDate: s.newDate, newStart: s.newStart, newEnd: s.newEnd });
 });
 });
 
 if (order.length === 0) {
-container.innerHTML = lbEmptyState_('◷', 'No training scheduled', "We'll show your next session here.", '');
+container.innerHTML = lbEmptyState_('◷', 'No sessions this week', 'Nothing is scheduled this week. Check back soon or message Admin JA.', '');
 return;
 }
 
@@ -4437,8 +4497,9 @@ return `
 <div class="program-group-row">
 <div class="program-group-day">${WEEK_DAY_SHORT_[r.day] || r.day.slice(0,3).toUpperCase()}</div>
 <div class="program-group-info">
-<b>${lbFormatTimeRange_(r.startTime, r.endTime)}</b>
+<b${r.status === 'Cancelled' ? ' style="text-decoration:line-through;opacity:.6"' : ''}>${lbFormatTimeRange_(r.startTime, r.endTime)}</b>
 <span>${r.venue}</span>
+${lbSessionStatusHtml_(r)}
 </div>
 </div>
 `;
@@ -4467,6 +4528,7 @@ const sorted = dayData.sessions.slice().sort(function (a, b) { return a.startTim
 
 for (let i = 0; i < sorted.length; i++) {
 const s = sorted[i];
+if (s.status === 'Cancelled') continue;
 if (programIds && programIds.indexOf(lbSessionProgramId_(s)) === -1) continue; // optional filter — used by the player profile
 if (offset === 0) {
 const parts = s.startTime.split(':');
@@ -4579,10 +4641,12 @@ const tagHtml = !tagLabel ? '' :
 isPrivate
 ? `<div class="event-tags">${tagLabel}</div>`
 : `<div class="event-tags" onclick="openSessionDetail_(${i})">${tagLabel} ›</div>`;
+const cx_ = s.status === 'Cancelled';
 return `
-<div class="event">
-<div class="event-time">${lbFormatTimeRange_(s.startTime, s.endTime)}</div>
+<div class="event"${cx_ ? ' style="opacity:.6"' : ''}>
+<div class="event-time"${cx_ ? ' style="text-decoration:line-through"' : ''}>${lbFormatTimeRange_(s.startTime, s.endTime)}</div>
 <div class="event-title">${lbShortProgramName_(s.programName)}</div>
+${lbSessionStatusHtml_(s)}
 <a href="${lbMapsLink_(s.venue)}" target="_blank" rel="noopener" class="event-venue" style="text-decoration:underline;text-decoration-color:var(--line);display:inline-block">📍 ${s.venue}</a>
 ${tagHtml}
 </div>
@@ -4744,7 +4808,7 @@ lbTopup = { query:'', players:[], selected:null, paymentMethod:'', packageKey:''
 body.innerHTML = lbRenderTopupFind_();
 } else if (screen === 'profile') {
 lbBackTarget = 'profile';
-title.textContent = 'My Profile';
+title.textContent = 'My Livity';
 back.style.display = 'none';
 lbRenderProfileEntry_();
 } else if (screen === 'accessGate') {
@@ -4787,7 +4851,7 @@ const idx = Math.max(0, visible.indexOf(step));
 const dots = visible.map(function (s, i) {
 return `<span style="display:inline-block;height:8px;width:${i === idx ? 22 : 8}px;border-radius:4px;background:${i <= idx ? 'var(--navy)' : 'var(--line)'};transition:all .25s ease"></span>`;
 }).join('');
-return `<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Step ${idx + 1} of ${visible.length} · ${LB_STEP_LABELS[step] || ''}</div><div aria-hidden="true" style="display:flex;gap:6px;align-items:center">${dots}</div></div>`;
+return `<div style="margin-bottom:14px"><div style="font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Step ${idx + 1} of ${visible.length} · ${LB_STEP_LABELS[step] || ''}</div><div style="display:flex;justify-content:space-between;align-items:center"><div aria-hidden="true" style="display:flex;gap:6px;align-items:center">${dots}</div><button type="button" class="pf-photo-rm" style="margin:0" onclick="lbDraftDiscard_(false)">Cancel</button></div></div>`;
 }
 /* === END: ENROLL PROGRESS INDICATOR === */
 
@@ -5170,11 +5234,13 @@ if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
 const payload = {
 player: { firstName: lbForm.firstName, lastName: lbForm.lastName, dob: lbForm.dob, age: lbForm.age, gender: lbForm.gender, nationality: lbForm.nationality, area: lbForm.area },
 guardian: { guardianName: lbForm.guardianName, relationship: lbForm.relationship, whatsapp: lbForm.whatsapp, email: lbForm.email, emName: lbForm.emName, emNumber: lbForm.emNumber, contactMode: lbForm.contactMode },
-enrollment: { programId: lbForm.programId, category: lbForm.category, packageKey: lbForm.package, paymentMethod: lbForm.paymentMethod, consentPrivacy: true, consent: true }
+enrollment: { programId: lbForm.programId, category: lbForm.category, packageKey: lbForm.package, paymentMethod: lbForm.paymentMethod, consentPrivacy: true, consent: true, requestId: (lbForm._reqId = lbForm._reqId || ('EN' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8))) }
 };
 
 try {
 lbBody().innerHTML = lbLoadingHtml_('Submitting enrollment…', "Please don't close this screen.");
+const dup_ = await lbFindDuplicate_();
+if (dup_) { lbBody().innerHTML = lbDupPromptHtml_(dup_, false); return; }
 const result = await doFetch('enroll', payload);
 lbShowSuccess_(result);
 } catch (e) {
@@ -5184,12 +5250,15 @@ if (errNow_) {
 errNow_.textContent = "We couldn't submit your enrollment (" + e.message + "). Please try again.";
 errNow_.scrollIntoView({ block:'nearest' });
 }
+if (/reach the server|unexpected response|status/i.test(e.message || '')) lbRecoverAfterFail_();
 }
 
 }
 
 function lbShowSuccess_(result) {
 navMarkKnown_();
+lbDraftOff_ = true; lbDraftClear_(); lbRefSave_(result);
+if (lbForm.whatsapp) { pfSave_({ q: lbForm.whatsapp, pid: (pfLoad_() || {}).pid || '' }); setTimeout(pfRefresh_, 1500); }
 document.getElementById('lbTitle').textContent = 'Payment Submitted';
 document.getElementById('lbBackBtn').style.display = 'none';
 lbBody().innerHTML = `
@@ -5285,6 +5354,8 @@ return { text:'No active package yet.', badge:'' };
 /* === START: PAYMENT STATUS — HERO, NEXT STEPS, COPY REFERENCE === */
 /** The one payment that defines the overall state: Overdue first, then Pending, then any other unpaid, else the latest Paid. */
 function lbPaymentHeroPick_(payments) {
+const rej_ = payments.filter(function (p) { return p.status === 'Rejected'; })[0];
+if (rej_) return rej_;
 const byDate = payments.slice().sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
 const pick = function (status) { return byDate.find(function (p) { return p.status === status; }); };
 return pick('Overdue') || pick('Pending') || byDate.find(function (p) { return p.status !== 'Paid'; }) || pick('Paid') || null;
@@ -5298,7 +5369,10 @@ const map = {
 Paid: { bg:'#eafbef', bd:'#b8e6c3', fg:'#1f7a3a', head:'🟢 PAID', when:'Paid', note:'' },
 Pending: { bg:'#fff8dd', bd:'#ffe38a', fg:'var(--navy)', head:'⏳ PAYMENT DUE', when:'Created', note:'Send your payment, then enter the reference number below.' },
 Submitted: { bg:'#eef4ff', bd:'#b7d0f7', fg:'var(--navy)', head:'🕓 PAYMENT SENT — VERIFYING', when:'', note:"We're confirming your payment." },
-Overdue: { bg:'#ffeceb', bd:'#f7c9c6', fg:'var(--red)', head:'🔴 PAYMENT OVERDUE', when:'', note:'Please settle this payment or message Admin JA.' }
+Overdue: { bg:'#ffeceb', bd:'#f7c9c6', fg:'var(--red)', head:'🔴 PAYMENT OVERDUE', when:'', note:'Please settle this payment or message Admin JA.' },
+Rejected: { bg:'#ffeceb', bd:'#f7c9c6', fg:'var(--red)', head:'🔴 PAYMENT NOT VERIFIED', when:'', note:"We couldn't match this payment. Check the amount and reference number, then resubmit." },
+Cancelled: { bg:'#f5f2ea', bd:'#e2e2e2', fg:'var(--muted)', head:'⚪ PAYMENT CANCELLED', when:'', note:'This payment was cancelled. No action needed.' },
+Expired: { bg:'#f5f2ea', bd:'#e2e2e2', fg:'var(--muted)', head:'⚪ PAYMENT EXPIRED', when:'', note:'This payment request expired. <a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="color:var(--royal);font-weight:800;text-decoration:none">Message Admin JA for a new one →</a>' }
 };
 const st = map[p.status] || { bg:'#f5f2ea', bd:'#e2e2e2', fg:'var(--text)', head:'PAYMENT DUE', when:'', note:'' };
 
@@ -5315,6 +5389,7 @@ return `
 ${p.penalty ? `<div class="event-venue">Includes ₱${Number(p.penalty).toLocaleString()} late penalty</div>` : ''}
 ${meta.length ? `<div class="event-venue">${meta.join(' · ')}</div>` : ''}
 ${st.note ? `<p style="margin:10px 0 0;font-size:13px;font-weight:650;color:${st.fg}">${st.note}</p>` : ''}
+${p.status === 'Rejected' && p.rejectReason ? `<p style="margin:6px 0 0;font-size:13px;color:var(--text)"><b>Reason:</b> ${lbEscapeHtml_(p.rejectReason)}</p>` : ''}
 </div>`;
 }
 
@@ -5387,10 +5462,14 @@ if (status === 'Paid') return 'Paid';
 if (status === 'Overdue') return 'Overdue';
 if (status === 'Pending') return 'Due';
 if (status === 'Submitted') return 'Verifying';
+if (status === 'Rejected') return 'Not verified';
+if (status === 'Cancelled') return 'Cancelled';
+if (status === 'Expired') return 'Expired';
 return 'Due';
 }
 
 function lbPaymentStatusClass_(status) {
+if (status === 'Rejected' || status === 'Expired') return 'overdue';
 if (status === 'Paid') return 'paid';
 if (status === 'Overdue') return 'overdue';
 return 'pending';
@@ -5425,7 +5504,7 @@ return `
 <div class="event-time" style="font-size:17px">₱${p.amount.toLocaleString()}</div>
 <div class="event-title">${p.label}${p.sessions ? ' · ' + p.sessions + ' sessions' : ''}</div>
 <div class="event-venue">${lbFormatShortDate_(p.date)}</div>
-<div class="pay-badge ${lbPaymentStatusClass_(p.status)}">${icon}${lbPaymentStatusLabel_(p.status)}</div>
+<div class="pay-badge ${lbPaymentStatusClass_(p.status)}">${icon}${lbPaymentStatusLabel_(p.status)}</div>${p.status === 'Paid' ? `<button type="button" class="pf-photo-rm" style="margin-left:10px" onclick="lbPayReceipt_('${lbEscapeHtml_(p.paymentId)}')">View receipt</button>` : ''}
 </div>
 `;
 }).join('');
@@ -5435,17 +5514,6 @@ return back + lbPaymentHeroHtml_() +
 /* === END: PAYMENTS — REMOVE DUPLICATE TITLE === */ lbPayDuePanelsHtml_() + (lbPayments.payments.some(function (p) { return p.status === 'Submitted'; }) ? ctxHelp_('payment') : '') + balanceHtml + `<div class="panel" style="padding:0 16px">${rows}</div>`;
 }
 /* === END: PAYMENTS & BALANCE — SCREEN === */
-
-function lbRenderTopupFind_() {
-return `
-<h5 class="lb-step-title">Find your player's profile</h5>
-<p class="lb-text">Use the WhatsApp / mobile number from registration, or the Player ID.</p>
-<input class="lb-input" id="topupQuery" placeholder="Player ID / Mobile Number" value="${lbTopup.query}" onkeydown="if(event.key==='Enter')lbSubmitTopupFind_()">
-<div class="lb-err" id="lbErr"></div>
-<button class="btn primary" style="width:100%" id="lbFindBtn" onclick="lbSubmitTopupFind_()">View My Player →</button>
-<div id="lbFindEmpty"></div>
-`;
-}
 
 async function lbSubmitTopupFind_() {
 const input = document.getElementById('topupQuery');
@@ -5735,6 +5803,7 @@ ${row('Name', p.fullName)}
 ${row('Player ID', p.playerId)}
 ${row('Category', p.category)}
 ${row('Programs', programs)}
+${row('Last enrollment ref. (this device)', lbEscapeHtml_(lbLastRef_()))}
 </div>
 <p class="lb-text" style="font-size:12px;color:var(--muted)">Need to correct something? Send Admin JA a message and we'll update it.</p>
 <button class="btn primary" style="width:100%" onclick="lbGoTo('askadmin')">Request a Change →</button>
@@ -6527,17 +6596,6 @@ document.addEventListener('pointercancel', pfSwipeUp_);
 /* === START: ADAPTIVE NAV — ENROLL → MY PLAYER === */
 const KNOWN_KEY = 'livity_known_player_v1'; // boolean flag only — no name, no number stored
 
-function navAdapt_() {
-let known = false;
-try { known = localStorage.getItem(KNOWN_KEY) === '1'; } catch (e) {}
-if (!known) return;
-const btn = document.querySelector('.bottom button[data-v="enroll"]');
-if (!btn) return;
-btn.setAttribute('data-v', 'player');
-btn.setAttribute('onclick', "tutOpenLb_('topupFind')");
-btn.innerHTML = '<b>👤</b>My Player';
-}
-
 function navMarkKnown_() {
 try { localStorage.setItem(KNOWN_KEY, '1'); } catch (e) {}
 navAdapt_();
@@ -6563,51 +6621,6 @@ m.classList.add('open');
 document.getElementById('livityBackdrop').classList.add('open');
 lockBodyScroll_(true);
 hideLivityHint();
-}
-
-function lbRenderProfileEntry_() {
-if (lbTopup.selected) {
-lbBody().innerHTML = lbRenderPlayerHub_();
-return;
-}
-const saved = pfLoad_();
-lbTopup = { query: (saved && saved.q) || '', players:[], selected:null, paymentMethod:'', packageKey:'', activeProgramId:'' };
-lbBody().innerHTML = lbRenderTopupFind_();
-if (saved && saved.q) lbSubmitTopupFind_(); // auto-load remembered player
-}
-
-function pfSwitch_() {
-pfClear_();
-lbTopup = { query:'', players:[], selected:null, paymentMethod:'', packageKey:'', activeProgramId:'' };
-lbBody().innerHTML = lbRenderTopupFind_();
-document.getElementById('lbTitle').textContent = 'My Profile';
-}
-
-/* overrides the earlier declarations (last function declaration wins) */
-function navAdapt_() {
-let known = false;
-try { known = localStorage.getItem(KNOWN_KEY) === '1' || !!pfLoad_(); } catch (e) {}
-if (!known) return;
-const btn = document.querySelector('.bottom button[data-v="enroll"]');
-if (!btn) return;
-btn.setAttribute('data-v', 'player');
-btn.setAttribute('onclick', 'openProfile_()');
-btn.innerHTML = '<b>' + pfIco_('user', 26) + '</b>Profile';
-}
-
-function lbRenderTopupFind_() {
-const intro = lbProfileMode
-? `<div class="tutorial-intro"><div class="tutorial-intro-ico">👤</div><h4>Your Player Profile</h4><p>Enter it once — we'll remember it on this device.</p></div>`
-: '';
-return `
-${intro}
-<h5 class="lb-step-title">Find your player's profile</h5>
-<p class="lb-text">Use the WhatsApp / mobile number from registration, or the Player ID.</p>
-<input class="lb-input" id="topupQuery" placeholder="Player ID / Mobile Number" value="${lbTopup.query}" onkeydown="if(event.key==='Enter')lbSubmitTopupFind_()">
-<div class="lb-err" id="lbErr"></div>
-<button class="btn primary" style="width:100%" id="lbFindBtn" onclick="lbSubmitTopupFind_()">View My Player →</button>
-<div id="lbFindEmpty"></div>
-`;
 }
 
 function lbRenderPlayerHub_() {
@@ -6720,7 +6733,7 @@ lbBody().innerHTML = lbRenderPlayerHub_();
 /* overrides (last declaration wins) — walang "Enter it once…" text na */
 function lbRenderTopupFind_() {
 const intro = lbProfileMode
-? `<div class="tutorial-intro"><div class="tutorial-intro-ico" style="background:#000;border-color:#000;color:#fff">${pfIco_('user', 26)}</div><h4>Your Player Profile</h4></div>`
+? `<div class="tutorial-intro"><div class="tutorial-intro-ico" style="background:#000;border-color:#000;color:#fff">${pfIco_('user', 26)}</div><h4>My Livity</h4></div>`
 : '';
 return `
 ${intro}
@@ -6908,7 +6921,7 @@ const btn = document.querySelector('.bottom button[data-v="enroll"], .bottom but
 if (btn) {
 btn.setAttribute('data-v', 'player');
 btn.setAttribute('onclick', 'openProfile_()');
-btn.innerHTML = '<b>' + (p ? pfMini_(p) : pfIco_('user', 26)) + '</b>Profile';
+btn.innerHTML = '<b>' + (p ? pfMini_(p) : pfIco_('user', 26)) + '</b>My Livity';
 }
 }
 
@@ -6969,15 +6982,6 @@ lbBody().innerHTML = lbRenderTopupFind_();
 if (saved2 && saved2.q) lbSubmitTopupFind_();
 }
 
-function pfSwitch_() {
-pfClear_();
-pfSnapClear_();
-lbTopup = { query:'', players:[], selected:null, paymentMethod:'', packageKey:'', activeProgramId:'' };
-lbBody().innerHTML = lbRenderTopupFind_();
-document.getElementById('lbTitle').textContent = 'My Profile';
-pfReflect_();
-}
-
 function lbRenderPlayerHub_() {
 const p = lbTopup.selected;
 pfSave_({ q: lbTopup.query || (pfLoad_() || {}).q || '', pid: p.playerId });
@@ -7026,10 +7030,6 @@ ${nextHtml}
 </div>
 <button class="lb-item" onclick="lbOpenAddProgram_()">
 <span class="lb-ico">${pfIco_('plus', 20)}</span> Add Another Program
-</button>
-<button type="button" class="lb-pkg" disabled style="opacity:.55;cursor:default;pointer-events:none">
-<b style="display:flex;align-items:center;gap:10px">${pfIco_('spark', 20)} Bytesense Score</b>
-<span class="pay-badge pending" style="margin:0">Coming Soon</span>
 </button>
 <button class="lb-item" onclick="lbOpenAddChild_()">
 <span class="lb-ico">${pfIco_('user', 20)}</span> Add Another Player
@@ -7256,11 +7256,13 @@ lbPayTick_();
 
 /* ---- panel ---- */
 function lbPayObj_(p, playerId, contact) {
-return { paymentId: p.paymentId, playerId: playerId, contact: contact, amount: p.amount, penalty: p.penalty, total: p.total, dueAt: p.dueAt, status: p.status, reference: p.reference || '', label: p.label, submittedAt: p.submittedAt || '' };
+return { paymentId: p.paymentId, playerId: playerId, contact: contact, amount: p.amount, penalty: p.penalty, total: p.total, dueAt: p.dueAt, status: p.status, reference: p.reference || '', label: p.label, submittedAt: p.submittedAt || '', rejectReason: p.rejectReason || p.note || '' };
 }
 
 /** Unpaid muna (pinakamaagang due), kung wala — pinakabagong Submitted. */
 function lbPayPick_(list) {
+const rej_ = list.filter(function (p) { return p.status === 'Rejected'; })[0];
+if (rej_) return rej_;
 const unpaid = list.filter(function (p) { return p.status === 'Pending' || p.status === 'Overdue'; })
 .sort(function (a, b) { return new Date(a.dueAt) - new Date(b.dueAt); });
 if (unpaid.length) return unpaid[0];
@@ -7271,11 +7273,12 @@ function lbPayPanelHtml_(pay, compact) {
 lbPayCur = pay;
 const esc = lbEscapeHtml_;
 const attr = function (s) { return esc(s).replace(/"/g, '&quot;'); };
-if (pay.status === 'Paid') return '';
+if (pay.status === 'Paid' || pay.status === 'Cancelled' || pay.status === 'Expired') return '';
+if (pay.status === 'Rejected') return lbPayResubmitHtml_(pay, '🔴 PAYMENT NOT VERIFIED', pay.rejectReason || "We couldn't match your payment. Check the amount and reference number, then send them again.");
 
 if (pay.status === 'Submitted') {
 const rcv = pay.submittedAt ? new Date(pay.submittedAt).toLocaleTimeString([], { hour:'numeric', minute:'2-digit' }) : '';
-return `<div id="payPanel"><div style="font-size:18px;font-weight:850;color:var(--navy)">🕓 Payment Submitted</div><p class="lb-text" style="margin:8px 0 0">Your payment details were received${rcv ? ' at <b>' + rcv + '</b>' : ''}${pay.reference ? ' (Ref. <b>' + esc(pay.reference) + '</b>)' : ''}.<br>Livity Admin will verify your payment. Your balance stays until it's verified.</p></div>`;
+return `<div id="payPanel"><div style="font-size:18px;font-weight:850;color:var(--navy)">🕓 Payment Submitted</div><p class="lb-text" style="margin:8px 0 0">Your payment details were received${rcv ? ' at <b>' + rcv + '</b>' : ''}${pay.reference ? ' (Ref. <b>' + esc(pay.reference) + '</b>)' : ''}.<br>Livity Admin will verify your payment. Your balance stays until it's verified.</p><button type="button" class="pf-photo-rm" onclick="lbPayCorrect_()">Wrong amount or reference? Correct it</button></div>`;
 }
 
 const methods = lbMethodsList_();
@@ -7334,6 +7337,60 @@ if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.wr
 else fallback();
 }
 
+/* === START: PAYMENT LIFECYCLE — RESUBMIT + RECEIPT === */
+function lbPayResubmitHtml_(pay, head, note) {
+  lbPayCur = pay;
+  const esc = lbEscapeHtml_;
+  const attr = function (s) { return esc(s).replace(/"/g, '&quot;'); };
+  const methods = lbMethodsList_();
+  const opts = methods.map(function (m) { return '<option value="' + attr(m.name) + '">' + esc(m.name) + '</option>'; }).join('');
+  const list = methods.map(function (m) {
+    return '<div class="pay-method"><div style="min-width:0"><div class="pay-m-name">' + esc(m.name) + '<span class="pay-m-type">' + esc(m.type) + '</span></div><div class="pay-acct">' + esc(m.accountNumber) + '</div><div class="pay-m-holder">' + esc(m.accountName) + '</div></div><button type="button" class="pay-copy" data-copy="' + attr(m.accountNumber) + '" onclick="lbPayCopy_(this)">Copy</button></div>';
+  }).join('');
+  const total = Number(pay.total) || Number(pay.amount) || 0;
+  return '<div id="payPanel">'
+    + '<div style="font-size:20px;font-weight:850;letter-spacing:.3px;margin:0 0 8px;color:var(--red)">' + head + '</div>'
+    + '<p class="lb-text" style="margin:0 0 10px">' + esc(note) + '</p>'
+    + (pay.reference ? '<p class="lb-text" style="margin:0 0 10px;color:var(--muted)">Previously sent: Ref. <b>' + esc(pay.reference) + '</b></p>' : '')
+    + '<div style="font-size:22px;font-weight:850;color:var(--text);margin:0 0 10px">Amount due ₱' + total.toLocaleString() + '</div>'
+    + list
+    + '<div class="session-detail-label">Send the correct details</div>'
+    + (methods.length ? '<select class="lb-input" id="payMethodSel">' + opts + '</select>' : '')
+    + '<input class="lb-input" id="payAmt" type="number" inputmode="decimal" min="1" step="any" placeholder="Amount sent (₱)" value="' + total + '">'
+    + '<input class="lb-input" id="payRef" placeholder="Reference number" autocapitalize="characters" autocomplete="off">'
+    + '<div class="lb-err" id="payErr"></div>'
+    + '<button type="button" class="btn primary" id="payBtn" style="width:100%" onclick="lbPaySubmit_()">Resubmit Payment Details →</button>'
+    + '<a href="https://wa.me/639762675397" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;font-size:12px;font-weight:800;color:var(--royal);text-decoration:none">Need help? Message Admin JA →</a>'
+    + '</div>';
+}
+
+function lbPayCorrect_() {
+  const p = lbPayCur, panel = document.getElementById('payPanel');
+  if (!p || !panel) return;
+  panel.outerHTML = lbPayResubmitHtml_(Object.assign({}, p, { correction: true }), '✏️ CORRECT YOUR DETAILS', 'Send the right amount and reference number. Livity will verify the new details.');
+}
+
+function lbPayReceipt_(id) {
+  const p = (lbPayments.payments || []).filter(function (x) { return x.paymentId === id; })[0];
+  if (!p) return;
+  const esc = lbEscapeHtml_, peso = function (n) { return '₱' + Number(n).toLocaleString(); };
+  const row = function (l, v) { return v ? '<div class="event" style="padding:10px 0"><div class="session-detail-label" style="margin:0 0 2px">' + l + '</div><div class="event-title" style="margin:0">' + v + '</div></div>' : ''; };
+  const ref = p.reference || p.receiptCode || '';
+  document.getElementById('lbTitle').textContent = 'Receipt';
+  lbBody().innerHTML = '<button class="back" style="margin-bottom:10px" onclick="lbOpenPayments_()">← Payments</button>'
+    + '<div class="panel" style="padding:4px 16px;margin-bottom:12px"><div style="text-align:center;padding:12px 0 4px"><div class="pay-badge paid">✓ PAID</div><div style="font-size:28px;font-weight:850;color:var(--text);margin-top:8px">' + peso(p.total != null ? p.total : p.amount) + '</div></div>'
+    + row('For', esc(p.label || '') + (p.sessions ? ' · ' + p.sessions + ' sessions' : ''))
+    + row('Player', esc((lbTopup.selected || {}).fullName || ''))
+    + row('Date', lbFormatShortDate_(p.date))
+    + (p.penalty ? row('Includes late penalty', peso(p.penalty)) : '')
+    + row('Reference no.', esc(p.reference || ''))
+    + row('Receipt no.', esc(p.receiptCode || ''))
+    + row('Payment ID', esc(p.paymentId || ''))
+    + '</div>'
+    + (ref ? '<button type="button" class="btn outline" style="width:100%" data-ref="' + esc(ref).replace(/"/g, '&quot;') + '" onclick="lbCopyRef_(this)">Copy Reference</button>' : '');
+}
+/* === END: PAYMENT LIFECYCLE === */
+
 /* ---- payments screen ---- */
 function lbPayDuePanelsHtml_() {
 const p = lbPayPick_(lbPayments.payments || []);
@@ -7389,6 +7446,53 @@ const h = lbHubBase3_();
 setTimeout(lbHubDueLoad_, 0);
 return h;
 };
+
+/* === START: MY LIVITY — SECTION HEADINGS === */
+const lbHubBase4_ = lbRenderPlayerHub_;
+lbRenderPlayerHub_ = function () {
+return lbHubBase4_()
+.replace('<div class="quick" style="margin-bottom:10px">', '<div class="mo-sec" style="margin-top:4px">Training</div><div class="quick" style="margin-bottom:10px">')
+.replace('<button class="lb-item" onclick="lbOpenAddChild_()">', '<div class="mo-sec">Family</div><button class="lb-item" onclick="lbOpenAddChild_()">');
+};
+/* === END: MY LIVITY — SECTION HEADINGS === */
+
+/* === START: ACCOUNT STATE — isang source of truth ng status === */
+function lbAcctState_(p) {
+  if (!p) return { cls:'pending', label:'NEW VISITOR', msg:'' };
+  if (/inactive/i.test(String(p.status || ''))) return { cls:'overdue', label:'INACTIVE', msg:'This player is inactive. Message Admin JA to reactivate.' };
+  const rels = p.relationships || [];
+  const core = rels.filter(function (r) { return r.programId !== 'PRG-PRIV'; });
+  if (!core.length) {
+    return rels.length
+      ? { cls:'pending', label:'PRIVATE TRAINING', msg:'Private sessions are booked through Admin JA.' }
+      : { cls:'pending', label:'NOT YET ACTIVE', msg:'No package yet. Pick a program to start training.' };
+  }
+  const active = core.filter(function (r) { return r.state === 'active' && Number(r.remaining) > 0; });
+  if (active.length) {
+    const left = active.reduce(function (n, r) { return n + Number(r.remaining); }, 0);
+    return left <= 2
+      ? { cls:'pending', label:'RUNNING LOW', msg:'Only ' + left + ' session' + (left === 1 ? '' : 's') + ' left. Top up before your next training.' }
+      : { cls:'paid', label:'TRAINING ACTIVE', msg:'' };
+  }
+  if (core.some(function (r) { return r.state === 'pending_payment'; })) return { cls:'pending', label:'PAYMENT PENDING', msg:'Training activates once Livity verifies your payment. Status is shown above.' };
+  if (core.some(function (r) { return r.state === 'expired'; })) return { cls:'overdue', label:'PACKAGE EXPIRED', msg:'Top up to continue training.' };
+  if (core.some(function (r) { return r.state === 'exhausted' || r.state === 'active'; })) return { cls:'pending', label:'PACKAGE ENDED', msg:'Top up to continue training.' };
+  return { cls:'pending', label:'NOT YET ACTIVE', msg:'No package yet. Pick a program to start training.' };
+}
+
+const lbHubBase5_ = lbRenderPlayerHub_;
+lbRenderPlayerHub_ = function () {
+  const p = lbTopup.selected;
+  const h = lbHubBase5_();
+  if (!p) return h;
+  const s = lbAcctState_(p);
+  const n = (lbTopup.players || []).length;
+  const chip = '<div class="pay-badge ' + s.cls + '" style="margin-top:12px">' + s.label + '</div>'
+    + (s.msg ? '<p class="lb-text" style="margin:6px 0 0">' + s.msg + '</p>' : '')
+    + (n > 1 ? '<button type="button" class="pf-photo-rm" onclick="lbBody().innerHTML=lbRenderTopupPlayerList_()">Switch player · ' + n + ' on this number</button>' : '');
+  return h.replace('<div class="next-session-meta" style="margin-top:14px">', chip + '<div class="next-session-meta" style="margin-top:14px">');
+};
+/* === END: ACCOUNT STATE === */
 
 /* ---- submit + offline queue (fail-safe) ---- */
 function lbPayQueueGet_() { try { return JSON.parse(localStorage.getItem(PAY_QUEUE_KEY) || '[]'); } catch (e) { return []; } }
@@ -7452,7 +7556,7 @@ const job = {
 paymentId: pay.paymentId, playerId: pay.playerId, contact: pay.contact,
 reference: ref, amount: amt, method: sel ? sel.value : '',
 requestId: 'RQ' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-clientTs: new Date().toISOString(), ua: (navigator.userAgent || '').slice(0, 80)
+resubmit: (pay.status === 'Rejected' || pay.correction) ? 1 : 0, clientTs: new Date().toISOString(), ua: (navigator.userAgent || '').slice(0, 80)
 };
 lbPayQueueAdd_(job); // i-save muna sa device bago i-send
 
@@ -7836,7 +7940,7 @@ Schedule & Locations
 </h3>
 
 <p>
-${d.schedule}
+${detailScheduleHtml_(d)}
 </p>
 
 </div>
@@ -8073,7 +8177,7 @@ steps:[
 
 { key:'find', icon:'🔎', label:'Find my player', title:'Find my player', sub:'Already registered? No need to sign up again.',
 steps:[
-"Tap the Profile tab at the bottom (or use the button below).",
+"Tap the My Livity tab at the bottom (or use the button below).",
 "Enter the WhatsApp / mobile number used at registration, or the Player ID.",
 "If you have more than one child, tap the player you want.",
 "The Player ID is shown under the player's name — keep it handy for next time."
@@ -8278,7 +8382,7 @@ around: [
 { sel:'.bottom button[data-v="schedule"]', try:true, title:'Schedule', text:'All training days, times and venues in one place.' },
 TUT_BALL_STEP,
 { sel:'#livityModal', wait:450, before:tutEnsureBallOpen_, title:'Anytime Livity', text:'Your player, enrollment, top-ups, schedule and Admin JA are all one tap away.' },
-{ sel:'.bottom button[data-v="player"]', try:true, before:closeLivityBall, title:'Profile', text:'Already registered? Your player profile, sessions and payments are here.' }
+{ sel:'.bottom button[data-v="player"]', try:true, before:closeLivityBall, title:'My Livity', text:'Already registered? Your player, sessions, payments and QR are here.' }
 ],
 register: [
 /* === START: REGISTER TOUR — HAMBURGER === */
@@ -8294,7 +8398,7 @@ schedule: [
 ],
 lookup: [
 /* === START: LOOKUP TOUR — PROFILE TAB === */
-{ sel:'.bottom button[data-v="player"]', try:true, title:'Profile', text:'Tap Profile to find your player.' },
+{ sel:'.bottom button[data-v="player"]', try:true, title:'My Livity', text:'Tap My Livity to find your player.' },
 /* === END: LOOKUP TOUR — PROFILE TAB === */
 { sel:'#topupQuery', wait:600, title:'Find your player', text:'Enter the WhatsApp / mobile number used at registration (or the Player ID). Tap Done, then tap View My Player.' }
 ],
@@ -8314,7 +8418,7 @@ TUT_TOURS.first = [
 { sel:'.bottom button[data-v="programs"]', try:true, title:'Programs', text:'Regular, Private, Advanced and Academy. Find the one that fits your player.' },
 { sel:'.bottom button[data-v="schedule"]', try:true, title:'Schedule', text:'Every training day, time and venue in one place.' },
 /* === START: FIRST TOUR — PROFILE TAB STEP === */
-{ sel:'.bottom button[data-v="player"]', wait:200, title:'Profile', text:"Already registered? Your player's profile, sessions left, payments and support are here." },
+{ sel:'.bottom button[data-v="player"]', wait:200, title:'My Livity', text:"Already registered? Your player, sessions left, payments and support are here." },
 /* === END: FIRST TOUR — PROFILE TAB STEP === */
 { sel:'#livityBall', wait:400, before:tutFirstBallStep_, title:'Anytime Livity', text:'This ⚽ follows you on every screen. Enroll, top up, check your player, or ask Admin JA.' }
 ];
@@ -9243,7 +9347,11 @@ const text = next
 const cta = (next && next.day !== day)
 ? `<button type="button" class="btn outline" style="padding:10px 16px;font-size:13px" onclick="renderScheduleDay('${next.day}')">Go to ${when} →</button>`
 : '';
-return lbEmptyState_('◷', 'No training scheduled', text, cta);
+const weekEmpty_ = !!lbScheduleWeek && !lbScheduleWeek.some(function (d) { return d.active && (d.sessions || []).length; });
+const todayName_ = WEEK_DAY_ORDER[(new Date().getDay() + 6) % 7];
+const title_ = weekEmpty_ ? 'No sessions this week' : (day === todayName_ ? 'No sessions today' : 'No sessions on ' + day);
+const text_ = weekEmpty_ ? 'Nothing is scheduled this week. Check back soon or message Admin JA.' : text;
+return lbEmptyState_('◷', title_, text_, cta);
 }
 /* === END: EMPTY STATES === */
 
@@ -9270,7 +9378,8 @@ box.style.display = open ? 'block' : 'none';
 btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
-// static placeholders: <div data-ctx="schedule"></div>
+// static placeholders: <div id="schedBanner"></div>
+<div data-ctx="schedule"></div>
 document.addEventListener('DOMContentLoaded', function () {
 document.querySelectorAll('[data-ctx]').forEach(function (el) {
 el.innerHTML = ctxHelp_(el.getAttribute('data-ctx'));
@@ -9288,7 +9397,7 @@ function pfLogout_() {
       if (k.indexOf(PF_PHOTO_KEY) === 0 || k.indexOf(PF_QR_KEY) === 0) toRemove.push(k);
     }
     toRemove.forEach(function (k) { localStorage.removeItem(k); });
-    [PROFILE_KEY, PF_SNAP_KEY, KNOWN_KEY, LB_CHAT_CONTACT_KEY].forEach(function (k) { localStorage.removeItem(k); });
+    [PROFILE_KEY, PF_SNAP_KEY, KNOWN_KEY, LB_CHAT_CONTACT_KEY, LB_DRAFT_KEY, LB_REF_KEY].forEach(function (k) { localStorage.removeItem(k); });
   } catch (e) {}
 
   lbTopup = { query:'', players:[], selected:null, paymentMethod:'', packageKey:'', activeProgramId:'' };
@@ -9298,7 +9407,7 @@ function pfLogout_() {
 
   // reset bottom tab + home tile back to default
   const btn = document.querySelector('.bottom button[data-v="player"], .bottom button[data-v="enroll"]');
-  if (btn) { btn.setAttribute('data-v', 'player'); btn.setAttribute('onclick', 'openProfile_()'); btn.innerHTML = '<b>' + pfIco_('user', 26) + '</b>Profile'; }
+  if (btn) { btn.setAttribute('data-v', 'player'); btn.setAttribute('onclick', 'openProfile_()'); btn.innerHTML = '<b>' + pfIco_('user', 26) + '</b>My Livity'; }
   pfReflect_();
 
   closeLivityBall();
@@ -9541,7 +9650,12 @@ try {
 const res = await fetch(LIVITY_API_URL + '?action=schedule');
 const json = await res.json();
 if (!json.success || !json.week) return;
+const prev_ = JSON.stringify(lbScheduleWeek);
 lbScheduleWeek = json.week;
+lbSchedState_ = 'live';
+lbSchedSave_(json.week);
+lbSchedBanner_();
+if (prev_ !== JSON.stringify(json.week)) appToast_('Schedule updated');
 renderScheduleTabs();
 renderScheduleDay(lbScheduleActiveDay || lbScheduleWeek[0].day);
 renderScheduleByProgram_();
@@ -10086,6 +10200,182 @@ const i = MO_TABS_.findIndex(function (a) { return a[0] === moTab_; }) + (dx < 0
 if (i >= 0 && i < MO_TABS_.length) moSet_(MO_TABS_[i][0]);
 }, { passive:true });
 })();
+/* === START: NAV FACADE — iisang pinto para sa lahat ng screens === */
+const nav = {
+  /* Pages: home | programs | schedule | pricing | enroll | detail */
+  page: function (id) { show(id); },
+
+  /* Programs → Program Detail */
+  program: function (key) { detail(key); },
+
+  /* Profile / My Player. screen: 'hub' | 'sessions' | 'payments' | 'qr' */
+  profile: function (screen) {
+    openProfile_();
+    if (!lbTopup.selected) return; // find form muna; walang player pa
+    if (screen === 'sessions') lbOpenSessions_();
+    else if (screen === 'payments') lbOpenPayments_();
+    else if (screen === 'qr') pfShowQr_();
+  },
+
+  /* Anytime Livity. screen: 'menu' | 'enroll' | 'topupFind' | 'askadmin' | 'accessGate' */
+  anytime: function (screen) {
+    var m = document.getElementById('livityModal');
+    if (lbProfileMode) closeLivityBall(true); // handoff, walang unlock/relock flicker
+    lbGoTo(screen || 'menu');
+    if (!m.classList.contains('open')) {
+      m.classList.add('open');
+      document.getElementById('livityBackdrop').classList.add('open');
+      lockBodyScroll_(true);
+    }
+  },
+
+  /* Overlays */
+  scan: function () { openScan_(); },
+  help: function () { openTutorial(); },
+  rate: function () { openRateModal(); },
+  whatsNew: function () { pfWhatsNew_(); },
+
+  /* Livity info tabs sa ilalim ng Home: story | philosophy | mission | values | team | voices | gallery | rules */
+  info: function (tab) {
+    show('home');
+    moSet_(tab || 'story');
+    var m = document.getElementById('more');
+    if (m) m.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+/* === END: NAV FACADE === */
+
+/* === START: ENROLLMENT DRAFT LIFECYCLE === */
+const LB_DRAFT_KEY = 'livity_enroll_draft_v1';
+const LB_REF_KEY = 'livity_last_ref_v1';
+let lbDraftOff_ = false, lbDraftTimer_ = null;
+
+function lbBlankForm_(programId) {
+  return { programId: programId || '', category:'', firstName:'', lastName:'', dob:'', age:'', gender:'', nationality:'', area:'', guardianName:'', relationship:'', whatsapp:'', email:'', emName:'', emNumber:'', contactMode:'WhatsApp', package:'', paymentMethod:'', consentPrivacy:false };
+}
+
+function lbDraftLoad_() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LB_DRAFT_KEY) || 'null');
+    if (!d || !d.form) return null;
+    if (Date.now() - d.savedAt > 14 * 86400000) { localStorage.removeItem(LB_DRAFT_KEY); return null; } // 14 days
+    return d;
+  } catch (e) { return null; }
+}
+function lbDraftClear_() { try { localStorage.removeItem(LB_DRAFT_KEY); } catch (e) {} }
+
+function lbDraftSave_() {
+  if (lbDraftOff_) return false;
+  const f = lbForm;
+  const typed = f.firstName || f.lastName || f.dob || f.age || (!f._linkedGuardian && (f.guardianName || f.whatsapp));
+  if (!typed) return false;
+  try {
+    // consent ay hindi sine-save — kailangang i-tick ulit pag-resume
+    localStorage.setItem(LB_DRAFT_KEY, JSON.stringify({ form: Object.assign({}, f, { consentPrivacy:false }), step: lbEnrollStep, skip: !!lbEnrollSkipProgram_, savedAt: Date.now() }));
+    return true;
+  } catch (e) { return false; }
+}
+
+/* autosave habang nagta-type / pumipili (debounced) */
+['input', 'change', 'click'].forEach(function (t) {
+  document.addEventListener(t, function (e) {
+    if (lbScreen !== 'enroll' || !e.target.closest || !e.target.closest('#lbBody')) return;
+    if (t !== 'click') delete lbForm._reqId; // nagbago ang data = bagong request id
+    clearTimeout(lbDraftTimer_);
+    lbDraftTimer_ = setTimeout(lbDraftSave_, 300);
+  }, true);
+});
+/* sinara / inilipat ang app: i-save agad */
+window.addEventListener('pagehide', function () { if (lbScreen === 'enroll') lbDraftSave_(); });
+document.addEventListener('visibilitychange', function () { if (document.hidden && lbScreen === 'enroll') lbDraftSave_(); });
+
+function lbDraftCardHtml_() {
+  const d = lbDraftLoad_();
+  if (!d) return '';
+  const f = d.form;
+  const name = (f.firstName + ' ' + f.lastName).trim() || 'a new player';
+  const steps = f._linkedGuardian ? LB_ENROLL_STEPS_LINKED : LB_ENROLL_STEPS;
+  const st = steps[Math.min(d.step, steps.length - 1)];
+  const mins = Math.round((Date.now() - d.savedAt) / 60000);
+  const when = mins < 60 ? Math.max(1, mins) + ' min ago' : (mins < 1440 ? Math.round(mins / 60) + ' h ago' : Math.round(mins / 1440) + ' d ago');
+  return '<h5 class="lb-step-title">Continue your enrollment?</h5>'
+    + '<div class="panel" style="margin:0 0 12px"><b>' + lbEscapeHtml_(name) + '</b>'
+    + '<p class="lb-text" style="margin:4px 0 0">' + lbEscapeHtml_(lbProgramLabel_(f.programId)) + ' · stopped at ' + (LB_STEP_LABELS[st] || '') + ' · saved ' + when + '</p></div>'
+    + '<button class="btn primary" style="width:100%;margin-bottom:8px" onclick="lbDraftResume_()">Continue →</button>'
+    + '<button class="btn outline" style="width:100%;background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)" onclick="lbDraftDiscard_(true)">Start over</button>';
+}
+
+function lbDraftResume_() {
+  const d = lbDraftLoad_();
+  if (!d) { lbGoTo('enroll'); return; }
+  lbForm = Object.assign(lbBlankForm_(''), d.form, { consentPrivacy:false });
+  lbEnrollSkipProgram_ = !!d.skip;
+  const steps = lbActiveSteps_();
+  let i = Math.min(d.step, steps.length - 1);
+  if (steps[i] === 'review') i = steps.indexOf('consent'); // consent ulit bago mag-submit
+  lbEnrollStep = i;
+  document.getElementById('lbTitle').textContent = lbForm._linkedGuardian ? 'Add a Player' : (lbForm.programId ? lbProgramLabel_(lbForm.programId) + ' — Enroll' : 'Enroll');
+  lbRerender();
+  lbBody().scrollTop = 0;
+}
+
+function lbDraftDiscard_(restart) {
+  if (!restart && !confirm('Cancel this enrollment?\n\nEverything you entered will be removed from this device.')) return;
+  lbDraftClear_();
+  lbForm = lbBlankForm_(restart ? lbForm.programId : '');
+  lbGoTo(restart ? 'enroll' : 'menu');
+}
+
+/* entry sa enroll: kung may draft at blangko ang form, ipakita muna ang resume card */
+const lbGoToBase4_ = lbGoTo;
+lbGoTo = function (screen) {
+  if (screen === 'enroll') lbDraftOff_ = false;
+  const d = (screen === 'enroll' && !lbForm._linkedGuardian && !lbForm.firstName && !lbForm.lastName && !lbForm.dob) ? lbDraftLoad_() : null;
+  const r = lbGoToBase4_(screen);
+  if (d) lbBody().innerHTML = lbDraftCardHtml_();
+  return r;
+};
+
+/* isasara ang modal habang nasa enroll: naka-save na, sabihin lang */
+const closeLivityBallBase2_ = closeLivityBall;
+closeLivityBall = function (skipUnlock) {
+  const m = document.getElementById('livityModal');
+  if (lbScreen === 'enroll' && m && m.classList.contains('open') && lbDraftSave_()) appToast_('Enrollment saved — continue anytime');
+  closeLivityBallBase2_(skipUnlock);
+};
+
+/* duplicate registration + recovery kapag naputol ang response */
+async function lbFindDuplicate_(force) {
+  if ((!force && lbForm._dupOk) || !lbForm.whatsapp) return null;
+  try {
+    const res = await fetch(LIVITY_API_URL + '?action=guardianLookup&whatsapp=' + encodeURIComponent(lbForm.whatsapp));
+    const json = await res.json();
+    const full = (lbForm.firstName + ' ' + lbForm.lastName).trim().toLowerCase();
+    return ((json.success && json.players) || []).find(function (p) { return String(p.fullName || '').trim().toLowerCase() === full; }) || null;
+  } catch (e) { return null; }
+}
+
+function lbDupPromptHtml_(p, recovered) {
+  const text = recovered
+    ? lbEscapeHtml_(p.fullName) + ' is now registered under this number, so your enrollment likely went through even though the connection dropped. Check your payment status before registering again.'
+    : lbEscapeHtml_(p.fullName) + ' is already registered under this number. Continue with the existing player instead of creating a duplicate.';
+  return '<h5 class="lb-step-title">' + (recovered ? 'This may have gone through' : 'Already registered') + '</h5>'
+    + '<p class="lb-text">' + text + '</p>'
+    + '<button class="btn primary" style="width:100%;margin-bottom:8px" onclick="lbDraftOff_=true;lbDraftClear_();lbResumeReturningGuardian_(lbForm.whatsapp)">Continue Training →</button>'
+    + (recovered ? '' : '<button class="btn outline" style="width:100%;margin-bottom:8px" onclick="lbForm._dupOk=true;lbRerender();lbSubmitEnrollment()">Different player — register anyway</button>')
+    + '<button class="btn outline" style="width:100%;background:#f5f2ea;border-color:#f5f2ea;color:var(--muted)" onclick="lbRerender()">← Back</button>';
+}
+
+async function lbRecoverAfterFail_() {
+  const dup = await lbFindDuplicate_(true);
+  if (dup && lbScreen === 'enroll' && document.getElementById('lbSubmitBtn')) lbBody().innerHTML = lbDupPromptHtml_(dup, true);
+}
+
+/* reference retrieval */
+function lbRefSave_(r) { try { if (r && r.enrollmentId) localStorage.setItem(LB_REF_KEY, JSON.stringify({ ref: r.enrollmentId, at: Date.now() })); } catch (e) {} }
+function lbLastRef_() { try { const o = JSON.parse(localStorage.getItem(LB_REF_KEY) || 'null'); return o && o.ref ? o.ref : ''; } catch (e) { return ''; } }
+/* === END: ENROLLMENT DRAFT LIFECYCLE === */
+
 /* === START: HOME DRAWER — LOGIC === */
 function hdDrawerOpen_() {
   hdRender_();
@@ -10135,6 +10425,8 @@ var n = (p && p.fullName) ? String(p.fullName).trim().split(/\s+/)[0] : '';
 
 function hdOpenPay_()      { openProfile_(); if (lbTopup.selected) lbOpenPayments_(); }
 function hdOpenSessions_() { openProfile_(); if (lbTopup.selected) lbOpenSessions_(); }
+function hdOpenQr_()       { openProfile_(); if (lbTopup.selected) pfShowQr_(); }
+function hdOpenAddProg_()  { openProfile_(); if (lbTopup.selected) lbOpenAddProgram_(); }
 function hdDiscover_(k) {
   if (k === 'programs') { show('programs'); return; }
   moSet_(k);
@@ -10154,14 +10446,7 @@ function hdRender_() {
   if (homeEl) homeEl.classList.toggle('hd-new', !known);
 
   if (!known) {
-    el.innerHTML = '<div class="hd-new-wrap">'
-      + '<h2>Welcome.</h2>'
-      + '<p>Start your player\'s<br>training journey.</p>'
-      + '<button type="button" class="btn primary" style="width:100%" onclick="show(\'programs\')">Find a Program →</button>'
-      + '<div class="hd-or">or</div>'
-      + '<div class="hd-q">Already enrolled?</div>'
-      + '<button type="button" class="btn" style="width:100%;background:var(--navy);color:#fff" onclick="openProfile_()">Find My Player →</button>'
-      + '</div>';
+    el.innerHTML = '<button type="button" class="hd-row" onclick="openProfile_()"><div><b>Already enrolled?</b><span>Find my player</span></div><i>›</i></button>';
     return;
   }
   var rels = (p && p.relationships && p.relationships.length) ? p.relationships : [];
@@ -10186,10 +10471,10 @@ function hdRender_() {
 
   /* QUICK ACTIONS */
   var quick = '<div class="mo-sec" style="margin-top:4px">Quick actions</div><div class="quick" style="margin-bottom:6px">'
-    + '<button type="button" onclick="show(\'schedule\')"><div class="icon">' + pfIco_('clock') + '</div><b>Schedule</b><span>Upcoming training</span></button>'
     + '<button type="button" onclick="hdOpenPay_()"><div class="icon">' + pfIco_('card') + '</div><b>Payments</b><span>Balance & history</span></button>'
-    + '<button type="button" onclick="openProfile_()"><div class="icon">' + pfIco_('user') + '</div><b>My Player</b><span>Profile & QR</span></button>'
-    + '<button type="button" onclick="show(\'programs\')"><div class="icon">' + pfIco_('grid') + '</div><b>Programs</b><span>Find your fit</span></button>'
+    + '<button type="button" onclick="hdOpenSessions_()"><div class="icon">' + pfIco_('ticket') + '</div><b>Top Up</b><span>Add sessions</span></button>'
+    + '<button type="button" onclick="hdOpenQr_()"><div class="icon">' + pfIco_('qr') + '</div><b>My QR</b><span>Show at check-in</span></button>'
+    + '<button type="button" onclick="hdOpenAddProg_()"><div class="icon">' + pfIco_('plus') + '</div><b>Add Program</b><span>Another training</span></button>'
     + '</div>';
 
   /* MY TRAINING + YOUR PROGRESS — lalabas lang kapag may naka-save na player */
@@ -10212,13 +10497,9 @@ function hdRender_() {
   }
 
   /* DISCOVER */
-  var disc = '<div class="mo-sec">Discover Livity</div><div class="hd-disc">'
-    + '<button type="button" onclick="hdDiscover_(\'programs\')">Programs</button>'
-    + '<button type="button" onclick="hdDiscover_(\'team\')">Coaches</button>'
-    + '<button type="button" onclick="hdDiscover_(\'story\')">Story</button></div>'
-    + '<div style="height:18px"></div>';
+  var disc = '<div style="height:6px"></div>';
 
-  el.innerHTML = '<div class="hd-greet"><h2>' + hdGreeting_(p) + '</h2><span>Here\'s your training at a glance.</span></div>'
+  el.innerHTML = '<div class="hd-greet"><h2>' + hdGreeting_(p) + '</h2>' + (p ? '<div class="pay-badge ' + lbAcctState_(p).cls + '">' + lbAcctState_(p).label + '</div>' : '<span>Here\'s your training at a glance.</span>') + '</div>'
     + nextHtml + quick + mine + prog + disc;
 }
 
