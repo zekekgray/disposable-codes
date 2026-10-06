@@ -1,0 +1,3284 @@
+/**
+ * LIVITY TRAINING & ACADEMY — Backend (Google Apps Script)
+ * ----------------------------------------------------------
+ * Run initializeAll() once (or via the "Livity Admin" menu) to build
+ * every sheet this app needs, with headers, frozen rows, and seed data
+ * for Programs / Pricing / Schedule / Coaches pulled straight from the
+ * Livity mobile app.
+ *
+ * Sheets created:
+ *   Config, Programs, Schedule, Pricing, Coaches, Players, Packages,
+ *   Payments, Attendance, WalkIns, Referrals, AuditLog
+ */
+
+// ============================================================
+// CONFIG — sheet names + headers in one place
+// ============================================================
+
+const SHEETS = {
+  CONFIG:     { name: 'Config',     headers: ['Key', 'Value'] },
+  PROGRAMS:   { name: 'Programs',   headers: ['ProgramID', 'Name', 'Type', 'AgeGroup', 'AssessmentRequired', 'Description'] },
+  SCHEDULE:   { name: 'Schedule',   headers: ['ScheduleID', 'ProgramID', 'Day', 'StartTime', 'EndTime', 'Venue', 'Notes'] },
+  PRICING:    { name: 'Pricing',    headers: ['PriceID', 'ProgramID', 'Category', 'PackageType', 'Sessions', 'Price', 'ValidityDays'] },
+  COACHES:    { name: 'Coaches',    headers: ['CoachID', 'Name', 'Role', 'ContactNumber'] },
+  PLAYERS:    { name: 'Players',    headers: ['PlayerID', 'FullName', 'BirthYear', 'Category', 'GuardianName', 'ContactNumber', 'Email', 'ProgramID', 'DateEnrolled', 'Status', 'ReferredBy', 'PhotoURL'] },
+  PACKAGES:   { name: 'Packages',   headers: ['PackageID', 'PlayerID', 'PriceID', 'PurchaseDate', 'SessionsTotal', 'SessionsUsed', 'ExpiryDate', 'Status'] },
+  PAYMENTS:   { name: 'Payments',   headers: ['PaymentID', 'PlayerID', 'PackageID', 'Amount', 'Method', 'DateTime', 'Status', 'ProcessedBy', 'DueAt', 'Reference', 'PaidAmount', 'SubmittedAt', 'Meta'] },
+  /* === START: ATTENDANCE — SEPARATE REGISTRATION FROM ATTENDANCE STATE === */
+  ATTENDANCE: { name: 'Attendance', headers: ['AttendanceID', 'PlayerID', 'ScheduleID', 'Date', 'RegistrationStatus', 'AttendanceStatus', 'CheckInTime', 'SessionDeducted', 'IsWalkIn'] },
+  /* === END: ATTENDANCE === */
+  WALKINS:    { name: 'WalkIns',    headers: ['WalkInID', 'PlayerID', 'Date', 'MonthCount', 'SurchargeApplied'] },
+  REFERRALS:  { name: 'Referrals',  headers: ['ReferralID', 'ReferrerPlayerID', 'ReferredPlayerID', 'DateApplied', 'DiscountApplied', 'Status'] },
+  AUDITLOG:   { name: 'AuditLog',   headers: ['Timestamp', 'Action', 'Details', 'User'] },
+  /* === START: MESSAGES — ASK ADMIN JA CHAT LOG (was missing from schema) === */
+  MESSAGES:   { name: 'Messages',   headers: ['MessageID', 'ContactKey', 'GuardianName', 'Whatsapp', 'Sender', 'Body', 'Timestamp', 'Status'] },
+  /* === END: MESSAGES === */
+  /* === START: GALLERY — ACADEMY PHOTOS & VIDEOS (admin-managed sheet) === */
+  GALLERY:    { name: 'Gallery',    headers: ['MediaID', 'Type', 'Url', 'ThumbnailUrl', 'Caption', 'SortOrder', 'Enabled'] },
+  VERSIONS:   { name: 'Versions',   headers: ['WhatsNew (type here)', 'Version', 'Build', 'Timestamp'] },
+  /* === END: GALLERY === */
+  /* === START: PAYMENT METHODS EDIT — SHEET DEF === */
+  PAYMENT_METHODS: { name: 'PaymentMethods', headers: ['MethodID', 'Type', 'Provider', 'AccountNumber', 'AccountName', 'Enabled', 'SortOrder', 'Notes'] },
+  /* === END: PAYMENT METHODS EDIT — SHEET DEF === */
+  NOTIFICATION_TYPES: { name: 'NotificationTypes', headers: ['TypeKey', 'Label', 'Audience', 'Bucket', 'Channel', 'DefaultTemplate'] },
+  NOTIFICATIONS:       { name: 'Notifications',     headers: ['NotificationID', 'TypeKey', 'Audience', 'RecipientID', 'Title', 'Body', 'Channel', 'Status', 'CreatedAt', 'ReadAt'] }
+};
+
+// Seed data — mirrors the pricing/schedule shown in the Livity app
+const SEED_PROGRAMS = [
+  ['PRG-REG', 'Specialized Training — Regular', 'Group', 'All levels', 'No', 'Open group sessions focused on football fundamentals.'],
+  ['PRG-PRIV', 'Specialized Training — Private', '1-on-1 / Small Group', 'All levels', 'No', 'Personalized private or small-group coaching.'],
+  ['PRG-ADV', 'Advanced Performance Training', 'Group', 'U11+', 'Yes', 'High-intensity training for assessed players.'],
+  ['PRG-ACAD', 'Academy Training', 'Team', 'U5-U13', 'No', 'Full team development program with fixed weekly schedule.']
+];
+
+const SEED_SCHEDULE = [
+  ['SCH-001', 'PRG-REG', 'Tuesday', '18:30', '20:30', 'PAREF Southridge', "Ages 4+ · Beginners & Non-Beginners Welcome"],
+  ['SCH-002', 'PRG-PRIV', 'Thursday', '16:00', '18:00', 'Pacific Malayan', "Ages 4+ · Beginners & Non-Beginners Welcome"],
+  ['SCH-003', 'PRG-ADV', 'Thursday', '18:30', '20:30', 'PAREF Southridge', "Ages 13+ (12 & below require Coach's Assessment) · Strong Technical & Tactical Foundation Required"],
+  ['SCH-004', 'PRG-ACAD', 'Thursday', '18:30', '20:30', 'PAREF Southridge', ''],
+  ['SCH-005', 'PRG-REG', 'Saturday', '07:00', '09:00', 'PAREF Southridge', "Ages 4+ · Beginners & Non-Beginners Welcome"],
+  ['SCH-006', 'PRG-ACAD', 'Saturday', '07:00', '09:00', 'PAREF Southridge', '']
+];
+
+const SEED_PRICING = [
+  ['PRC-U57',  'PRG-REG', 'U5-U7',  'Package (5 sessions)', 5, 4000, 30],
+  ['PRC-U57S', 'PRG-REG', 'U5-U7',  'Single',               1, 1000, 0],
+  ['PRC-U57A', 'PRG-REG', 'U5-U7',  'Assessment',           1, 500,  0],
+  ['PRC-U57T', 'PRG-REG', 'U5-U7',  'Top-Up',               5, 3500, 30],
+  ['PRC-U913', 'PRG-REG', 'U9-U13', 'Package (5 sessions)', 5, 5000, 30],
+  ['PRC-U913S','PRG-REG', 'U9-U13', 'Single',               1, 1200, 0],
+  ['PRC-U913A','PRG-REG', 'U9-U13', 'Assessment',           1, 800,  0],
+  ['PRC-U913T','PRG-REG', 'U9-U13', 'Top-Up',               5, 4500, 30],
+  ['PRC-U15',  'PRG-REG', 'U15+',   'Package (5 sessions)', 5, 6000, 30],
+  ['PRC-U15S', 'PRG-REG', 'U15+',   'Single',               1, 1300, 0],
+  ['PRC-U15A', 'PRG-REG', 'U15+',   'Assessment',           1, 1000, 0],
+  ['PRC-U15T', 'PRG-REG', 'U15+',   'Top-Up',               5, 5000, 30],  ['PRC-ADV',  'PRG-ADV', 'U11+',   'Per Session',          1, 1300, 0],
+  ['PRC-ACADR','PRG-ACAD','U5-U13', 'Regular (8 sessions)', 8, 7500, 30],
+  ['PRC-ACADMA','PRG-ACAD','U5-U13','Mixed A (4P+4A)',      8, 8800, 30],
+  ['PRC-ACADMB','PRG-ACAD','U5-U13','Mixed B (4P+8A)',      12, 12000, 30],
+  ['PRC-ACADMC','PRG-ACAD','U5-U13','Mixed C (8P+4A)',      12, 14400, 30],
+  ['PRC-MEMB', 'PRG-ACAD', 'U5-U13', 'Membership (one-time, incl. 2 jersey sets)', 0, 4000, 0],
+  ['PRC-PRIV', 'PRG-PRIV', 'Any', 'Private (rate by coach)', 0, 0, 0],
+['PRC-PRIVPK', 'PRG-PRIV', 'Any', 'Private Pack (from Mixed)', 0, 0, 30],
+['PRC-PRIV4', 'PRG-PRIV', 'Any', 'Private (4 sessions)', 4, 0, 30],
+['PRC-PRIV8', 'PRG-PRIV', 'Any', 'Private (8 sessions)', 8, 0, 30]
+
+];
+
+const SEED_COACHES = [
+  ['CH-BRINA', 'Admin JA', 'Private Training Session / Training', '09762675397'],
+  ['CH-CHELSI', 'Admin Chelsi', 'Academy', ''],
+  ['CH-SAM', 'Coach Sam', 'Advanced Performance Assessment', '']
+];
+const SEED_CONFIG = [
+  ['BusinessName', 'Livity Training & Academy'],
+  ['WalkInFreePerMonth', 2],
+  ['WalkInSurchargeMultiplier', 1.5],
+  ['LatePaymentMultiplier', 1.5],
+  ['PaymentDeadlineHours', 12],
+  ['ReferralDiscount', 500],
+  ['SiblingDiscountFromThird', 800],
+  ['LoyaltyBonusAfterPurchases', 5],
+  ['LoyaltyBonusSessions', 2],
+  ['AdminEmail', 'livityacademy22@gmail.com'],
+  ['AdminWhatsApp', '09762675397'],
+  ['OverduePenaltyAmount', 100],
+  ['GCashNumber', '09762675397'],
+  ['GCashAccountName', 'Livity Training & Academy'],
+  ['BankName', 'BPI'],
+  ['BankAccountNumber', 'PASTE-ACCOUNT-NUMBER-HERE'],
+  ['BankAccountName', 'Livity Training & Academy']
+];
+/* === START: SINGLE-SHEET — TARGET SPREADSHEET === */
+// Single-sheet mode: bound to this container sheet, no tenant lookup.
+function getTargetSs_() {
+  return SpreadsheetApp.getActiveSpreadsheet();
+}
+
+function setConfigValue_(key, value) {
+  const sheet = sheet_(SHEETS.CONFIG.name);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === key) { sheet.getRange(i + 1, 2).setValue(value); return; }
+  }
+  sheet.appendRow([key, value]);
+}
+/* === END: SINGLE-SHEET — TARGET SPREADSHEET === */
+/* === START: NOTIFICATION TYPES — SEED (67 types, Parent/Admin/Coach/System) === */
+const SEED_NOTIFICATION_TYPES = [
+
+// ── PARENT / PLAYER ──
+['ENROLL_SUBMITTED', 'Enrollment Submitted', 'Parent', 'Enrollment', 'Both', "Hi {{guardianName}}, we've received {{playerName}}'s enrollment for {{programName}}. We'll notify you once it's reviewed."],
+['ENROLL_UNDER_REVIEW', 'Enrollment Received / Under Review', 'Parent', 'Enrollment', 'Both', "{{playerName}}'s enrollment is now under review by our team."],
+['ENROLL_APPROVED', 'Enrollment Approved', 'Parent', 'Enrollment', 'Both', "Good news! {{playerName}}'s enrollment for {{programName}} has been approved."],
+['ENROLL_NEEDS_CORRECTION', 'Enrollment Needs Correction', 'Parent', 'Enrollment', 'Both', "We need a few corrections on {{playerName}}'s enrollment: {{details}}"],
+['ENROLL_DECLINED', 'Enrollment Declined', 'Parent', 'Enrollment', 'Both', "We're unable to process {{playerName}}'s enrollment at this time. {{reason}}"],
+['ACCOUNT_WELCOME', 'Welcome / Account Created', 'Parent', 'Account', 'Both', "Welcome to Livity, {{guardianName}}! Your account for {{playerName}} is now active."],
+['ACCOUNT_PROFILE_UPDATED', 'Profile Updated', 'Parent', 'Account', 'InApp', "{{playerName}}'s profile has been updated."],
+['SCHEDULE_PROGRAM_ASSIGNED', 'Program Assigned', 'Parent', 'Schedule', 'Both', "{{playerName}} has been assigned to {{programName}}."],
+['SCHEDULE_CONFIRMED', 'Training Schedule Confirmed', 'Parent', 'Schedule', 'Both', "{{playerName}}'s training schedule is confirmed: {{scheduleDetails}}"],
+['SCHEDULE_CHANGED', 'Training Schedule Changed', 'Parent', 'Schedule', 'Both', "{{playerName}}'s training schedule has changed: {{scheduleDetails}}"],
+['SCHEDULE_SESSION_REMINDER', 'Training Session Reminder', 'Parent', 'Schedule', 'Both', "Reminder: {{playerName}} has training on {{sessionDate}} at {{venue}}."],
+['SCHEDULE_SESSION_CANCELLED', 'Session Cancelled', 'Parent', 'Schedule', 'Both', "The session on {{sessionDate}} has been cancelled. {{reason}}"],
+['SCHEDULE_SESSION_RESCHEDULED', 'Session Rescheduled', 'Parent', 'Schedule', 'Both', "The session on {{oldDate}} has been moved to {{newDate}}."],
+['SCHEDULE_MAKEUP_AVAILABLE', 'Make-up Session Available', 'Parent', 'Schedule', 'Both', "A make-up session is available for {{playerName}} on {{sessionDate}}."],
+['PAY_INSTRUCTIONS', 'Payment Instructions', 'Parent', 'Payments', 'Both', "Here's how to pay for {{playerName}}'s package: {{instructions}}"],
+['PAY_SUBMITTED', 'Payment Submitted', 'Parent', 'Payments', 'InApp', "We've received your payment of ₱{{amount}} for {{playerName}}. Verifying now."],
+['PAY_VERIFIED', 'Payment Verified', 'Parent', 'Payments', 'Both', "Your payment of ₱{{amount}} for {{playerName}} has been verified."],
+['PAY_REJECTED', 'Payment Rejected / Needs Verification', 'Parent', 'Payments', 'Both', "We couldn't verify your payment of ₱{{amount}}. {{reason}}"],
+['PAY_DUE', 'Payment Due', 'Parent', 'Payments', 'Both', "₱{{amount}} is now due for {{playerName}}'s package."],
+['PAY_DUE_SOON', 'Payment Due Soon', 'Parent', 'Payments', 'Both', "₱{{amount}} for {{playerName}} is due on {{dueDate}}."],
+['PAY_OVERDUE', 'Payment Overdue', 'Parent', 'Payments', 'Both', "₱{{amount}} for {{playerName}} is now overdue (includes ₱{{penalty}} late penalty as of {{asOf}})."],
+['INVOICE_GENERATED', 'Invoice Generated', 'Parent', 'Payments', 'Both', "A new invoice for {{playerName}} is ready: ₱{{amount}}."],
+['INVOICE_UPDATED', 'Invoice Updated', 'Parent', 'Payments', 'InApp', "{{playerName}}'s invoice has been updated."],
+['RECEIPT_AVAILABLE', 'Receipt Available', 'Parent', 'Payments', 'Both', "Your receipt for ₱{{amount}} is now available."],
+['BALANCE_UPDATED', 'Balance Updated', 'Parent', 'Payments', 'InApp', "{{playerName}}'s balance is now ₱{{amount}}."],
+['PACKAGE_EXPIRING_SOON', 'Package Expiring Soon', 'Parent', 'Package', 'Both', "{{playerName}}'s package expires on {{expiryDate}}."],
+['PACKAGE_EXPIRED', 'Package Expired', 'Parent', 'Package', 'Both', "{{playerName}}'s package has expired."],
+['PACKAGE_SESSIONS_REMAINING', 'Sessions Remaining Update', 'Parent', 'Package', 'Both', "Hi {{guardianName}}, {{playerName}} has {{remaining}} of {{total}} session(s) left on their current package. Top-Up is available anytime while sessions remain."],
+['PAY_FINAL_WARNING', 'Final Payment Warning (Before 8PM)', 'Parent', 'Payments', 'Both', "Hi {{guardianName}}, ₱{{amount}} for {{playerName}} is still unpaid. Please settle before {{dueDate}} to avoid the ₱{{penalty}} overdue penalty."],
+['MEMBERSHIP_RENEWAL_REMINDER', 'Membership Renewal Reminder', 'Parent', 'Package', 'Both', "It's time to renew {{playerName}}'s Academy membership."],
+['REQUEST_SUBMITTED', 'Request Submitted', 'Parent', 'Requests', 'InApp', "Your request has been submitted."],
+['REQUEST_APPROVED', 'Request Approved', 'Parent', 'Requests', 'Both', "Your request has been approved."],
+['REQUEST_DECLINED', 'Request Declined', 'Parent', 'Requests', 'Both', "Your request was declined. {{reason}}"],
+['REQUEST_RESPONDED', 'Request Updated / Responded', 'Parent', 'Requests', 'Both', "There's an update on your request: {{details}}"],
+['ANNOUNCEMENT_IMPORTANT', 'Important Academy Announcement', 'Parent', 'Account', 'Both', "{{announcementTitle}}: {{announcementBody}}"],
+['POLICY_UPDATE', 'Policy / Terms Update', 'Parent', 'Account', 'Both', "Our policies have been updated. {{summary}}"],
+
+// ── ADMIN / FINANCE ──
+['ADMIN_NEW_ENROLLMENT', 'New Enrollment Received', 'Admin', 'Enrollments', 'Both', "New enrollment: {{playerName}} for {{programName}}."],
+['ADMIN_ENROLL_CORRECTION', 'Enrollment Correction Required', 'Admin', 'Enrollments', 'Both', "Enrollment for {{playerName}} needs correction: {{details}}"],
+['ADMIN_NEW_PAYMENT', 'New Payment Submitted', 'Admin', 'Finance', 'Both', "{{guardianName}} submitted a payment of ₱{{amount}}."],
+['ADMIN_PAYMENT_VERIFY', 'Payment Verification Required', 'Admin', 'Finance', 'Both', "Payment of ₱{{amount}} from {{guardianName}} needs verification."],
+['ADMIN_PAYMENT_OVERDUE', 'Payment Overdue', 'Admin', 'Finance', 'Both', "{{playerName}}'s payment of ₱{{amount}} is overdue."],
+['ADMIN_INVOICE_NEW', 'New Invoice Generated', 'Admin', 'Finance', 'InApp', "New invoice generated for {{playerName}}."],
+['ADMIN_INVOICE_UNPAID', 'Invoice Unpaid', 'Admin', 'Finance', 'Both', "Invoice for {{playerName}} remains unpaid."],
+['ADMIN_NEW_PARENT_REQUEST', 'New Parent Request', 'Admin', 'Operations', 'Both', "{{guardianName}} submitted a request: {{details}}"],
+['ADMIN_SCHEDULE_CHANGE', 'Schedule Change', 'Admin', 'Operations', 'InApp', "Schedule change made for {{programName}}."],
+['ADMIN_CANCEL_RESCHEDULE_REQUEST', 'Cancellation / Reschedule Request', 'Admin', 'Operations', 'Both', "{{guardianName}} requested a cancellation/reschedule for {{playerName}}."],
+['ADMIN_NEW_REGISTRATION', 'New Registration', 'Admin', 'Enrollments', 'InApp', "New registration: {{playerName}}."],
+['ADMIN_PACKAGE_NEAR_EXPIRY', 'Package Near Expiry', 'Admin', 'Finance', 'InApp', "{{playerName}}'s package nears expiry on {{expiryDate}}."],
+['ADMIN_DAILY_ENROLLMENT_SUMMARY', 'Daily Enrollment Summary', 'Admin', 'Reports', 'Email', "Today's enrollments: {{count}}."],
+['ADMIN_DAILY_PAYMENT_SUMMARY', 'Daily Payment Summary', 'Admin', 'Reports', 'Email', "Today's payments: ₱{{total}}."],
+['ADMIN_DAILY_OUTSTANDING_REPORT', 'Daily Outstanding Balance Report', 'Admin', 'Reports', 'Email', "Total outstanding balance: ₱{{total}}."],
+['ADMIN_WEEKLY_FINANCIAL_REPORT', 'Weekly Financial Report', 'Admin', 'Reports', 'Email', "This week's financial summary is ready."],
+['ADMIN_MONTHLY_FINANCIAL_REPORT', 'Monthly Financial Report', 'Admin', 'Reports', 'Email', "This month's financial summary is ready."],
+['ADMIN_SYSTEM_ERROR', 'System / Automation Error', 'Admin', 'Reports', 'Email', "System error detected: {{errorMessage}}"],
+
+// ── COACH ──
+['COACH_NEW_PLAYER_ASSIGNED', 'New Player Assigned', 'Coach', 'MyPlayers', 'Both', "{{playerName}} has been assigned to you."],
+['COACH_NEW_ENROLLMENT_PROGRAM', 'New Enrollment for Your Program', 'Coach', 'MyPlayers', 'Both', "New enrollment in {{programName}}: {{playerName}}."],
+['COACH_SESSION_REMINDER', 'Upcoming Session Reminder', 'Coach', 'Schedule', 'Both', "Reminder: your session with {{programName}} is on {{sessionDate}}."],
+['COACH_SESSION_CHANGED', 'Session Changed', 'Coach', 'Schedule', 'Both', "Session for {{programName}} moved to {{newDate}}."],
+['COACH_PLAYER_CANCELLATION', 'Player Cancellation', 'Coach', 'Schedule', 'InApp', "{{playerName}} cancelled for {{sessionDate}}."],
+['COACH_MAKEUP_REQUEST', 'Make-up Session Request', 'Coach', 'Schedule', 'Both', "{{playerName}} requested a make-up session."],
+['COACH_PARENT_REQUEST', 'Parent Request', 'Coach', 'Requests', 'Both', "{{guardianName}} sent a request regarding {{playerName}}."],
+['COACH_STATUS_UPDATE', 'Payment / Enrollment Status Update', 'Coach', 'Requests', 'InApp', "Status update for {{playerName}}: {{details}}"],
+
+// ── INTERNAL AUTOMATION (System → sent to AdminEmail only) ──
+['SYS_EMAIL_FAILED', 'Email Delivery Failed', 'System', 'System', 'Email', "Email failed to send: {{details}}"],
+['SYS_INVOICE_GEN_FAILED', 'Invoice Generation Failed', 'System', 'System', 'Email', "Invoice generation failed: {{details}}"],
+['SYS_REPORT_GEN_FAILED', 'Report Generation Failed', 'System', 'System', 'Email', "Report generation failed: {{details}}"],
+['SYS_GAS_ERROR', 'Google Sheets / Apps Script Error', 'System', 'System', 'Email', "Apps Script error: {{details}}"],
+['SYS_FAILED_FOLLOWUP', 'Failed Follow-up', 'System', 'System', 'Email', "Follow-up failed for {{playerName}}: {{details}}"],
+['SYS_MISSING_DATA', 'Missing Required Enrollment Data', 'System', 'System', 'Email', "Missing enrollment data: {{details}}"],
+['SYS_DUPLICATE_ENROLLMENT', 'Duplicate Enrollment Detected', 'System', 'System', 'Email', "Possible duplicate enrollment: {{details}}"],
+
+// ── PARENT / PLAYER — ATTENDANCE ──
+['ATT_CHECKED_IN', 'Player Checked In', 'Parent', 'Attendance', 'InApp', "🟢 {{playerName}} checked in for {{programName}} at {{time}}."],
+['ATT_LATE', 'Player Arrived Late', 'Parent', 'Attendance', 'Both', "🟡 {{playerName}} checked in late ({{minutesLate}} min) for {{programName}}."],
+['ATT_ABSENT', 'Player Marked Absent', 'Parent', 'Attendance', 'Both', "🔴 {{playerName}} was marked absent for {{programName}} on {{sessionDate}}."],
+['ATT_UPDATED', 'Attendance Updated', 'Parent', 'Attendance', 'InApp', "🔵 {{playerName}}'s attendance for {{sessionDate}} was updated to {{status}}."],
+['ATT_SESSION_DEDUCTED', 'Session Deducted', 'Parent', 'Attendance', 'InApp', "🟣 1 session deducted for {{playerName}} ({{programName}}). {{remaining}} session(s) left."],
+['ATT_LOW_SESSIONS', 'Low Sessions Remaining', 'Parent', 'Package', 'Both', "🟠 {{playerName}} has only {{remaining}} session(s) left on {{programName}}. Top up anytime."],
+['ATT_NOSHOW_FOLLOWUP', 'No-show Follow-up', 'Parent', 'Attendance', 'Both', "🔔 We missed {{playerName}} at {{programName}} on {{sessionDate}}. Let us know if a make-up is needed."],
+
+// ── COACH — ATTENDANCE (seeded; needs CoachID mapping on Schedule + Coach email before it can deliver) ──
+['COACH_ATT_CHECKED_IN', 'Player Checked In', 'Coach', 'Attendance', 'InApp', "{{playerName}} checked in for {{programName}}."],
+['COACH_ATT_ABSENT', 'Player Absent', 'Coach', 'Attendance', 'InApp', "{{playerName}} marked absent for {{programName}}."],
+['COACH_ATT_LATE', 'Player Late', 'Coach', 'Attendance', 'InApp', "{{playerName}} checked in late for {{programName}}."],
+['COACH_WALKIN_DETECTED', 'Walk-in Detected', 'Coach', 'Attendance', 'InApp', "Walk-in: {{playerName}} at {{programName}}, not on the registered roster."],
+['COACH_UNEXPECTED_ATTENDANCE', 'Unexpected Player Attendance', 'Coach', 'Attendance', 'InApp', "{{playerName}} attended {{programName}} but isn't enrolled in it."],
+['COACH_ROSTER_CHANGED', 'Session Roster Changed', 'Coach', 'Attendance', 'InApp', "Roster change for {{programName}} on {{sessionDate}}."],
+
+// ── ADMIN — ATTENDANCE ──
+['ADMIN_ATT_ANOMALY', 'Attendance Anomaly', 'Admin', 'Attendance', 'Both', "Attendance anomaly for {{playerName}}: {{details}}"],
+['ADMIN_DUP_CHECKIN', 'Duplicate Check-in Attempt', 'Admin', 'Attendance', 'InApp', "{{playerName}} attempted a duplicate check-in for {{programName}}."],
+['ADMIN_WALKIN', 'Walk-in Recorded', 'Admin', 'Attendance', 'InApp', "Walk-in recorded: {{playerName}} at {{programName}}{{surchargeNote}}."],
+['ADMIN_DEDUCTION_CONFLICT', 'Session Deduction Conflict', 'Admin', 'Attendance', 'Both', "{{playerName}} checked in Present/Late for {{programName}} but has no active package to deduct from."],
+ ['ADMIN_UNREGISTERED_SCAN', 'Unregistered Player Scanned', 'Admin', 'Attendance', 'InApp', "{{playerName}} was scanned for {{programName}} but has no enrollment record in it."],
+
+// ── PARENT — PAYMENT LIFECYCLE (extended) ──
+['PAY_PROOF_PROCESSING', 'Payment Proof Processing', 'Parent', 'Payments', 'InApp', "We're reviewing your ₱{{amount}} payment for {{playerName}}."],
+['PAY_PROOF_NEEDS_INFO', 'Payment Proof Needs Better Image/Reference', 'Parent', 'Payments', 'Both', "We couldn't verify your payment of ₱{{amount}}. {{reason}} Please resend a clearer proof or reference."],
+['PAY_PARTIAL_SUBMITTED', 'Payment Partially Paid', 'Parent', 'Payments', 'Both', "We received ₱{{amount}} for {{playerName}}, which is less than the ₱{{total}} due. Please send the remaining balance."],
+['PAY_PARTIAL_VERIFIED', 'Payment Partially Verified', 'Parent', 'Payments', 'Both', "₱{{amount}} was verified for {{playerName}}. ₱{{remaining}} is still due."],
+['PAY_REVERSED', 'Payment Reversed', 'Parent', 'Payments', 'Both', "Your payment of ₱{{amount}} for {{playerName}} was reversed. {{reason}}"],
+['PAY_FAILED', 'Payment Failed', 'Parent', 'Payments', 'Both', "Your payment of ₱{{amount}} for {{playerName}} could not be processed. {{reason}}"],
+['PAY_DEADLINE_CHANGED', 'Payment Deadline Changed', 'Parent', 'Payments', 'Both', "The due date for {{playerName}}'s ₱{{amount}} payment moved to {{newDate}}."],
+['PAY_PENALTY_STARTED', 'Penalty Started', 'Parent', 'Payments', 'Both', "A ₱{{penalty}} late penalty now applies to {{playerName}}'s ₱{{amount}} payment."],
+['PAY_PENALTY_INCREASED', 'Penalty Increased', 'Parent', 'Payments', 'Both', "The overdue penalty for {{playerName}} increased to ₱{{penalty}}."],
+['PAY_PLAN_CREATED', 'Payment Plan Created', 'Parent', 'Payments', 'Both', "A payment plan was set up for {{playerName}}: {{details}}"],
+['PAY_PLAN_MISSED', 'Payment Plan Installment Missed', 'Parent', 'Payments', 'Both', "A scheduled payment plan installment for {{playerName}} was missed."],
+
+// ── ADMIN — FINANCE (extended) ──
+['ADMIN_PAY_WAITING', 'Payment Waiting Too Long', 'Admin', 'Finance', 'Both', "Payment {{paymentId}} has been awaiting verification for over {{hours}} hours."],
+['ADMIN_PAY_SLA_BREACH', 'Payment Verification SLA Breached', 'Admin', 'Finance', 'Both', "Payment {{paymentId}} has breached the {{hours}}h verification SLA."],
+['ADMIN_PARTIAL_PAYMENT', 'Partial Payment Received', 'Admin', 'Finance', 'Both', "{{guardianName}} sent ₱{{amount}} — less than the ₱{{total}} due for {{playerName}}."],
+['ADMIN_DUP_REFERENCE', 'Duplicate Payment Reference', 'Admin', 'Finance', 'Both', "Reference {{reference}} was already used on payment {{dupOf}}."],
+['ADMIN_UNMATCHED_PAYMENT', 'Unmatched Payment', 'Admin', 'Finance', 'Both', "An incoming payment could not be matched to a record: {{details}}"],
+['ADMIN_REFUND_REQUESTED', 'Refund Requested', 'Admin', 'Finance', 'Both', "Refund requested for {{playerName}}: ₱{{amount}}. {{reason}}"],
+['ADMIN_REFUND_COMPLETED', 'Refund Completed', 'Admin', 'Finance', 'InApp', "Refund completed for {{playerName}}: ₱{{amount}}."],
+['ADMIN_RECON_EXCEPTION', 'Payment Reconciliation Exception', 'Admin', 'Finance', 'Email', "Reconciliation exception: {{details}}"],
+
+// ── PARENT — SCHEDULE REMINDER LADDER (channel tuned per rung to avoid fatigue) ──
+['SCHED_REMIND_7D', 'Training in 7 Days', 'Parent', 'Schedule', 'Email', "{{playerName}}'s next {{programName}} training is on {{sessionDate}} at {{venue}}."],
+['SCHED_REMIND_24H', 'Training Tomorrow', 'Parent', 'Schedule', 'Both', "Reminder: {{playerName}} has {{programName}} tomorrow, {{sessionDate}} at {{venue}}."],
+['SCHED_REMIND_3H', 'Training in 3 Hours', 'Parent', 'Schedule', 'InApp', "{{playerName}}'s {{programName}} training starts in 3 hours at {{venue}}."],
+['SCHED_REMIND_30M', 'Training Starts Soon', 'Parent', 'Schedule', 'InApp', "{{playerName}}'s {{programName}} training starts in 30 minutes at {{venue}}."],
+['SCHED_SESSION_STARTING', 'Session Starting Now', 'Parent', 'Schedule', 'InApp', "{{programName}} is starting now at {{venue}}."],
+
+// ── ADMIN — SESSION LIFECYCLE ──
+['SCHED_SESSION_ENDING', 'Session Ended', 'Admin', 'Schedule', 'InApp', "{{programName}} ended — {{present}} present, {{unconfirmed}} unconfirmed."]
+
+];
+/* === END: NOTIFICATION TYPES — SEED === */
+// ============================================================
+// MENU
+// ============================================================
+
+/* === START: PAYMENT SYSTEM EDIT — METHODS (GSHEET) + LIVE PENALTY CLOCK + PROOF SUBMISSION === */
+
+// Panimulang listahan. Puwedeng dagdagan ng admin direkta sa "BankList" sheet.
+const PH_BANK_LIST_ = [
+  'GCash', 'Maya', 'GoTyme Bank', 'GrabPay', 'ShopeePay', 'Coins.ph',
+  'BDO Unibank (BDO)', 'BPI (Bank of the Philippine Islands)', 'Metrobank (Metropolitan Bank and Trust)',
+  'LANDBANK (Land Bank of the Philippines)', 'PNB (Philippine National Bank)', 'Security Bank',
+  'China Bank (China Banking Corporation)', 'RCBC (Rizal Commercial Banking Corporation)',
+  'UnionBank of the Philippines', 'DBP (Development Bank of the Philippines)', 'EastWest Bank',
+  'PBCom (Philippine Bank of Communications)', 'PVB (Philippine Veterans Bank)', 'AUB (Asia United Bank)',
+  'Robinsons Bank', 'Bank of Commerce', 'Maybank Philippines', 'HSBC Philippines', 'Citibank Philippines',
+  'Standard Chartered Bank Philippines', 'PSBank (Philippine Savings Bank)', 'Philtrust Bank (Philippine Trust Company)',
+  'CTBC Bank Philippines', 'BDO Network Bank', 'Sterling Bank of Asia', 'Producers Bank', 'Bank of Makati',
+  'Bank of China (Manila)', 'Mizuho Bank Manila', 'MUFG Bank Manila', 'Mega International Commercial Bank',
+  'Al-Amanah Islamic Investment Bank', 'Overseas Filipino Bank', 'CIMB Bank Philippines', 'ING Bank Manila',
+  'UnionDigital Bank', 'Tonik Digital Bank', 'UNO Digital Bank', 'Maya Bank', 'Netbank',
+  'Other (type details in Notes)'
+];
+
+function ensureConfigKey_(key, def) {
+  const sh = sheet_(SHEETS.CONFIG.name);
+  const data = sh.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) if (data[i][0] === key) return;
+  sh.appendRow([key, def]);
+}
+
+/** True if this exact marker was already logged for this paymentId — cheap dedupe guard for hourly notifications. */
+function hasAuditMarker_(marker, paymentId) {
+  const data = sheet_(SHEETS.AUDITLOG.name).getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1 && i > data.length - 500; i--) { // scan recent rows only — plenty for daily-scale volume
+    if (data[i][1] === marker && String(data[i][2]).indexOf(paymentId) === 0) return true;
+  }
+  return false;
+}
+
+/* === START: SCHEDULE REMINDER LADDER — OCCURRENCE MATH + ENGINE === */
+
+/** True if this exact Action was already logged recently — dedupe guard so a rung fires once per occurrence. */
+function hasAuditAction_(action) {
+  const data = sheet_(SHEETS.AUDITLOG.name).getDataRange().getValues();
+  for (let i = data.length - 1; i >= 1 && i > data.length - 1000; i--) {
+    if (data[i][1] === action) return true;
+  }
+  return false;
+}
+
+/** Next occurrences (as Date objects) of a weekly recurring day+time within the next N days, including today if not yet passed. */
+function scheduleOccurrencesWithin_(dayName, timeStr, daysAhead) {
+  const tz = Session.getScriptTimeZone();
+  const now = new Date();
+  const results = [];
+  for (let d = 0; d <= daysAhead; d++) {
+    const cand = new Date(now.getTime() + d * 86400000);
+    if (Utilities.formatDate(cand, tz, 'EEEE') !== dayName) continue;
+    const dateStr = Utilities.formatDate(cand, tz, 'yyyy-MM-dd');
+    results.push(Utilities.parseDate(dateStr + ' ' + timeStr, tz, 'yyyy-MM-dd HH:mm'));
+  }
+  return results;
+}
+
+const REMINDER_LADDER_RUNGS = [
+  { key: 'SCHED_REMIND_7D', hours: 168 },
+  { key: 'SCHED_REMIND_24H', hours: 24 },
+  { key: 'SCHED_REMIND_3H', hours: 3 },
+  { key: 'SCHED_REMIND_30M', hours: 0.5 },
+  { key: 'SCHED_SESSION_STARTING', hours: 0 }
+];
+
+/** Auto-marks Absent any REGISTERED-but-Unmarked player after their session ends — completes the sweep markAbsent_ was designed for.
+ *  Guard: if NOBODY checked in for that session (likely cancelled / scanner not used), nobody is marked absent — admin is alerted instead. */
+function runEndOfSessionSweep_(scheduleId, dateKey, programName, programId) {
+  const tz = Session.getScriptTimeZone();
+  const attData = sheet_(SHEETS.ATTENDANCE.name).getDataRange().getValues();
+  const pending = [];
+  let attended = 0;
+  for (let i = 1; i < attData.length; i++) {
+    const r = attData[i];
+    if (r[2] !== scheduleId || !r[3]) continue;
+    if (Utilities.formatDate(new Date(r[3]), tz, 'yyyy-MM-dd') !== dateKey) continue;
+    if (r[5] === 'Present' || r[5] === 'Late') attended++;
+    if (r[4] === 'Registered' && r[5] === 'Unmarked') pending.push(r);
+  }
+  if (pending.length === 0) return;
+
+ if (attended === 0 && getAutoRegisterPrograms_().indexOf(programId) > -1) {
+    sendNotification_('ADMIN_ATT_ANOMALY', { email: getConfigValue_('AdminEmail') }, { playerName: pending.length + ' player(s)', details: 'No check-ins were recorded for ' + programName + ' — session may have been cancelled or the scanner was not used. Nobody was auto-marked absent.' });
+    logAudit_('END_OF_SESSION_SWEEP_SKIPPED', scheduleId + ' ' + dateKey + ' — 0 check-ins, ' + pending.length + ' left Unmarked', null);
+    return;
+  }
+
+  pending.forEach(function (r) { markAbsent_(r[1], scheduleId, r[3]); });
+  sendNotification_('ADMIN_ATT_ANOMALY', { email: getConfigValue_('AdminEmail') }, { playerName: pending.length + ' player(s)', details: 'Auto-marked absent after ' + programName + ' ended — no check-in recorded.' });
+  logAudit_('END_OF_SESSION_SWEEP', scheduleId + ' ' + dateKey + ' — ' + pending.length + ' auto-marked absent', null);
+}
+
+/** Programs whose players are auto-registered before each session. Default: Academy only (Academy players are "automatically expected to attend").
+ *  Regular/Advanced need a manual reserve, so they are NOT auto-registered unless admin adds them to Config → AutoRegisterPrograms (comma-separated PRG- codes). */
+function getAutoRegisterPrograms_() {
+  return String(getConfigValue_('AutoRegisterPrograms') || 'PRG-ACAD').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+}
+
+/** PlayerIDs with a usable (Active, not expired, sessions left) package in this program, Active players only. Reads each sheet once. */
+function getAutoRegisterRosterIds_(programId) {
+  const now = new Date();
+  const pricing = sheet_(SHEETS.PRICING.name).getDataRange().getValues();
+  const programOfPrice = {};
+  for (let i = 1; i < pricing.length; i++) programOfPrice[pricing[i][0]] = pricing[i][1];
+
+  const players = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+  const activePlayers = {};
+  for (let i = 1; i < players.length; i++) {
+    if (String(players[i][9] || 'Active').trim().toLowerCase() === 'active') activePlayers[players[i][0]] = true;
+  }
+
+  const pkgs = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  const ids = {};
+  for (let i = 1; i < pkgs.length; i++) {
+    const r = pkgs[i];
+    if (r[7] !== 'Active' || r[2] === 'PRC-MEMB') continue;
+    if (programOfPrice[r[2]] !== programId) continue;
+    if (r[6] && now > new Date(r[6])) continue;                  // expired
+    if (Number(r[5]) >= Number(r[4])) continue;                  // no sessions left
+    if (!activePlayers[r[1]]) continue;
+    ids[r[1]] = true;
+  }
+  return Object.keys(ids);
+}
+
+/** Creates Registered/Unmarked Attendance rows for the expected roster of ONE session occurrence (batch write, idempotent).
+ *  This is what makes a real no-show exist as a row, so runEndOfSessionSweep_ has something to mark Absent. */
+function autoRegisterSessionRoster_(scheduleId, programId, startDt) {
+  if (getAutoRegisterPrograms_().indexOf(programId) === -1) return 0;
+  const tz = Session.getScriptTimeZone();
+  const dateKey = Utilities.formatDate(startDt, tz, 'yyyy-MM-dd');
+  const sheet = sheet_(SHEETS.ATTENDANCE.name);
+  const data = sheet.getDataRange().getValues();
+
+  const have = {};
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][2] !== scheduleId || !data[i][3]) continue;
+    have[data[i][1] + '|' + Utilities.formatDate(new Date(data[i][3]), tz, 'yyyy-MM-dd')] = true;
+  }
+
+  const base = Math.max(0, sheet.getLastRow() - 1);
+  const rows = [];
+  getAutoRegisterRosterIds_(programId).forEach(function (pid) {
+    if (have[pid + '|' + dateKey]) return; // already registered or already scanned in
+    rows.push(['ATT-' + Utilities.formatString('%04d', base + rows.length + 1), pid, scheduleId, startDt, 'Registered', 'Unmarked', '', false, false]);
+  });
+  if (rows.length) sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, 9).setValues(rows);
+  return rows.length;
+}
+
+/** Main ladder — run every 15 min. Fires each rung once per session occurrence, channel controlled per TypeKey. */
+function runReminderLadder_() {
+  const tz = Session.getScriptTimeZone();
+  const now = new Date();
+  const WINDOW_MIN = 20; // must exceed the trigger interval so no gap; audit marker prevents double-fire
+  const REGISTER_HOURS_BEFORE = Number(getConfigValue_('AutoRegisterHoursBefore')) || 2; // roster is pre-registered this many hours before start
+
+  const schedData = sheet_(SHEETS.SCHEDULE.name).getDataRange().getValues();
+  const programsData = sheet_(SHEETS.PROGRAMS.name).getDataRange().getValues();
+  const programNames = {};
+  for (let i = 1; i < programsData.length; i++) programNames[programsData[i][0]] = programsData[i][1];
+  const playersData = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+
+  for (let s = 1; s < schedData.length; s++) {
+    const row = schedData[s];
+    const scheduleId = row[0], programId = row[1], dayName = row[2];
+    const startTimeStr = fmtTime_(row[3]), endTimeStr = fmtTime_(row[4]);
+    const venue = row[5];
+    const programName = programNames[programId] || programId;
+
+    const occurrences = scheduleOccurrencesWithin_(dayName, startTimeStr, 8);
+
+    occurrences.forEach(function (startDt) {
+      const dateKey = Utilities.formatDate(startDt, tz, 'yyyy-MM-dd');
+      const sessionLabel = Utilities.formatDate(startDt, tz, 'EEEE, MMM d h:mm a');
+
+      REMINDER_LADDER_RUNGS.forEach(function (rung) {
+        const fireAt = new Date(startDt.getTime() - rung.hours * 3600000);
+        const diffMin = (now - fireAt) / 60000;
+        if (diffMin < 0 || diffMin > WINDOW_MIN) return;
+
+        const marker = 'LADDER_' + rung.key + '_' + scheduleId + '_' + dateKey;
+        if (hasAuditAction_(marker)) return;
+
+        getSessionRecipients_(scheduleId, programId, startDt).forEach(function (pr) {
+          sendNotification_(rung.key, { id: pr[0], email: pr[6] }, {
+            playerName: pr[1], programName: programName, sessionDate: sessionLabel, venue: venue
+          });
+        });
+        logAudit_(marker, rung.key + ' sent for ' + scheduleId + ' on ' + dateKey, null);
+      });
+
+      // Session ends — admin summary + attendance sweep (fires once, ~20-min window after EndTime)
+      const dateStr = Utilities.formatDate(startDt, tz, 'yyyy-MM-dd');
+      const endDt = Utilities.parseDate(dateStr + ' ' + endTimeStr, tz, 'yyyy-MM-dd HH:mm');
+      // Pre-register the expected roster (once per occurrence) so a no-show exists as Registered/Unmarked for the sweep below.
+      // Not a narrow window on purpose: if a trigger run is missed, the next run inside [start-Nh, end) still registers.
+      if (now >= new Date(startDt.getTime() - REGISTER_HOURS_BEFORE * 3600000) && now < endDt) {
+        const regMarker = 'LADDER_REGISTER_' + scheduleId + '_' + dateKey;
+        if (!hasAuditAction_(regMarker)) {
+          const n = autoRegisterSessionRoster_(scheduleId, programId, startDt);
+          logAudit_(regMarker, 'Roster pre-registered for ' + scheduleId + ' on ' + dateKey + ' — ' + n + ' player(s)', null);
+        }
+      }
+
+      const endDiffMin = (now - endDt) / 60000;
+      if (endDiffMin >= 0 && endDiffMin <= WINDOW_MIN) {
+        const endMarker = 'LADDER_END_' + scheduleId + '_' + dateKey;
+        if (!hasAuditAction_(endMarker)) {
+          const counts = scanCounts_(scheduleId, programId);
+          sendNotification_('SCHED_SESSION_ENDING', { email: getConfigValue_('AdminEmail') }, { programName: programName, present: counts.present, unconfirmed: counts.unconfirmed });
+          logAudit_(endMarker, 'Session ending notice sent for ' + scheduleId + ' on ' + dateKey, null);
+        }
+      }
+
+      // Attendance confirmation sweep — 30 min after end, once
+      const sweepDiffMin = (now - new Date(endDt.getTime() + 30 * 60000)) / 60000;
+      if (sweepDiffMin >= 0 && sweepDiffMin <= WINDOW_MIN) {
+        const sweepMarker = 'LADDER_SWEEP_' + scheduleId + '_' + dateKey;
+        if (!hasAuditAction_(sweepMarker)) {
+          runEndOfSessionSweep_(scheduleId, dateKey, programName, programId);
+          logAudit_(sweepMarker, 'Attendance sweep run for ' + scheduleId + ' on ' + dateKey, null);
+        }
+      }
+    });
+  }
+}
+
+function runReminderLadderSafe_() {
+  try { runReminderLadder_(); }
+  catch (err) { logAudit_('SYS_GAS_ERROR', 'Reminder ladder failed: ' + err, null); notifySystem_('SYS_GAS_ERROR', 'Reminder ladder failed: ' + err); }
+}
+
+function installReminderLadderTrigger_() {
+  ensureConfigKey_('AutoRegisterPrograms', 'PRG-ACAD');   // programs auto-registered before each session (comma-separated)
+  ensureConfigKey_('AutoRegisterHoursBefore', 2);          // hours before start when the roster is pre-registered
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'runReminderLadderSafe_') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('runReminderLadderSafe_').timeBased().everyMinutes(15).create();
+  SpreadsheetApp.getUi().alert('Reminder ladder trigger installed (runs every 15 min): 7-day, 24h, 3h, 30-min reminders, session-start, session-end, and attendance sweep.');
+}
+/* === END: SCHEDULE REMINDER LADDER === */
+
+/** Escalates payments stuck in 'Submitted' (proof sent, not yet verified) — fires once per threshold, not every hour. */
+function checkSubmittedPaymentSla_() {
+  const data = sheet_(SHEETS.PAYMENTS.name).getDataRange().getValues();
+  const now = new Date();
+  const waitHours = Number(getConfigValue_('PaymentWaitingHours')) || 6;
+  const slaHours = Number(getConfigValue_('PaymentSlaHours')) || 24;
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (row[6] !== 'Submitted' || !row[11]) continue; // needs SubmittedAt
+    const hoursWaiting = (now - new Date(row[11])) / 3600000;
+    const paymentId = row[0];
+
+    if (hoursWaiting >= slaHours && !hasAuditMarker_('PAYMENT_SLA_NOTIFIED', paymentId)) {
+      sendNotification_('ADMIN_PAY_SLA_BREACH', { email: getConfigValue_('AdminEmail') }, { paymentId: paymentId, hours: slaHours });
+      logAudit_('PAYMENT_SLA_NOTIFIED', paymentId + ' — breached ' + slaHours + 'h SLA', null);
+    } else if (hoursWaiting >= waitHours && !hasAuditMarker_('PAYMENT_WAITING_NOTIFIED', paymentId)) {
+      sendNotification_('ADMIN_PAY_WAITING', { email: getConfigValue_('AdminEmail') }, { paymentId: paymentId, hours: waitHours });
+      logAudit_('PAYMENT_WAITING_NOTIFIED', paymentId + ' — waiting ' + waitHours + 'h', null);
+    }
+  }
+}
+
+/** Menu: Livity Admin → Setup Payment System. Safe i-re-run. */
+/* === START: GALLERY — SETUP (checkbox + type dropdown) === */
+function setupGallery_() {
+  const ss = getTargetSs_();
+  const sh = getOrCreateSheet_(ss, SHEETS.GALLERY.name, SHEETS.GALLERY.headers);
+  const N = 200;
+  sh.getRange(2, 2, N, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Photo', 'Video'], true).setAllowInvalid(false).build());
+  sh.getRange(2, 7, N, 1).insertCheckboxes();
+  sh.getRange(1, 3).setNote('Direct image/video URL (e.g. Google Drive share link set to "Anyone with link", or any public image/video URL).');
+  sh.getRange(1, 4).setNote('Optional — thumbnail for videos. Leave blank for photos.');
+  sh.getRange(1, 6).setNote('Lower number shows first.');
+  sh.getRange(1, 7).setNote('Tick to show in the app.');
+  SpreadsheetApp.getUi().alert('Gallery sheet ready.\n\nAdd rows: Type (Photo/Video), Url (public link), Caption, SortOrder, then tick Enabled.');
+}
+/* === END: GALLERY — SETUP === */
+
+function setupPaymentSystem_() {
+  ensurePaymentColumns_();
+  setupPaymentMethods_();
+  ensureConfigKey_('OverduePenaltyPerDay', 0);   // dagdag na penalty kada buong araw na late (0 = flat lang)
+  ensureConfigKey_('PenaltyGraceMinutes', 0);    // palugit bago magsimula ang penalty
+  ensureConfigKey_('FinalWarningHours', 3);      // 5PM warning: ilang oras bago ang due
+  ensureConfigKey_('PaymentWaitingHours', 6);    // "waiting too long" admin nudge
+  ensureConfigKey_('PaymentSlaHours', 24);       // "SLA breached" admin escalation
+  SpreadsheetApp.getUi().alert('Payment system ready.\n\nPumunta sa "PaymentMethods" sheet: piliin ang Provider (dropdown), ilagay ang account no./name, at i-tick ang Enabled.');
+}
+
+function ensurePaymentColumns_() {
+  const sh = sheet_(SHEETS.PAYMENTS.name);
+  const extra = ['DueAt', 'Reference', 'PaidAmount', 'SubmittedAt', 'Meta'];
+  const hdr = sh.getRange(1, 9, 1, extra.length);
+  hdr.setValues([extra]).setFontWeight('bold').setFontColor('#FFDE00').setBackground('#171714').setHorizontalAlignment('center');
+  sh.getRange(2, 10, Math.max(1, sh.getMaxRows() - 1), 1).setNumberFormat('@'); // Reference = plain text
+  sh.setColumnWidth(13, 420);
+}
+
+function setupPaymentMethods_() {
+  const ss = getTargetSs_();
+
+  let bl = ss.getSheetByName('BankList');
+  if (!bl) {
+    bl = ss.insertSheet('BankList');
+    bl.getRange(1, 1).setValue('Provider').setFontWeight('bold');
+    bl.setFrozenRows(1);
+    bl.setColumnWidth(1, 340);
+  }
+  const have = getColumnValues_(bl, 1).map(String);
+  const missing = PH_BANK_LIST_.filter(function (b) { return have.indexOf(b) === -1; });
+  if (missing.length) bl.getRange(bl.getLastRow() + 1, 1, missing.length, 1).setValues(missing.map(function (b) { return [b]; }));
+
+  const sh = getOrCreateSheet_(ss, SHEETS.PAYMENT_METHODS.name, SHEETS.PAYMENT_METHODS.headers);
+  const N = 30; // hanggang 30 payment methods
+  sh.getRange(2, 4, N, 1).setNumberFormat('@'); // AccountNumber = text (para hindi mawala ang leading 0)
+  sh.getRange(2, 2, N, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(['Bank', 'E-Wallet'], true).setAllowInvalid(false).build());
+  sh.getRange(2, 3, N, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInRange(bl.getRange('A2:A500'), true).setAllowInvalid(false).build());
+  sh.getRange(2, 6, N, 1).insertCheckboxes();
+  sh.getRange(1, 3).setNote('Pumili sa dropdown. Dagdag na bank? Idagdag sa "BankList" sheet.');
+  sh.getRange(1, 6).setNote('I-tick para lumabas sa app.');
+  sh.getRange(1, 7).setNote('Order sa app (1 = una).');
+
+  const empty = sh.getRange(2, 1, N, 1).getValues().every(function (r) { return !r[0]; });
+  if (empty) {
+    sh.getRange(2, 1, 1, 8).setValues([['PM-001', 'E-Wallet', 'GCash', String(getConfigValue_('GCashNumber') || ''), String(getConfigValue_('GCashAccountName') || ''), true, 1, '']]);
+  }
+}
+
+/** Enabled methods lang, sorted. */
+function getPaymentMethods_() {
+  const sh = sheet_(SHEETS.PAYMENT_METHODS.name);
+  if (!sh) return [];
+  const data = sh.getDataRange().getValues();
+  const out = [];
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    const enabled = r[5] === true || String(r[5]).toLowerCase() === 'true';
+    let acct = r[3];
+    if (typeof acct === 'number') { acct = String(acct); if (acct.length === 10 && acct.charAt(0) === '9') acct = '0' + acct; }
+    acct = String(acct == null ? '' : acct).trim();
+    if (!enabled || !r[2] || !acct) continue;
+    out.push({ methodId: r[0], type: r[1] || 'Bank', name: String(r[2]), accountNumber: acct, accountName: String(r[4] || ''), notes: String(r[7] || ''), _o: Number(r[6]) || 999, _i: i });
+  }
+  out.sort(function (a, b) { return a._o - b._o || a._i - b._i; });
+  return out.map(function (m) { delete m._o; delete m._i; return m; });
+}
+
+/** Bagong getPaymentInfo_ — methods galing sa sheet. May legacy gcash/bank keys para hindi mag-crash ang lumang cached na frontend. */
+function getPaymentInfo_() {
+  const methods = getPaymentMethods_();
+  const g = methods.filter(function (m) { return m.name === 'GCash'; })[0];
+  const b = methods.filter(function (m) { return m.type === 'Bank'; })[0];
+  return {
+    success: true,
+    methods: methods,
+    gcash: g ? { number: g.accountNumber, accountName: g.accountName } : { number: '', accountName: '' },
+    bank: b ? { name: b.name, accountNumber: b.accountNumber, accountName: b.accountName } : { name: '', accountNumber: '', accountName: '' }
+  };
+}
+
+// ---------- LIVE PENALTY CLOCK (walang naka-store na penalty; laging kinukwenta) ----------
+
+function getPenaltyRule_() {
+  return {
+    flat: Number(getConfigValue_('OverduePenaltyAmount')) || 0,
+    perDay: Number(getConfigValue_('OverduePenaltyPerDay')) || 0,
+    graceMinutes: Number(getConfigValue_('PenaltyGraceMinutes')) || 0,
+    deadlineHours: Number(getConfigValue_('PaymentDeadlineHours')) || 12
+  };
+}
+
+/** DueAt column (I); kapag wala (lumang rows) = DateTime + PaymentDeadlineHours. */
+function paymentDueAt_(row, rule) {
+  if (row[8]) { const d = new Date(row[8]); if (!isNaN(d.getTime())) return d; }
+  return new Date(new Date(row[5]).getTime() + rule.deadlineHours * 3600000);
+}
+
+/** Hanggang anong oras tumatakbo ang orasan: SubmittedAt kung meron (frozen); Paid/Submitted na walang timestamp = walang penalty; kung hindi, NGAYON. */
+function paymentEndAt_(row, now) {
+  if (row[11]) { const s = new Date(row[11]); if (!isNaN(s.getTime())) return s; }
+  if (row[6] === 'Paid' || row[6] === 'Submitted') return null;
+  return now;
+}
+
+function penaltyFor_(dueAt, endAt, rule) {
+  if (!endAt) return { amount: 0, overdueMs: 0 };
+  const overMs = endAt.getTime() - dueAt.getTime();
+  if (overMs - rule.graceMinutes * 60000 <= 0) return { amount: 0, overdueMs: 0 };
+  const extraDays = rule.perDay > 0 ? Math.floor(overMs / 86400000) : 0;
+  return { amount: rule.flat + rule.perDay * extraDays, overdueMs: overMs };
+}
+
+// ---------- PAYMENTS FOR PROFILE (bagong getPlayerPaymentsData_) ----------
+
+function getPlayerPaymentsData_(playerId) {
+  if (!playerId) return { success: false, error: 'Missing playerId.' };
+  const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+  if (!playerRow) return { success: false, error: 'Player not found.' };
+
+  const programsData = sheet_(SHEETS.PROGRAMS.name).getDataRange().getValues();
+  const programNames = {};
+  for (let i = 1; i < programsData.length; i++) programNames[programsData[i][0]] = programsData[i][1];
+
+  const packagesData = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  const packagesById = {};
+  for (let i = 1; i < packagesData.length; i++) {
+    const r = packagesData[i];
+    packagesById[r[0]] = { priceId: r[2], sessionsTotal: Number(r[4]) };
+  }
+
+  const now = new Date();
+  const rule = getPenaltyRule_();
+  const payData = sheet_(SHEETS.PAYMENTS.name).getDataRange().getValues();
+  const payments = [];
+  let balanceDue = 0;
+
+  for (let i = 1; i < payData.length; i++) {
+    const row = payData[i];
+    if (row[1] !== playerId) continue;
+
+    const pkg = packagesById[row[2]] || null;
+    const priceRow = pkg ? findRowById_(SHEETS.PRICING.name, pkg.priceId) : null;
+    const programId = priceRow ? priceRow[1] : '';
+    const packageType = priceRow ? priceRow[3] : '';
+    const label = priceRow ? (programNames[programId] || programId) + (packageType ? ' — ' + packageType : '') : 'Payment';
+
+    const dueAt = paymentDueAt_(row, rule);
+    const pen = penaltyFor_(dueAt, paymentEndAt_(row, now), rule);
+    let status = row[6];
+    if (status === 'Pending' && now >= dueAt) status = 'Overdue'; // derived live, kahit hindi pa nag-flip ang trigger
+    const base = Number(row[3]);
+    const total = base + pen.amount;
+    const unpaid = (status === 'Pending' || status === 'Overdue');
+    if (unpaid) balanceDue += total;
+
+    payments.push({
+      paymentId: row[0], amount: base, penalty: pen.amount, total: total,
+      method: row[4], date: new Date(row[5]).toISOString(), status: status, label: label,
+      sessions: pkg ? pkg.sessionsTotal : null,
+      dueAt: dueAt.toISOString(), reference: row[9] ? String(row[9]) : '',
+      submittedAt: row[11] ? new Date(row[11]).toISOString() : ''
+    });
+  }
+  payments.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+
+  return {
+    success: true, playerId: playerId, playerName: playerRow[1], balanceDue: balanceDue, payments: payments,
+    serverNow: now.toISOString(),
+    penaltyRule: { flat: rule.flat, perDay: rule.perDay, graceMinutes: rule.graceMinutes },
+    methods: getPaymentMethods_()
+  };
+}
+
+// ---------- SUBMIT PROOF (amount + reference) — timestamp + signed meta, fail-safe ----------
+
+function metaClean_(s) { return String(s == null ? '' : s).replace(/[|\r\n]/g, '/').trim(); }
+
+function metaSig_(s) {
+  const sig = Utilities.computeHmacSha256Signature(s, qrSecret_());
+  return sig.slice(0, 8).map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('');
+}
+
+/** Tamper check: i-run sa editor gamit ang laman ng Meta cell → testMetaSig_('...') */
+function testMetaSig_(meta) {
+  const i = String(meta).lastIndexOf('|sig=');
+  Logger.log(i > -1 && metaSig_(String(meta).slice(0, i)) === String(meta).slice(i + 5) ? 'META OK' : 'META TAMPERED / INVALID');
+}
+
+function handleSubmitPayment_(body) {
+  const paymentId = String(body.paymentId || '').trim();
+  const playerId = String(body.playerId || '').trim();
+  const reference = String(body.reference || '').replace(/\s+/g, '').toUpperCase();
+  const amountPaid = Number(body.amount);
+  const methodName = metaClean_(body.method);
+
+  if (!paymentId || !playerId || !body.contact) return { success: false, error: 'Missing payment details.' };
+  if (!/^[A-Z0-9-]{6,32}$/.test(reference)) return { success: false, error: 'Please enter a valid reference number (6–32 letters or numbers).' };
+  if (!(amountPaid > 0) || amountPaid > 1000000) return { success: false, error: 'Please enter the amount you sent.' };
+
+  const auth = authPlayerRow_(playerId, body.contact);
+  if (auth.error) return { success: false, error: auth.error };
+
+  const sheet = sheet_(SHEETS.PAYMENTS.name);
+  const data = sheet.getDataRange().getValues();
+  let idx = -1, dupOf = '';
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === paymentId) idx = i;
+    else if (data[i][9] && String(data[i][9]).toUpperCase() === reference) dupOf = data[i][0];
+  }
+  if (idx < 0 || data[idx][1] !== playerId) return { success: false, error: 'Payment not found.' };
+  const row = data[idx];
+
+  const tz = Session.getScriptTimeZone();
+  const fmtIso = function (d) { return Utilities.formatDate(d, tz, "yyyy-MM-dd'T'HH:mm:ssXXX"); };
+  const fmtLabel = function (d) { return Utilities.formatDate(d, tz, 'MMM d, yyyy h:mm:ss a'); };
+  const rule = getPenaltyRule_();
+  const dueAt = paymentDueAt_(row, rule);
+  const base = Number(row[3]);
+
+  if (row[6] === 'Paid') return { success: false, error: 'This payment is already confirmed.' };
+  if (row[6] === 'Submitted') {
+    if (String(row[9]).toUpperCase() === reference) { // retry ng parehong submission → idempotent
+      const p0 = penaltyFor_(dueAt, new Date(row[11]), rule).amount;
+      return { success: true, duplicate: true, paymentId: paymentId, reference: reference, submittedAtLabel: fmtLabel(new Date(row[11])), receiptCode: '', penalty: p0, total: base + p0, flags: [] };
+    }
+    return { success: false, error: 'A reference was already sent for this payment. Message Admin JA if it needs correcting.' };
+  }
+
+  const now = new Date();
+  const pen = penaltyFor_(dueAt, now, rule);
+  const total = base + pen.amount;
+
+  const flags = [];
+  if (amountPaid < total) flags.push(amountPaid >= base ? 'MISSING_PENALTY' : 'UNDERPAID');
+  else if (amountPaid > total) flags.push('OVERPAID');
+  if (pen.amount > 0) flags.push('LATE');
+  if (dupOf) flags.push('DUP_REF:' + dupOf);
+  if (String(body.retry) === '1') flags.push('OFFLINE_RETRY');
+
+  const metaCore = [
+    'ts=' + fmtIso(now), 'tz=' + tz, 'pay=' + paymentId, 'player=' + playerId,
+    'method=' + methodName, 'ref=' + reference, 'amt=' + amountPaid,
+    'base=' + base, 'penalty=' + pen.amount, 'total=' + total, 'due=' + fmtIso(dueAt),
+    'clientTs=' + metaClean_(body.clientTs).slice(0, 30), 'rid=' + metaClean_(body.requestId).slice(0, 40),
+    'ua=' + metaClean_(body.ua).slice(0, 80), 'flags=' + (flags.join(',') || 'OK')
+  ].join('|');
+  const sig = metaSig_(metaCore);
+  const meta = metaCore + '|sig=' + sig;
+
+  // Proof columns muna, status ang HULI (commit point) — kapag pumalya sa gitna, puwedeng ulitin nang walang sira.
+  sheet.getRange(idx + 1, 10).setNumberFormat('@');
+  sheet.getRange(idx + 1, 10, 1, 4).setValues([[reference, amountPaid, now, meta]]);
+  if (methodName) sheet.getRange(idx + 1, 5).setValue(methodName);
+  sheet.getRange(idx + 1, 7).setValue('Submitted');
+
+  logAudit_('PAYMENT_PROOF_SUBMITTED', meta, null);
+
+  try {
+    const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+    const guardianEmail = playerRow ? playerRow[6] : '';
+    const guardianName = playerRow ? playerRow[4] : '';
+    const playerName = playerRow ? playerRow[1] : playerId;
+
+    sendNotification_('PAY_SUBMITTED', { id: playerId, email: guardianEmail }, { amount: amountPaid, playerName: playerName });
+    sendNotification_('ADMIN_PAYMENT_VERIFY', { email: getConfigValue_('AdminEmail') }, { amount: amountPaid, guardianName: guardianName });
+
+    if (flags.indexOf('UNDERPAID') > -1 || flags.indexOf('MISSING_PENALTY') > -1) {
+      sendNotification_('PAY_PARTIAL_SUBMITTED', { id: playerId, email: guardianEmail }, { playerName: playerName, amount: amountPaid, total: total });
+      sendNotification_('ADMIN_PARTIAL_PAYMENT', { email: getConfigValue_('AdminEmail') }, { guardianName: guardianName, amount: amountPaid, total: total, playerName: playerName });
+    }
+
+    if (dupOf) {
+      sendNotification_('ADMIN_DUP_REFERENCE', { email: getConfigValue_('AdminEmail') }, { reference: reference, dupOf: dupOf });
+    }
+  } catch (e) { logAudit_('PAYMENT_NOTIFY_FAILED', paymentId + ' — ' + e, null); } // hindi dapat masira ang proof dahil sa email
+
+  return {
+    success: true, paymentId: paymentId, reference: reference, submittedAtLabel: fmtLabel(now),
+    receiptCode: sig.slice(0, 8).toUpperCase(), penalty: pen.amount, total: total, flags: flags
+  };
+}
+
+// ---------- FOLLOW-UP NOTIFICATIONS — laging live ang amount + penalty ----------
+
+function notifyPaymentOverdue_(row, total, penalty) {
+  const playerRow = findRowById_(SHEETS.PLAYERS.name, row[1]);
+  const playerName = playerRow ? playerRow[1] : row[1];
+  sendNotification_('PAY_OVERDUE', { id: row[1], email: playerRow ? playerRow[6] : '' },
+    { playerName: playerName, amount: total, penalty: penalty, asOf: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMM d, h:mm a') });
+  sendNotification_('ADMIN_PAYMENT_OVERDUE', { email: getConfigValue_('AdminEmail') },
+    { playerName: playerName, amount: total, guardianName: playerRow ? playerRow[4] : '' });
+}
+
+/** Pending na lampas na sa DueAt → 'Overdue' + isang notif. Hindi na ginagalaw ang Amount. */
+function flagNewlyOverdue_() {
+  const sheet = sheet_(SHEETS.PAYMENTS.name);
+  const data = sheet.getDataRange().getValues();
+  const rule = getPenaltyRule_();
+  const now = new Date();
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (row[6] !== 'Pending') continue;
+    const dueAt = paymentDueAt_(row, rule);
+    if (now < dueAt) continue;
+    sheet.getRange(i + 1, 7).setValue('Overdue');
+    const pen = penaltyFor_(dueAt, now, rule).amount;
+    notifyPaymentOverdue_(row, Number(row[3]) + pen, pen);
+    logAudit_('PAYMENT_OVERDUE_FLAGGED', row[0] + ' — base ₱' + row[3] + ' + live penalty ₱' + pen, null);
+
+    if (pen > 0) {
+      try {
+        const playerRow = findRowById_(SHEETS.PLAYERS.name, row[1]);
+        sendNotification_('PAY_PENALTY_STARTED', { id: row[1], email: playerRow ? playerRow[6] : '' }, { playerName: playerRow ? playerRow[1] : row[1], amount: row[3], penalty: pen });
+      } catch (e) { logAudit_('PAYMENT_NOTIFY_FAILED', row[0] + ' — penalty started — ' + e, null); }
+    }
+  }
+}
+
+/** 9PM / 8AM — lahat ng unpaid (Pending + Overdue). Overdue = tuloy-tuloy na follow-up na may kasalukuyang penalty. */
+function sendPaymentDueReminders_() {
+  const sheet = sheet_(SHEETS.PAYMENTS.name);
+  const data = sheet.getDataRange().getValues();
+  const rule = getPenaltyRule_();
+  const now = new Date();
+  const tz = Session.getScriptTimeZone();
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (row[6] !== 'Pending' && row[6] !== 'Overdue') continue;
+    const dueAt = paymentDueAt_(row, rule);
+    const pen = penaltyFor_(dueAt, now, rule).amount;
+    const total = Number(row[3]) + pen;
+    if (now >= dueAt) {
+      if (row[6] === 'Pending') sheet.getRange(i + 1, 7).setValue('Overdue');
+      notifyPaymentOverdue_(row, total, pen);
+    } else {
+      const playerRow = findRowById_(SHEETS.PLAYERS.name, row[1]);
+      sendNotification_('PAY_DUE_SOON', { id: row[1], email: playerRow ? playerRow[6] : '' },
+        { playerName: playerRow ? playerRow[1] : row[1], amount: total, dueDate: Utilities.formatDate(dueAt, tz, 'MMM d, h:mm a') });
+    }
+  }
+}
+
+/** 5PM — babala sa mga malapit nang mag-due (FinalWarningHours). */
+function sendPaymentWarning5PM_() {
+  const data = sheet_(SHEETS.PAYMENTS.name).getDataRange().getValues();
+  const rule = getPenaltyRule_();
+  const now = new Date();
+  const tz = Session.getScriptTimeZone();
+  const warnMs = (Number(getConfigValue_('FinalWarningHours')) || 3) * 3600000;
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (row[6] !== 'Pending') continue;
+    const dueAt = paymentDueAt_(row, rule);
+    const left = dueAt.getTime() - now.getTime();
+    if (left <= 0 || left > warnMs) continue;
+    const playerRow = findRowById_(SHEETS.PLAYERS.name, row[1]);
+    sendNotification_('PAY_FINAL_WARNING', { id: row[1], email: playerRow ? playerRow[6] : '' }, {
+      guardianName: playerRow ? playerRow[4] : '', playerName: playerRow ? playerRow[1] : row[1],
+      amount: Number(row[3]), penalty: rule.flat, dueDate: Utilities.formatDate(dueAt, tz, 'MMM d, h:mm a')
+    });
+    logAudit_('PAYMENT_5PM_WARNING', row[0] + ' — due ' + Utilities.formatDate(dueAt, tz, 'MMM d h:mm a'), null);
+  }
+}
+
+/** 8PM trigger — safety net na lang: nag-fa-flag ng Overdue. WALA nang pag-mutate ng Amount. */
+function applyOverduePenalty8PM_() { flagNewlyOverdue_(); }
+
+/** Hourly clock — para ma-flag agad pag lumampas sa DueAt (hindi na naghihintay ng 8PM). */
+function runPaymentClockHourly_() {
+  try { flagNewlyOverdue_(); }
+  catch (err) { logAudit_('SYS_GAS_ERROR', 'Hourly payment clock failed: ' + err, null); notifySystem_('SYS_GAS_ERROR', 'Hourly payment clock failed: ' + err); }
+  try { checkSubmittedPaymentSla_(); }
+  catch (err) { logAudit_('SYS_GAS_ERROR', 'Hourly SLA check failed: ' + err, null); notifySystem_('SYS_GAS_ERROR', 'Hourly SLA check failed: ' + err); }
+}
+
+function installPaymentClockTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'runPaymentClockHourly_') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('runPaymentClockHourly_').timeBased().everyHours(1).create();
+  SpreadsheetApp.getUi().alert('Hourly payment clock trigger installed.');
+}
+
+/** Run sa editor → tingnan ang Execution log. Walang binabago sa data. */
+function testPaymentClock() {
+  const rule = getPenaltyRule_();
+  const HOUR = 3600000, now = new Date();
+  Logger.log('Rule → ' + JSON.stringify(rule));
+  Logger.log('Due in 1h        → ' + JSON.stringify(penaltyFor_(new Date(now.getTime() + HOUR), now, rule)));
+  Logger.log('Overdue 5h       → ' + JSON.stringify(penaltyFor_(new Date(now.getTime() - 5 * HOUR), now, rule)));
+  Logger.log('Overdue 3 days   → ' + JSON.stringify(penaltyFor_(new Date(now.getTime() - 72 * HOUR), now, rule)));
+  Logger.log('Enabled methods  → ' + JSON.stringify(getPaymentMethods_()));
+}
+/* === END: PAYMENT SYSTEM EDIT === */
+
+/* === START: VERSION CONTROL — onEdit AUTO-VERSION + API === */
+function setupVersionControl_() {
+  const ss = getTargetSs_();
+  const sh = getOrCreateSheet_(ss, SHEETS.VERSIONS.name, SHEETS.VERSIONS.headers);
+  ensureConfigKey_('VersionMinorsPerMajor', 7);
+  sh.getRange(2, 2, Math.max(1, sh.getMaxRows() - 1), 2).setNumberFormat('@'); // Version/Build = text (para hindi mawala ang trailing zero)
+  sh.getRange(2, 1, Math.max(1, sh.getMaxRows() - 1), 1).setWrap(true).setVerticalAlignment('top');
+  sh.setColumnWidth(1, 520);
+  sh.getRange(1, 1).setNote('Mag-type ng What\'s New dito (isang row = isang release). Awtomatikong lalabas ang Version, Build at Timestamp.');
+  if (sh.getLastRow() < 2) {
+    sh.getRange(2, 1, 1, 4).setValues([[
+      '• Improved Academy payments\n• Automatic session deduction\n• Payment notifications',
+      '2.1.0', '20261001.1432', new Date()
+    ]]);
+  }
+  SpreadsheetApp.getUi().alert('Version control ready.\n\nSa "Versions" sheet, mag-type sa column A ng bagong row — auto-version na.');
+}
+
+/** "2.3.0" → [2,3,0] */
+function parseVer_(s) {
+  const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(String(s || '').trim());
+  return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+}
+
+/** Pinakamataas na version sa sheet (maliban sa row na ine-edit) → +1 minor; kapag lampas sa limit → +1 major. */
+function nextVersion_(sh, exceptRow) {
+  const per = Number(getConfigValue_('VersionMinorsPerMajor')) || 7;
+  const data = sh.getDataRange().getValues();
+  let best = null;
+  for (let i = 1; i < data.length; i++) {
+    if (i + 1 === exceptRow) continue;
+    const v = parseVer_(data[i][1]);
+    if (!v) continue;
+    if (!best || v[0] > best[0] || (v[0] === best[0] && v[1] > best[1])) best = v;
+  }
+  if (!best) return '2.1.0';
+  let major = best[0], minor = best[1] + 1;
+  if (minor > per) { major += 1; minor = 0; }
+  return major + '.' + minor + '.0';
+}
+
+/** Simple trigger — walang kailangang i-install. */
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    const sh = e.range.getSheet();
+    if (sh.getName() !== SHEETS.VERSIONS.name) return;
+    if (e.range.getColumn() > 1) return; // message column lang (A)
+    const tz = Session.getScriptTimeZone();
+    const start = Math.max(2, e.range.getRow()), end = e.range.getLastRow();
+    for (let r = start; r <= end; r++) {
+      const msg = String(sh.getRange(r, 1).getValue() || '').trim();
+      const ver = String(sh.getRange(r, 2).getValue() || '').trim();
+      if (!msg || ver) continue; // walang message, o na-version na — huwag galawin
+      const now = new Date();
+      sh.getRange(r, 2, 1, 3).setNumberFormat('@');
+      sh.getRange(r, 2, 1, 3).setValues([[nextVersion_(sh, r), Utilities.formatDate(now, tz, 'yyyyMMdd.HHmm'), Utilities.formatDate(now, tz, 'yyyy-MM-dd HH:mm:ss')]]);
+    }
+  } catch (err) { /* hindi dapat mag-error ang pag-edit ng sheet */ }
+}
+
+function getVersionData_() {
+  const sh = sheet_(SHEETS.VERSIONS.name);
+  if (!sh) return { success: true, current: null, history: [] };
+  const data = sh.getDataRange().getValues();
+  const items = [];
+  for (let i = 1; i < data.length; i++) {
+    if (!parseVer_(data[i][1])) continue;
+    items.push({ version: String(data[i][1]).trim(), build: String(data[i][2] || '').trim(), whatsNew: String(data[i][0] || ''), timestamp: String(data[i][3] || '') });
+  }
+  return { success: true, current: items.length ? items[items.length - 1] : null, history: items.slice(-10).reverse() };
+}
+/* === END: VERSION CONTROL === */
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Livity Admin')
+    .addItem('Initialize All Sheets', 'initializeAll')
+    .addItem('Setup Gallery Sheet', 'setupGallery_')
+    .addItem('Setup Version Control', 'setupVersionControl_')
+    .addSeparator()
+    .addItem('Re-seed Programs / Pricing / Schedule', 'reseedReferenceData')
+     .addSeparator()
+    .addItem('View Full System Overview', 'showFullSystemDialog')
+    .addItem('Open Livity App', 'showAppDialog')
+    .addSeparator()
+    .addItem('Install 9PM Nightly Trigger', 'installNightlyReminderTrigger')
+    .addItem('Install 8AM Morning Trigger', 'installMorningReminderTrigger')
+    .addItem('Install 5PM Final Reminder Trigger', 'installFinalReminderTrigger')
+    .addItem('Install 3-Day Sessions-Remaining Trigger', 'installSessionsRemainingTrigger')
+    .addItem('Install 8PM Penalty Trigger', 'installPenaltyTrigger')
+    .addSeparator()
+    /* === START: STAFF KEY EDIT — MENU === */
+    .addItem('Setup Scanner (StaffKey)', 'setupScannerPrompt_')
+    .addItem('Change Staff Key', 'changeStaffKeyPrompt_')
+    /* === END: STAFF KEY EDIT — MENU === */
+    /* === START: PAYMENT SYSTEM EDIT — MENU === */
+    .addItem('Setup Payment System', 'setupPaymentSystem_')
+    .addItem('Install Hourly Payment Clock Trigger', 'installPaymentClockTrigger')
+    /* === END: PAYMENT SYSTEM EDIT — MENU === */
+    .addItem('Book Private Session', 'bookPrivateSessionPrompt_')
+    .addItem('Verify a Payment (mark Paid / Partial)', 'verifyPaymentPrompt_')
+    .addItem('Reverse a Payment', 'reversePaymentPrompt_')
+    .addItem('Change Payment Due Date', 'changeDueDatePrompt_')
+    .addItem('Log Refund Requested', 'markRefundRequestedPrompt_')
+    .addItem('Log Refund Completed', 'markRefundCompletedPrompt_')
+    .addItem('Log Reconciliation Exception', 'logReconciliationExceptionPrompt_')
+    .addSeparator()
+    .addItem('Install Reminder Ladder Trigger (15-min)', 'installReminderLadderTrigger_')
+    .addToUi();
+}// ============================================================
+// INITIALIZE ALL
+// ============================================================
+
+function initializeAll() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  Object.values(SHEETS).forEach(function (def) {
+    getOrCreateSheet_(ss, def.name, def.headers);
+  });
+
+  reseedReferenceData();
+  logAudit_('INITIALIZE_ALL', 'All Livity sheets created/verified', Session.getActiveUser().getEmail());
+
+  SpreadsheetApp.getUi().alert('Livity backend initialized: ' + Object.keys(SHEETS).length + ' sheets ready.');
+}
+
+function reseedReferenceData() {
+  writeSeed_(SHEETS.CONFIG.name, SEED_CONFIG, false);
+  writeSeed_(SHEETS.PROGRAMS.name, SEED_PROGRAMS, true);
+  writeSeed_(SHEETS.SCHEDULE.name, SEED_SCHEDULE, true);
+  writeSeed_(SHEETS.PRICING.name, SEED_PRICING, true);
+  writeSeed_(SHEETS.COACHES.name, SEED_COACHES, true);
+  writeSeed_(SHEETS.NOTIFICATION_TYPES.name, SEED_NOTIFICATION_TYPES, true);
+  /* === START: STAFF KEY EDIT — SEED HOOK === */
+  ensureScanConfig_();
+  /* === END: STAFF KEY EDIT — SEED HOOK === */
+}
+
+// ============================================================
+// SHEET HELPERS
+// ============================================================
+
+function getOrCreateSheet_(ss, name, headers) {
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  sheet.setFrozenRows(1);
+  sheet.setRowHeight(1, 34);
+  sheet.autoResizeColumns(1, headers.length);
+  applyZebraStyle_(sheet, headers.length);
+  return sheet;
+}
+
+// Applies the Livity table theme: dark/gold header + cream zebra striping.
+// Safe to re-run — clears any existing banding on the sheet first.
+function applyZebraStyle_(sheet, numCols) {
+  sheet.getBandings().forEach(function (b) { b.remove(); });
+
+  const maxRows = Math.max(sheet.getMaxRows(), 300);
+  const range = sheet.getRange(1, 1, maxRows, numCols);
+  const banding = range.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, true, false);
+
+  banding.setHeaderRowColor('#171714');
+  banding.setFirstRowColor('#FFFFFF');
+  banding.setSecondRowColor('#F5EEE0');
+
+  sheet.getRange(1, 1, 1, numCols)
+    .setFontWeight('bold')
+    .setFontColor('#FFDE00')
+    .setHorizontalAlignment('center')
+    .setVerticalAlignment('middle');
+
+  range.setBorder(true, true, true, true, true, true, '#e2e2e2', SpreadsheetApp.BorderStyle.SOLID);
+  sheet.setColumnWidths(1, numCols, 140);
+}
+
+// Writes seed rows only if sheet has no data rows yet (idempotent — safe to re-run)
+function writeSeed_(sheetName, rows, keyedById) {
+  const sheet = getTargetSs_().getSheetByName(sheetName);
+  if (!sheet || rows.length === 0) return;
+
+  const existingIds = keyedById ? getColumnValues_(sheet, 1) : [];
+  const toWrite = keyedById
+    ? rows.filter(function (r) { return existingIds.indexOf(r[0]) === -1; })
+    : (sheet.getLastRow() <= 1 ? rows : []);
+
+  if (toWrite.length > 0) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, toWrite.length, toWrite[0].length).setValues(toWrite);
+  }
+}
+
+function getColumnValues_(sheet, col) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+  return sheet.getRange(2, col, lastRow - 1, 1).getValues().map(function (r) { return r[0]; });
+}
+
+function sheet_(name) {
+  return getTargetSs_().getSheetByName(name);
+}
+
+function nextId_(prefix, sheetName) {
+  const sheet = sheet_(sheetName);
+  const count = Math.max(0, sheet.getLastRow() - 1);
+  return prefix + '-' + Utilities.formatString('%04d', count + 1);
+}
+
+/** Player-facing permanent ID: random LVTFA-XXXXXXX (letters+numbers) — checked against existing Players column A to avoid duplicates. */
+function nextPlayerId_() {
+  const sheet = sheet_(SHEETS.PLAYERS.name);
+  const existing = getColumnValues_(sheet, 1).map(String);
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let id;
+  do {
+    let suffix = '';
+    for (let i = 0; i < 7; i++) suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+    id = 'LVTFA-' + suffix;
+  } while (existing.indexOf(id) !== -1);
+  return id;
+}
+
+function logAudit_(action, details, user) {
+  const sheet = sheet_(SHEETS.AUDITLOG.name);
+  sheet.appendRow([new Date(), action, details, user || Session.getActiveUser().getEmail()]);
+}
+
+// ============================================================
+// CORE FUNCTIONS
+// ============================================================
+
+/** Register a new player. data = {fullName, birthYear, category, guardianName, contactNumber, email, programId, referredBy} */
+function registerPlayer(data) {
+  const id = nextPlayerId_();
+  sheet_(SHEETS.PLAYERS.name).appendRow([
+    id, data.fullName, data.birthYear, data.category, data.guardianName,
+    data.contactNumber, data.email, data.programId, new Date(), 'Active', data.referredBy || ''
+  ]);
+  logAudit_('REGISTER_PLAYER', id + ' — ' + data.fullName, null);
+
+  if (data.referredBy) {
+    addReferral(data.referredBy, id);
+  }
+  return id;
+}
+
+/**
+ * Purchase a package for a player. Looks up Pricing to fill sessions/price/expiry.
+ * Top-Up packages (PackageType === 'Top-Up') are only allowed while the player still has
+ * an Active package with remaining sessions on the SAME program — this enforces the
+ * "Top-Up available while sessions remain" rule shown in the pricing screen.
+ */
+const MIXED_SPLIT_ = {
+  'PRC-ACADMA': { academy: 4, private: 4 },
+  'PRC-ACADMB': { academy: 8, private: 4 },
+  'PRC-ACADMC': { academy: 4, private: 8 }
+};
+
+function purchasePackage(playerId, priceId) {
+  const pricingRow = findRowById_(SHEETS.PRICING.name, priceId);
+  if (!pricingRow) throw new Error('Unknown PriceID: ' + priceId);
+
+  const programId = pricingRow[1], packageType = pricingRow[3];
+  if (packageType === 'Top-Up' && !playerHasRemainingSessions_(playerId, programId)) {
+    throw new Error('Top-Up is only available while the player still has sessions remaining on an active package.');
+  }
+
+  const split = MIXED_SPLIT_[priceId] || null;
+  // Academy purchases (and their membership / private companion) start Pending — activated when payment is verified
+  const initialStatus_ = (programId === 'PRG-ACAD') ? 'Pending' : 'Active';
+  const sessions = split ? split.academy : pricingRow[4];
+  const purchaseDate = new Date();
+
+  const id = nextId_('PKG', SHEETS.PACKAGES.name);
+  const sh = sheet_(SHEETS.PACKAGES.name);
+  sh.appendRow([id, playerId, priceId, purchaseDate, sessions, 0, '', initialStatus_]);
+
+  // Mixed → companion Private package. ID = main + "P" so it shares the main payment status.
+  if (split && split.private > 0) {
+    sh.appendRow([id + 'P', playerId, 'PRC-PRIVPK', purchaseDate, split.private, 0, '', initialStatus_]);
+  }
+
+  logAudit_('PURCHASE_PACKAGE', id + ' for ' + playerId + ' (' + priceId + ')' + (split ? ' + private ' + split.private : ''), null);
+  return id;
+}
+
+/** True if playerId has at least one Active package for programId with SessionsUsed < SessionsTotal. */
+function playerHasRemainingSessions_(playerId, programId) {
+  const pkgData = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  for (let i = 1; i < pkgData.length; i++) {
+    const row = pkgData[i];
+    if (row[1] !== playerId || row[7] !== 'Active') continue;
+    const priceRow = findRowById_(SHEETS.PRICING.name, row[2]);
+    if (!priceRow || priceRow[1] !== programId) continue;
+    if (row[6] && new Date() > new Date(row[6])) continue;
+    if (Number(row[5]) < Number(row[4])) return true;
+  }
+  return false;
+}
+
+/* === START: ACADEMY MEMBERSHIP — ONE-TIME FEE + ACTIVATE ON PAYMENT === */
+function membershipFee_() {
+  const r = findRowById_(SHEETS.PRICING.name, 'PRC-MEMB');
+  return r ? Number(r[5]) : 4000;
+}
+
+/** True kapag may membership record na ang player (kahit Pending pa ang bayad — bayad na yon sa unang order). */
+function playerHasMembership_(playerId) {
+  const d = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  for (let i = 1; i < d.length; i++) {
+    if (d[i][1] === playerId && d[i][2] === 'PRC-MEMB') return true;
+  }
+  return false;
+}
+
+/** Kapag Paid na ang payment: Pending packages → Active (main + 'P' companion). Academy = pati Pending membership. */
+function activatePackagesForPayment_(playerId, packageId) {
+  if (!packageId || packageId === 'PENDING') return;
+  const sh = sheet_(SHEETS.PACKAGES.name);
+  const data = sh.getDataRange().getValues();
+  const baseId = String(packageId).replace(/P$/, '');
+  let isAcademy = false, n = 0;
+  for (let i = 1; i < data.length; i++) {
+    if ((data[i][0] !== baseId && data[i][0] !== baseId + 'P') || data[i][7] !== 'Pending') continue;
+    const pr = findRowById_(SHEETS.PRICING.name, data[i][2]);
+    if (pr && pr[1] === 'PRG-ACAD') isAcademy = true;
+    sh.getRange(i + 1, 8).setValue('Active'); n++;
+  }
+  if (isAcademy) {
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === playerId && data[i][2] === 'PRC-MEMB' && data[i][7] === 'Pending') { sh.getRange(i + 1, 8).setValue('Active'); n++; }
+    }
+  }
+  if (n) logAudit_('PACKAGES_ACTIVATED', playerId + ' — ' + n + ' package row(s) after payment of ' + packageId, null);
+}
+/* === END: ACADEMY MEMBERSHIP === */
+
+/** Record a payment against a package. method e.g. 'Cash','GCash','Bank Transfer'. */
+function recordPayment(playerId, packageId, amount, method, status) {
+  const id = nextId_('PAY', SHEETS.PAYMENTS.name);
+  sheet_(SHEETS.PAYMENTS.name).appendRow([
+    id, playerId, packageId, amount, method, new Date(), status || 'Paid', Session.getActiveUser().getEmail(),
+    /* === START: PAYMENT SYSTEM EDIT — DUEAT === */
+    (status === 'Pending' ? new Date(Date.now() + (Number(getConfigValue_('PaymentDeadlineHours')) || 12) * 3600000) : ''), '', '', '', ''
+    /* === END: PAYMENT SYSTEM EDIT — DUEAT === */
+  ]);
+  logAudit_('RECORD_PAYMENT', id + ' — ' + amount + ' via ' + method, null);
+  if ((status || 'Paid') === 'Paid') activatePackagesForPayment_(playerId, packageId);
+
+  if (status === 'Pending') {
+    try {
+      const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+      sendNotification_('PAY_INSTRUCTIONS', { id: playerId, email: playerRow ? playerRow[6] : '' }, { playerName: playerRow ? playerRow[1] : playerId, instructions: 'Open My Player → Payments to see how to pay.' });
+    } catch (e) { logAudit_('PAYMENT_NOTIFY_FAILED', id + ' — instructions — ' + e, null); }
+  }
+
+  return id;
+}
+/* === START: PAYMENT VERIFICATION — ADMIN CONFIRMS RECEIVED PAYMENT === */
+/** verifiedAmount optional — if given and less than the payment's Amount, marks partial (stays Pending, notifies both sides) instead of full Paid. */
+function verifyPayment_(paymentId, verifiedAmount) {
+  const sheet = sheet_(SHEETS.PAYMENTS.name);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] !== paymentId) continue;
+    const playerId = data[i][1], amount = Number(data[i][3]);
+    const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+    const guardianEmail = playerRow ? playerRow[6] : '';
+    const playerName = playerRow ? playerRow[1] : playerId;
+    const vAmt = (verifiedAmount === undefined || verifiedAmount === null || verifiedAmount === '') ? amount : Number(verifiedAmount);
+
+    if (vAmt < amount) {
+      const remaining = amount - vAmt;
+      sendNotification_('PAY_PARTIAL_VERIFIED', { id: playerId, email: guardianEmail }, { amount: vAmt, playerName: playerName, remaining: remaining });
+      logAudit_('PAYMENT_PARTIAL_VERIFIED', paymentId + ' — ' + playerName + ' ₱' + vAmt + ' of ₱' + amount, null);
+      return true;
+    }
+
+    sheet.getRange(i + 1, 7).setValue('Paid'); // Status
+    activatePackagesForPayment_(playerId, data[i][2]);
+    sendNotification_('PAY_VERIFIED', { id: playerId, email: guardianEmail }, { amount: amount, playerName: playerName });
+    logAudit_('PAYMENT_VERIFIED', paymentId + ' — ' + playerName + ' ₱' + amount, null);
+    return true;
+  }
+  return false;
+}
+
+function verifyPaymentPrompt_() {
+  const ui = SpreadsheetApp.getUi();
+  const res = ui.prompt('Verify Payment', 'Enter PaymentID (e.g. PAY-0001):', ui.ButtonSet.OK_CANCEL);
+  if (res.getSelectedButton() !== ui.Button.OK) return;
+  const id = res.getResponseText().trim();
+  const amtRes = ui.prompt('Verify Payment', 'Amount received (leave blank if paid in full):', ui.ButtonSet.OK_CANCEL);
+  if (amtRes.getSelectedButton() !== ui.Button.OK) return;
+  const amt = amtRes.getResponseText().trim();
+  ui.alert(verifyPayment_(id, amt) ? 'Payment ' + id + ' processed.' : 'PaymentID not found: ' + id);
+}
+
+/* === START: PAYMENT NOTIFICATIONS — ADMIN UTILITIES (menu-triggered) === */
+function reversePaymentPrompt_() {
+  const ui = SpreadsheetApp.getUi();
+  const idRes = ui.prompt('Reverse Payment', 'Enter PaymentID:', ui.ButtonSet.OK_CANCEL);
+  if (idRes.getSelectedButton() !== ui.Button.OK) return;
+  const id = idRes.getResponseText().trim();
+  const reasonRes = ui.prompt('Reverse Payment', 'Reason:', ui.ButtonSet.OK_CANCEL);
+  if (reasonRes.getSelectedButton() !== ui.Button.OK) return;
+  const reason = reasonRes.getResponseText().trim();
+
+  const sheet = sheet_(SHEETS.PAYMENTS.name);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] !== id) continue;
+    sheet.getRange(i + 1, 7).setValue('Reversed');
+    const playerRow = findRowById_(SHEETS.PLAYERS.name, data[i][1]);
+    sendNotification_('PAY_REVERSED', { id: data[i][1], email: playerRow ? playerRow[6] : '' }, { amount: data[i][3], playerName: playerRow ? playerRow[1] : data[i][1], reason: reason });
+    logAudit_('PAYMENT_REVERSED', id + ' — ' + reason, null);
+    ui.alert('Payment ' + id + ' marked Reversed.');
+    return;
+  }
+  ui.alert('PaymentID not found: ' + id);
+}
+
+function changeDueDatePrompt_() {
+  const ui = SpreadsheetApp.getUi();
+  const idRes = ui.prompt('Change Due Date', 'Enter PaymentID:', ui.ButtonSet.OK_CANCEL);
+  if (idRes.getSelectedButton() !== ui.Button.OK) return;
+  const id = idRes.getResponseText().trim();
+  const dateRes = ui.prompt('Change Due Date', 'New due date/time (e.g. 2026-10-05 20:00):', ui.ButtonSet.OK_CANCEL);
+  if (dateRes.getSelectedButton() !== ui.Button.OK) return;
+  const newDate = new Date(dateRes.getResponseText().trim());
+  if (isNaN(newDate.getTime())) { ui.alert('Invalid date/time.'); return; }
+
+  const sheet = sheet_(SHEETS.PAYMENTS.name);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] !== id) continue;
+    sheet.getRange(i + 1, 9).setValue(newDate); // DueAt
+    const playerRow = findRowById_(SHEETS.PLAYERS.name, data[i][1]);
+    const tz = Session.getScriptTimeZone();
+    sendNotification_('PAY_DEADLINE_CHANGED', { id: data[i][1], email: playerRow ? playerRow[6] : '' }, { amount: data[i][3], playerName: playerRow ? playerRow[1] : data[i][1], newDate: Utilities.formatDate(newDate, tz, 'MMM d, h:mm a') });
+    logAudit_('PAYMENT_DUE_CHANGED', id + ' — new due ' + newDate, null);
+    ui.alert('Due date updated for ' + id + '.');
+    return;
+  }
+  ui.alert('PaymentID not found: ' + id);
+}
+
+function markRefundRequestedPrompt_() {
+  const ui = SpreadsheetApp.getUi();
+  const idRes = ui.prompt('Refund Requested', 'Enter PlayerID:', ui.ButtonSet.OK_CANCEL);
+  if (idRes.getSelectedButton() !== ui.Button.OK) return;
+  const playerId = idRes.getResponseText().trim();
+  const amtRes = ui.prompt('Refund Requested', 'Amount:', ui.ButtonSet.OK_CANCEL);
+  if (amtRes.getSelectedButton() !== ui.Button.OK) return;
+  const amount = amtRes.getResponseText().trim();
+  const reasonRes = ui.prompt('Refund Requested', 'Reason:', ui.ButtonSet.OK_CANCEL);
+  if (reasonRes.getSelectedButton() !== ui.Button.OK) return;
+  const reason = reasonRes.getResponseText().trim();
+
+  const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+  const playerName = playerRow ? playerRow[1] : playerId;
+  sendNotification_('ADMIN_REFUND_REQUESTED', { email: getConfigValue_('AdminEmail') }, { playerName: playerName, amount: amount, reason: reason });
+  logAudit_('REFUND_REQUESTED', playerId + ' — ₱' + amount + ' — ' + reason, null);
+  ui.alert('Refund request logged for ' + playerName + '.');
+}
+
+function markRefundCompletedPrompt_() {
+  const ui = SpreadsheetApp.getUi();
+  const idRes = ui.prompt('Refund Completed', 'Enter PlayerID:', ui.ButtonSet.OK_CANCEL);
+  if (idRes.getSelectedButton() !== ui.Button.OK) return;
+  const playerId = idRes.getResponseText().trim();
+  const amtRes = ui.prompt('Refund Completed', 'Amount:', ui.ButtonSet.OK_CANCEL);
+  if (amtRes.getSelectedButton() !== ui.Button.OK) return;
+  const amount = amtRes.getResponseText().trim();
+
+  const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+  const playerName = playerRow ? playerRow[1] : playerId;
+  sendNotification_('PAY_REVERSED', { id: playerId, email: playerRow ? playerRow[6] : '' }, { amount: amount, playerName: playerName, reason: 'Refund completed.' });
+  sendNotification_('ADMIN_REFUND_COMPLETED', { email: getConfigValue_('AdminEmail') }, { playerName: playerName, amount: amount });
+  logAudit_('REFUND_COMPLETED', playerId + ' — ₱' + amount, null);
+  ui.alert('Refund completion logged for ' + playerName + '.');
+}
+
+function logReconciliationExceptionPrompt_() {
+  const ui = SpreadsheetApp.getUi();
+  const res = ui.prompt('Log Reconciliation Exception', 'Describe the unmatched/mismatched payment:', ui.ButtonSet.OK_CANCEL);
+  if (res.getSelectedButton() !== ui.Button.OK) return;
+  const details = res.getResponseText().trim();
+  sendNotification_('ADMIN_UNMATCHED_PAYMENT', { email: getConfigValue_('AdminEmail') }, { details: details });
+  sendNotification_('ADMIN_RECON_EXCEPTION', { email: getConfigValue_('AdminEmail') }, { details: details });
+  logAudit_('RECON_EXCEPTION_LOGGED', details, null);
+  ui.alert('Reconciliation exception logged.');
+}
+/* === END: PAYMENT NOTIFICATIONS — ADMIN UTILITIES === */
+/* === END: PAYMENT VERIFICATION === */
+/* === START: ATTENDANCE — REGISTER (PRE-SESSION) VS CHECK-IN (SCAN-TIME) === */
+
+/**
+ * Register a player for a session BEFORE it happens — this is the "Registered" state,
+ * created by your enrollment/registration flow. Creates the Attendance row with
+ * AttendanceStatus='Unmarked' so QR scan-time only ever UPDATES a row, never guesses
+ * whether someone was registered after the fact.
+ */
+function registerForSession(playerId, scheduleId, dateStr) {
+  const date = dateStr ? new Date(dateStr) : new Date();
+  const existing = findAttendanceRow_(playerId, scheduleId, date);
+  if (existing) return existing.attendanceId; // idempotent — don't double-register
+
+  const id = nextId_('ATT', SHEETS.ATTENDANCE.name);
+  sheet_(SHEETS.ATTENDANCE.name).appendRow([
+    id, playerId, scheduleId, date, 'Registered', 'Unmarked', '', false, false
+  ]);
+  logAudit_('SESSION_REGISTERED', id + ' — ' + playerId, null);
+  return id;
+}
+
+/**
+ * Called at scan/check-in time (QR or manual). Looks up whether a Registered row already
+ * exists for this player+session+date — if not, this is a genuine walk-in and a new row
+ * is created with RegistrationStatus='Walkin'. attendanceStatus: 'Present' | 'Late'.
+ * Absences are marked separately by markAbsent_ (below), since absence has no scan event.
+ */
+function checkIn(playerId, scheduleId, dateStr, attendanceStatus, checkInTime) {
+  const date = dateStr ? new Date(dateStr) : new Date();
+  const time = checkInTime || new Date();
+  let surcharge = false;
+
+  const existing = findAttendanceRow_(playerId, scheduleId, date);
+  const sheet = sheet_(SHEETS.ATTENDANCE.name);
+
+  let attendanceId, registrationStatus, isWalkIn;
+
+  if (existing) {
+    // Pre-registered player is now scanning in — flip AttendanceStatus only, keep Registered.
+    attendanceId = existing.attendanceId;
+    registrationStatus = existing.registrationStatus;
+    isWalkIn = existing.isWalkIn;
+    sheet.getRange(existing.rowIndex, 6).setValue(attendanceStatus); // AttendanceStatus
+    sheet.getRange(existing.rowIndex, 7).setValue(time);             // CheckInTime
+  } else {
+    // No registration on file — genuine walk-in.
+    registrationStatus = 'Walkin';
+    isWalkIn = true;
+    const monthCount = countWalkInsThisMonth_(playerId, date) + 1;
+    surcharge = monthCount > getConfigValue_('WalkInFreePerMonth');
+    const wId = nextId_('WI', SHEETS.WALKINS.name);
+    sheet_(SHEETS.WALKINS.name).appendRow([wId, playerId, date, monthCount, surcharge]);
+
+    attendanceId = nextId_('ATT', SHEETS.ATTENDANCE.name);
+    sheet.appendRow([attendanceId, playerId, scheduleId, date, 'Walkin', attendanceStatus, time, false, true]);
+  }
+
+  let sessionDeducted = false;
+  if (attendanceStatus === 'Present' || attendanceStatus === 'Late') {
+    const schedForDeduct_ = findRowById_(SHEETS.SCHEDULE.name, scheduleId);
+sessionDeducted = isWalkIn ? false : deductPackageSession_(playerId, schedForDeduct_ ? schedForDeduct_[1] : '');
+    // walk-in deduction already handled via the WalkIns surcharge row above, not a package session
+    setAttendanceDeducted_(attendanceId, isWalkIn ? false : sessionDeducted);
+  }
+
+  logAudit_('CHECK_IN', attendanceId + ' — ' + playerId + ' (' + registrationStatus + ' / ' + attendanceStatus + ')', null);
+
+  /* === START: ATTENDANCE NOTIFICATIONS — CHECK-IN STATE TRANSITIONS === */
+  try {
+    const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+    const schedRow = findRowById_(SHEETS.SCHEDULE.name, scheduleId);
+    const progRow = schedRow ? findRowById_(SHEETS.PROGRAMS.name, schedRow[1]) : null;
+    const programName = progRow ? progRow[1] : (schedRow ? schedRow[1] : '');
+    const playerName = playerRow ? playerRow[1] : playerId;
+    const guardianEmail = playerRow ? playerRow[6] : '';
+    const tz = Session.getScriptTimeZone();
+    const timeLabel = Utilities.formatDate(time, tz, 'h:mm a');
+
+    if (attendanceStatus === 'Late') {
+      sendNotification_('ATT_LATE', { id: playerId, email: guardianEmail }, { playerName: playerName, programName: programName, minutesLate: '' });
+    } else if (attendanceStatus === 'Present') {
+      sendNotification_('ATT_CHECKED_IN', { id: playerId, email: guardianEmail }, { playerName: playerName, programName: programName, time: timeLabel });
+    }
+
+    if (!isWalkIn && sessionDeducted) {
+      const remaining = playerHasRemainingSessions_(playerId, schedRow ? schedRow[1] : '') ? getPlayerActivePackages_(playerId)
+        .filter(function (p) { return p.programId === (schedRow ? schedRow[1] : ''); })
+        .reduce(function (sum, p) { return sum + Math.max(0, p.remaining); }, 0) : 0;
+      sendNotification_('ATT_SESSION_DEDUCTED', { id: playerId, email: guardianEmail }, { playerName: playerName, programName: programName, remaining: remaining });
+      if (remaining > 0 && remaining <= 2) {
+        sendNotification_('ATT_LOW_SESSIONS', { id: playerId, email: guardianEmail }, { playerName: playerName, programName: programName, remaining: remaining });
+      }
+    }
+
+    if ((attendanceStatus === 'Present' || attendanceStatus === 'Late') && !isWalkIn && !sessionDeducted) {
+      sendNotification_('ADMIN_DEDUCTION_CONFLICT', { email: getConfigValue_('AdminEmail') }, { playerName: playerName, programName: programName });
+      logAudit_('ADMIN_DEDUCTION_CONFLICT', attendanceId + ' — ' + playerId + ' had no active package to deduct', null);
+    }
+
+    if (isWalkIn) {
+      const surchargeNote = surcharge ? ' (1.5× surcharge applied)' : '';
+      sendNotification_('ADMIN_WALKIN', { email: getConfigValue_('AdminEmail') }, { playerName: playerName, programName: programName, surchargeNote: surchargeNote });
+    }
+  } catch (notifyErr) {
+    logAudit_('SYS_GAS_ERROR', 'Attendance notification failed for ' + attendanceId + ': ' + notifyErr, null);
+  }
+  /* === END: ATTENDANCE NOTIFICATIONS === */
+
+  return { attendanceId: attendanceId, registrationStatus: registrationStatus, attendanceStatus: attendanceStatus, walkInSurcharge: surcharge };
+}
+
+/** Marks a REGISTERED player as Absent — used by end-of-session sweep, not scan-time. */
+function markAbsent_(playerId, scheduleId, dateStr) {
+  const date = dateStr ? new Date(dateStr) : new Date();
+  const existing = findAttendanceRow_(playerId, scheduleId, date);
+  if (!existing) return null; // can't be absent from something you weren't registered for
+  sheet_(SHEETS.ATTENDANCE.name).getRange(existing.rowIndex, 6).setValue('Absent');
+  logAudit_('MARKED_ABSENT', existing.attendanceId + ' — ' + playerId, null);
+
+  try {
+    const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+    const schedRow = findRowById_(SHEETS.SCHEDULE.name, scheduleId);
+    const progRow = schedRow ? findRowById_(SHEETS.PROGRAMS.name, schedRow[1]) : null;
+    const programName = progRow ? progRow[1] : (schedRow ? schedRow[1] : '');
+    const playerName = playerRow ? playerRow[1] : playerId;
+    const tz = Session.getScriptTimeZone();
+    const dateLabel = Utilities.formatDate(date, tz, 'MMM d');
+    sendNotification_('ATT_ABSENT', { id: playerId, email: playerRow ? playerRow[6] : '' }, { playerName: playerName, programName: programName, sessionDate: dateLabel });
+  } catch (e) {
+    logAudit_('SYS_GAS_ERROR', 'Absent notification failed for ' + existing.attendanceId + ': ' + e, null);
+  }
+
+  return existing.attendanceId;
+}
+
+function findAttendanceRow_(playerId, scheduleId, date) {
+  const sheet = sheet_(SHEETS.ATTENDANCE.name);
+  const data = sheet.getDataRange().getValues();
+  const targetDateStr = Utilities.formatDate(new Date(date), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const rowDateStr = Utilities.formatDate(new Date(row[3]), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    if (row[1] === playerId && row[2] === scheduleId && rowDateStr === targetDateStr) {
+      return { attendanceId: row[0], registrationStatus: row[4], attendanceStatus: row[5], isWalkIn: row[8], rowIndex: i + 1 };
+    }
+  }
+  return null;
+}
+
+function setAttendanceDeducted_(attendanceId, deducted) {
+  const sheet = sheet_(SHEETS.ATTENDANCE.name);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === attendanceId) { sheet.getRange(i + 1, 8).setValue(deducted); return; }
+  }
+}
+function normPhone_(v) {
+  let d = String(v == null ? '' : v).replace(/\D/g, '');
+  return d.length >= 10 ? '0' + d.slice(-10) : d;
+}
+/* === END: ATTENDANCE === */
+
+/** Apply the Bring-a-Friend referral discount once the referred player buys a package. */
+function addReferral(referrerPlayerId, referredPlayerId) {
+  const id = nextId_('REF', SHEETS.REFERRALS.name);
+  const discount = getConfigValue_('ReferralDiscount');
+  sheet_(SHEETS.REFERRALS.name).appendRow([
+    id, referrerPlayerId, referredPlayerId, new Date(), discount, 'Pending'
+  ]);
+  logAudit_('ADD_REFERRAL', id + ' — ' + referrerPlayerId + ' referred ' + referredPlayerId, null);
+  return id;
+}
+/* === START: NOTIFICATION ENGINE — CORE SEND FUNCTION === */
+
+/**
+ * Send a notification of a given type to a recipient.
+ * typeKey: e.g. 'ENROLL_SUBMITTED' (must exist in NotificationTypes sheet)
+ * recipient: { id, email } — id is PlayerID/CoachID/etc for the Notifications log
+ * data: object used to fill {{placeholders}} in the DefaultTemplate
+ */
+function sendNotification_(typeKey, recipient, data) {
+  const typeRow = findRowById_(SHEETS.NOTIFICATION_TYPES.name, typeKey);
+  if (!typeRow) {
+    logAudit_('NOTIF_UNKNOWN_TYPE', 'Unknown TypeKey: ' + typeKey, null);
+    return null;
+  }
+
+  const label = typeRow[1];
+  const audience = typeRow[2];
+  const channel = typeRow[4];
+  const template = typeRow[5];
+  const body = renderTemplate_(template, data || {});
+
+  const id = nextId_('NOTIF', SHEETS.NOTIFICATIONS.name);
+  sheet_(SHEETS.NOTIFICATIONS.name).appendRow([
+    id, typeKey, audience, (recipient && recipient.id) || '', label, body, channel, 'Unread', new Date(), ''
+  ]);
+
+  if ((channel === 'Email' || channel === 'Both') && recipient && recipient.email) {
+    try {
+      MailApp.sendEmail(recipient.email, label, body);
+    } catch (mailErr) {
+      logAudit_('NOTIF_EMAIL_FAILED', id + ' — ' + mailErr, null);
+    }
+  }
+
+  return id;
+}
+
+/** Replaces {{key}} placeholders in a template string with values from data. */
+function renderTemplate_(template, data) {
+  return String(template).replace(/{{(\w+)}}/g, function (match, key) {
+    const val = data[key];
+    return (val !== undefined && val !== null) ? val : '';
+  });
+}
+
+/** Shortcut for System-audience alerts — always goes to AdminEmail from Config. */
+function notifySystem_(typeKey, details) {
+  const adminEmail = getConfigValue_('AdminEmail');
+  return sendNotification_(typeKey, { email: adminEmail }, { details: details });
+}
+/* === END: NOTIFICATION ENGINE — CORE SEND FUNCTION === */
+// ============================================================
+// INTERNAL LOOKUPS
+// ============================================================
+
+function findRowById_(sheetName, id) {
+  const sheet = sheet_(sheetName);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === id) return data[i];
+  }
+  return null;
+}
+
+function getConfigValue_(key) {
+  const data = sheet_(SHEETS.CONFIG.name).getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === key) return data[i][1];
+  }
+  return null;
+}
+
+function countWalkInsThisMonth_(playerId, date) {
+  const data = sheet_(SHEETS.WALKINS.name).getDataRange().getValues();
+  const m = date.getMonth(), y = date.getFullYear();
+  let count = 0;
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const rowDate = new Date(row[2]);
+    if (row[1] === playerId && rowDate.getMonth() === m && rowDate.getFullYear() === y) {
+      count++;
+    }
+  }
+  return count;
+}
+
+function deductPackageSession_(playerId, programId) {
+  const sheet = sheet_(SHEETS.PACKAGES.name);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1] !== playerId || data[i][7] !== 'Active' || Number(data[i][5]) >= Number(data[i][4])) continue;
+    if (data[i][6] && new Date() > new Date(data[i][6])) continue;
+    const pr = findRowById_(SHEETS.PRICING.name, data[i][2]);
+    if (programId && (!pr || pr[1] !== programId)) continue; // Academy scan never eats Private sessions
+
+    const newUsed = Number(data[i][5]) + 1;
+    sheet.getRange(i + 1, 6).setValue(newUsed);
+    if (!data[i][6]) {
+      const days = pr ? Number(pr[6]) : 0;
+      if (days > 0) sheet.getRange(i + 1, 7).setValue(new Date(Date.now() + days * 86400000));
+    }
+    if (newUsed >= Number(data[i][4])) sheet.getRange(i + 1, 8).setValue('Completed');
+    logAudit_('SESSION_DEDUCTED', data[i][0] + ' — ' + playerId + ' ' + (programId || '') + ': ' + (Number(data[i][4]) - Number(data[i][5])) + ' → ' + (Number(data[i][4]) - newUsed) + ' left', null);
+    return data[i][0];
+  }
+  return false;
+}
+// ============================================================
+// WEB APP API — Enrollment endpoint for the Livity frontend
+// ============================================================
+
+const PROGRAM_PACKAGE_MAP = {
+  regular: 'PRC-ACADR',
+  mixedA:  'PRC-ACADMA',
+  mixedB:  'PRC-ACADMB',
+  mixedC:  'PRC-ACADMC'
+};
+
+const PRIVATE_PACK_MAP = { private4: 'PRC-PRIV4', private8: 'PRC-PRIV8' };
+
+const SINGLE_PRICE_MAP = {
+  'U5-U7':  'PRC-U57S',
+  'U9-U13': 'PRC-U913S',
+  'U15+':   'PRC-U15S'
+};
+
+// Regular Training top-up prices, keyed by age category — mirrors the Pricing sheet's Top-Up rows.
+const TOPUP_PRICE_MAP = {
+  'U5-U7':  'PRC-U57T',
+  'U9-U13': 'PRC-U913T',
+  'U15+':   'PRC-U15T'
+};
+
+/**
+ * Resolves what an EXISTING player is buying, by program — separate from resolvePriceId_
+ * (which is only for brand-new enrollment). Regular uses the Top-Up rate, not the first-package
+ * rate; Academy reuses the same package catalog since renewing is just another package purchase.
+ */
+function resolveTopupPriceId_(programId, category, packageKey) {
+  if (programId === 'PRG-REG') {
+    if (packageKey === 'single') return SINGLE_PRICE_MAP[category] || null;
+    return TOPUP_PRICE_MAP[category] || null;
+  }
+  if (programId === 'PRG-ADV')  return 'PRC-ADV';
+  if (programId === 'PRG-ACAD') return PROGRAM_PACKAGE_MAP[packageKey] || null;
+  if (programId === 'PRG-PRIV') return PRIVATE_PACK_MAP[packageKey] || null;
+  return null;
+}
+
+/** Single source of truth for Academy package price/sessions — reads live from the Pricing sheet. */
+function getAcademyPackagesData_() {
+  const packages = {};
+  Object.keys(PROGRAM_PACKAGE_MAP).forEach(function (key) {
+    const row = findRowById_(SHEETS.PRICING.name, PROGRAM_PACKAGE_MAP[key]);
+    if (row) {
+      packages[key] = { priceId: row[0], sessions: Number(row[4]), price: Number(row[5]), validityDays: Number(row[6]) };
+    }
+  });
+  const membershipRow = findRowById_(SHEETS.PRICING.name, 'PRC-MEMB');
+  const privatePacks = {};
+  Object.keys(PRIVATE_PACK_MAP).forEach(function (key) {
+    const row = findRowById_(SHEETS.PRICING.name, PRIVATE_PACK_MAP[key]);
+    if (row && Number(row[5]) > 0) privatePacks[key] = { priceId: row[0], sessions: Number(row[4]), price: Number(row[5]), validityDays: Number(row[6]) };
+  });
+  return {
+    success: true,
+    packages: packages,
+    privatePacks: privatePacks,
+    membershipFee: membershipRow ? Number(membershipRow[5]) : 4000
+  };
+}
+
+// Single-sheet: doPost writes directly to the sheet this script is bound to.
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+
+  try {
+    const body = JSON.parse(e.postData.contents);
+
+    if (body.action === 'enroll') {
+      return jsonResponse_(handleEnrollment_(body));
+    }
+    if (body.action === 'topup') {
+      return jsonResponse_(handleTopup_(body));
+    }
+    if (body.action === 'addProgram') {
+      return jsonResponse_(handleAddProgram_(body));
+    }
+    if (body.action === 'sendMessage') {
+      return jsonResponse_(handleSendMessage_(body));
+    }
+    if (body.action === 'savePhoto') {
+      return jsonResponse_(handleSavePhoto_(body));
+    }
+    if (body.action === 'removePhoto') {
+      return jsonResponse_(handleRemovePhoto_(body));
+    }
+    /* === START: PAYMENT SYSTEM EDIT — ROUTE === */
+    if (body.action === 'submitPayment') {
+      return jsonResponse_(handleSubmitPayment_(body));
+    }
+    /* === END: PAYMENT SYSTEM EDIT — ROUTE === */
+    if (body.action === 'scanSessions') {
+      return jsonResponse_(getScanSessions_(body));
+    }
+    if (body.action === 'scanPlayer') {
+      return jsonResponse_(handleScanPlayer_(body));
+    }
+
+    return jsonResponse_({ success: false, error: 'Unknown action: ' + body.action });
+
+  } catch (err) {
+    logAudit_('POST_ERROR', String(err), null);
+    return jsonResponse_({ success: false, error: 'Server error: ' + err.message });
+  } finally {
+    lock.releaseLock();
+  }
+}
+function doGet(e) {
+  const action = e && e.parameter && e.parameter.action;
+  if (action === 'schedule') {
+    return jsonResponse_(getScheduleData_());
+  }
+  if (action === 'messages') {
+    return jsonResponse_(getMessages_(e.parameter.contact));
+  }
+  if (action === 'findPlayer') {
+    return jsonResponse_(getFindPlayerData_(e.parameter.query));
+  }
+  if (action === 'guardianLookup') {
+    return jsonResponse_(getGuardianMatches_(e.parameter.whatsapp));
+  }
+  /* === START: SCAN PING EDIT === */
+  if (action === 'scanPing') {
+    const tz = Session.getScriptTimeZone();
+    return jsonResponse_({ success: true, scanner: 'ok', tz: tz, now: Utilities.formatDate(new Date(), tz, 'EEEE yyyy-MM-dd HH:mm'), staffKeySet: !!getConfigValue_('StaffKey') });
+  }
+  /* === END: SCAN PING EDIT === */
+  if (action === 'paymentInfo') {
+    return jsonResponse_(getPaymentInfo_());
+  }
+  if (action === 'academyPackages') {
+    return jsonResponse_(getAcademyPackagesData_());
+  }
+  if (action === 'gallery') {
+    return jsonResponse_(getGalleryData_());
+  }
+  if (action === 'version') {
+    return jsonResponse_(getVersionData_());
+  }
+  if (action === 'payments') {
+    return jsonResponse_(getPlayerPaymentsData_(e.parameter.playerId));
+  }
+  return jsonResponse_({ status: 'ok', service: 'Livity Enrollment API', mode: 'single-sheet', version: 'v3-consent-fix' });
+}
+
+/* === START: RETURNING GUARDIAN — LOOKUP REGARDLESS OF STATUS === */
+/** Unlike getFindPlayerData_ (Active-only, used for Top-Up), this checks EVERY player under
+ *  a WhatsApp number — including dormant/inactive ones — so "New" registration can catch
+ *  a returning guardian before creating a duplicate identity. */
+function getGuardianMatches_(whatsapp) {
+  if (!whatsapp) return { success:false, error:'Missing whatsapp.' };
+  const q = String(whatsapp).trim().toLowerCase().replace(/\s|-/g, '');
+  if (q.length < 6) return { success:true, players:[] }; // don't fire on partial typing
+
+  const playersData = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+  const programsData = sheet_(SHEETS.PROGRAMS.name).getDataRange().getValues();
+  const programNames = {};
+  for (let i = 1; i < programsData.length; i++) programNames[programsData[i][0]] = programsData[i][1];
+
+  const matches = [];
+  for (let i = 1; i < playersData.length; i++) {
+    const row = playersData[i];
+    const contactNumber = row[5];
+     if (normPhone_(contactNumber) !== normPhone_(whatsapp)) continue;
+    matches.push({
+      playerId: row[0],
+      fullName: row[1],
+      programName: programNames[row[7]] || row[7],
+      status: row[9],
+      guardianName: row[4]
+    });
+  }
+  return { success:true, players: matches };
+}
+/* === END: RETURNING GUARDIAN — LOOKUP === */
+// ============================================================
+// SCHEDULE API — source of truth for the frontend's dynamic Schedule tab
+// ============================================================
+
+const WEEK_DAYS_ORDER_ = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+/**
+ * Reads the Schedule + Programs sheets and returns a full Mon–Sun week array.
+ * Days with no matching Schedule rows come back as { active:false, sessions:[] } —
+ * no need for explicit "OFF" rows in the sheet; absence of a row means OFF.
+ * Admin edits the Schedule sheet directly — no code change, no redeploy.
+ */
+/* === START: GALLERY — READ ENABLED ITEMS, SORTED === */
+function getGalleryData_() {
+  const sh = sheet_(SHEETS.GALLERY.name);
+  if (!sh) return { success: true, items: [] };
+  const data = sh.getDataRange().getValues();
+  const items = [];
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    const enabled = r[6] === true || String(r[6]).toLowerCase() === 'true';
+    if (!enabled || !r[2]) continue;
+    items.push({
+      mediaId: r[0],
+      type: (String(r[1] || 'photo').toLowerCase() === 'video') ? 'video' : 'photo',
+      url: String(r[2]),
+      thumbnailUrl: String(r[3] || ''),
+      caption: String(r[4] || ''),
+      sort: Number(r[5]) || 999
+    });
+  }
+  items.sort(function (a, b) { return a.sort - b.sort; });
+  return { success: true, items: items };
+}
+/* === END: GALLERY === */
+
+function getScheduleData_() {
+  const scheduleData = sheet_(SHEETS.SCHEDULE.name).getDataRange().getValues();
+  const programsData = sheet_(SHEETS.PROGRAMS.name).getDataRange().getValues();
+
+  const programNames = {};
+  for (let i = 1; i < programsData.length; i++) {
+    programNames[programsData[i][0]] = programsData[i][1];
+  }
+
+  const byDay = {};
+  WEEK_DAYS_ORDER_.forEach(function (d) { byDay[d] = []; });
+
+  for (let i = 1; i < scheduleData.length; i++) {
+    const row = scheduleData[i];
+    const day = row[2];
+    if (!byDay[day]) byDay[day] = [];
+    byDay[day].push({
+      scheduleId: row[0],
+      programId: row[1],
+      programName: programNames[row[1]] || row[1],
+      startTime: fmtTime_(row[3]),
+
+      endTime: fmtTime_(row[4]),
+      venue: row[5],
+      notes: row[6]
+    });
+  }
+
+  const week = WEEK_DAYS_ORDER_.map(function (day) {
+    return { day: day, active: byDay[day].length > 0, sessions: byDay[day] };
+  });
+
+  return { success: true, week: week, generatedAt: new Date().toISOString() };
+}
+
+function handleEnrollment_(body) {
+  const player = body.player || {};
+  const guardian = body.guardian || {};
+  const enrollment = body.enrollment || {};
+
+  const missing = [];
+  if (!player.firstName) missing.push('firstName');
+  if (!player.lastName) missing.push('lastName');
+  if (!player.gender) missing.push('gender');
+  if (!guardian.guardianName) missing.push('guardianName');
+  if (!guardian.whatsapp) missing.push('whatsapp');
+  if (!enrollment.programId) missing.push('programId');
+  const consentOk_ = [enrollment.consentPrivacy, enrollment.consent, enrollment.consents, body.consentPrivacy].some(function (v) {
+    return v === true || v === 1 || String(v).toLowerCase() === 'true' || (v && typeof v === 'object' && Object.keys(v).length > 0);
+  });
+  if (!consentOk_) missing.push('consents');
+  if (missing.length) {
+    return { success: false, error: 'Missing required fields: ' + missing.join(', ') };
+  }
+
+  // Duplicate guard: same WhatsApp + same player name = already registered (siblings with different names are allowed)
+  {
+    const wantName = (String(player.firstName).trim() + ' ' + String(player.lastName).trim()).toLowerCase().replace(/\s+/g, ' ');
+    const wantPhone = normPhone_(guardian.whatsapp);
+    const existingPlayers = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+    for (let i = 1; i < existingPlayers.length; i++) {
+      const r = existingPlayers[i];
+      if (normPhone_(r[5]) !== wantPhone) continue;
+      if (String(r[1]).trim().toLowerCase().replace(/\s+/g, ' ') === wantName) {
+        return { success: false, error: r[1] + ' is already registered under this number (Player ID: ' + r[0] + '). Use "Find My Player" to top up or add a program instead.' };
+      }
+    }
+  }
+
+  // Price is resolved server-side — never trust a price sent from the client.
+  const priceId = resolvePriceId_(enrollment.programId, enrollment.packageKey, enrollment.category);
+  let pricingRow = null;
+  if (priceId) {
+    pricingRow = findRowById_(SHEETS.PRICING.name, priceId);
+    if (!pricingRow) {
+      return { success: false, error: 'Unknown PriceID resolved: ' + priceId };
+    }
+  }
+  // Private training has no fixed catalog price (priceId is null) — that's expected, not an error.
+  if (!priceId && enrollment.programId !== 'PRG-PRIV') {
+    return { success: false, error: 'Could not resolve a valid package for this program/category.' };
+  }
+
+  const playerId = registerPlayer({
+    fullName: player.firstName + ' ' + player.lastName,
+    birthYear: player.dob ? new Date(player.dob).getFullYear()
+      : (player.age ? (new Date().getFullYear() - Number(player.age)) : ''),
+    category: enrollment.category || '',
+    guardianName: guardian.guardianName,
+    contactNumber: guardian.whatsapp,
+    email: guardian.email || '',
+    programId: enrollment.programId,
+    referredBy: enrollment.referredBy || ''
+  });
+
+  let packageId = null;
+  let membershipPackageId = null;
+  let totalPrice = 0;
+
+  if (pricingRow) {
+    packageId = purchasePackage(playerId, priceId);
+    totalPrice = Number(pricingRow[5]);
+  }
+
+  // Membership fee — ONLY for Academy, added automatically, never for other programs.
+  if (enrollment.programId === 'PRG-ACAD') {
+    if (!playerHasMembership_(playerId)) {
+      membershipPackageId = purchasePackage(playerId, 'PRC-MEMB');
+      totalPrice += membershipFee_();
+    }
+  }
+
+  // === START: PAYMENT STATE — SUBMISSIONS START PENDING, NOT PAID ===
+ const paymentId = totalPrice > 0 ? recordPayment(playerId, packageId || 'PENDING', totalPrice, enrollment.paymentMethod || 'Unspecified', 'Pending') : null;
+  // === END: PAYMENT STATE ===
+
+  logAudit_('WEB_ENROLLMENT', playerId + ' via web form — ' + (priceId || 'no-fixed-price'), null);
+
+  // Notify parent + admin
+  sendNotification_('ENROLL_SUBMITTED', { id: playerId, email: guardian.email }, {
+    guardianName: guardian.guardianName,
+    playerName: player.firstName + ' ' + player.lastName,
+    programName: lbProgramLabelServer_(enrollment.programId)
+  });
+
+  sendNotification_('ADMIN_NEW_ENROLLMENT', { email: getConfigValue_('AdminEmail') }, {
+    playerName: player.firstName + ' ' + player.lastName,
+    programName: lbProgramLabelServer_(enrollment.programId)
+  });
+
+  return {
+    success: true,
+    enrollmentId: playerId,
+    packageId: packageId,
+    paymentId: paymentId,
+    amountDue: totalPrice
+  };
+}
+
+function lbProgramLabelServer_(id) {
+  const map = { 'PRG-REG':'Specialized Training — Regular', 'PRG-PRIV':'Specialized Training — Private', 'PRG-ADV':'Advanced Performance', 'PRG-ACAD':'Academy Training' };
+  return map[id] || id;
+}
+
+function resolvePriceId_(programId, packageKey, category) {
+  if (programId === 'PRG-ACAD') return PROGRAM_PACKAGE_MAP[packageKey] || null;
+  if (programId === 'PRG-ADV')  return 'PRC-ADV';
+  if (programId === 'PRG-REG') {
+    const map = { 'U5-U7': 'PRC-U57', 'U9-U13': 'PRC-U913', 'U15+': 'PRC-U15' };
+    return map[category] || null;
+  }
+  return null; // PRG-PRIV — rate confirmed by coach, not in the price catalog
+}
+
+// ============================================================
+// EXISTING-PLAYER LOOKUP + TOP-UP API
+// ============================================================
+
+/** Find Active players by mobile/WhatsApp number or PlayerID. Returns each match with active package(s). */
+function getFindPlayerData_(query) {
+  if (!query) return { success: false, error: 'Missing query.' };
+  const q = String(query).trim().toLowerCase().replace(/\s|-/g, '');
+  const qDigitsOnly = q.replace(/^lvt/, ''); // lets a bare "00001" match "LVT-00001"
+
+  const playersData = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+  const programsData = sheet_(SHEETS.PROGRAMS.name).getDataRange().getValues();
+  const programNames = {};
+  for (let i = 1; i < programsData.length; i++) programNames[programsData[i][0]] = programsData[i][1];
+
+  const matches = [];
+  for (let i = 1; i < playersData.length; i++) {
+    const row = playersData[i];
+    const playerId = row[0], fullName = row[1], category = row[3], contactNumber = row[5], programId = row[7], status = row[9];
+    if (String(status || 'Active').trim().toLowerCase() !== 'active') continue;
+
+    const idNorm = String(playerId).toLowerCase().replace(/\s|-/g, '');
+    const idMatch = idNorm === q || idNorm.replace(/^lvt/, '') === qDigitsOnly;
+    const contactMatch = normPhone_(query).length >= 10 && normPhone_(contactNumber) === normPhone_(query);
+    if (!idMatch && !contactMatch) continue;
+
+    matches.push({
+      playerId: playerId,
+      fullName: fullName,
+      category: category,
+      programId: programId,
+      programName: programNames[programId] || programId,
+      /* === START: ADD CHILD — EXPOSE GUARDIAN INFO FOR PREFILL === */
+      guardianName: row[4],
+      whatsapp: contactNumber,
+      email: row[6],
+      /* === END: ADD CHILD — EXPOSE GUARDIAN INFO FOR PREFILL === */
+      photoUrl: row[11] || '',
+      qrToken: qrToken_(playerId),
+      hasMembership: playerHasMembership_(playerId),
+      packages: getPlayerActivePackages_(playerId),
+      relationships: getPlayerRelationships_(playerId)
+    });
+  }
+
+  return { success: true, players: matches };
+}
+/* === START: PACKAGE STATE — EXHAUSTED VS EXPIRED VS PENDING PAYMENT === */
+function getPackageLatestPaymentStatus_(packageId) {
+  const payData = sheet_(SHEETS.PAYMENTS.name).getDataRange().getValues();
+  let latestStatus = null, latestDate = null;
+  for (let i = 1; i < payData.length; i++) {
+    const row = payData[i];
+    if (row[2] !== String(packageId).replace(/P$/, '')) continue;
+    const d = new Date(row[5]);
+    if (!latestDate || d > latestDate) { latestDate = d; latestStatus = row[6]; }
+  }
+  return latestStatus;
+}
+
+/** Looks at the player's most recent package for a program and returns the real reason
+ *  behind their session count: 'active' | 'exhausted' | 'expired' | 'pending_payment' | 'none'. */
+function computeProgramState_(playerId, programId) {
+  const pkgData = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  const candidates = [];
+  for (let i = 1; i < pkgData.length; i++) {
+    const row = pkgData[i];
+    if (row[1] !== playerId || row[2] === 'PRC-MEMB') continue;
+    const priceRow = findRowById_(SHEETS.PRICING.name, row[2]);
+    if (!priceRow || priceRow[1] !== programId) continue;
+    candidates.push({
+      status: row[7],
+      packageId: row[0], purchaseDate: new Date(row[3]),
+      sessionsTotal: Number(row[4]), sessionsUsed: Number(row[5]),
+      expiryDate: row[6] ? new Date(row[6]) : null
+    });
+  }
+  if (candidates.length === 0) return { state:'none', remaining:0, total:0, expiryDate:null };
+
+  candidates.sort(function (a, b) { return b.purchaseDate - a.purchaseDate; });
+  const latest = candidates[0];
+  const nowD_ = new Date();
+  const usable = candidates.filter(function (c) {
+    return c.status === 'Active' && !(c.expiryDate && nowD_ > c.expiryDate) && c.sessionsTotal > c.sessionsUsed;
+  });
+  const remaining = usable.reduce(function (n, c) { return n + (c.sessionsTotal - c.sessionsUsed); }, 0);
+  const totalSum = usable.length ? usable.reduce(function (n, c) { return n + c.sessionsTotal; }, 0) : latest.sessionsTotal;
+  const expiries = usable.filter(function (c) { return c.expiryDate; }).map(function (c) { return c.expiryDate; }).sort(function (a, b) { return a - b; });
+  const shownExpiry = usable.length ? (expiries[0] || null) : latest.expiryDate;
+  const paymentStatus = getPackageLatestPaymentStatus_(latest.packageId);
+  const isExpired = !usable.length && latest.expiryDate && nowD_ > latest.expiryDate;
+
+  let state;
+  if (paymentStatus === 'Pending' || paymentStatus === 'Overdue' || paymentStatus === 'Submitted') state = 'pending_payment';
+  else if (isExpired) state = 'expired';
+  else if (remaining <= 0) state = 'exhausted';
+  else state = 'active';
+
+  return { state: state, remaining: remaining, total: totalSum, expiryDate: shownExpiry ? shownExpiry.toISOString() : null };
+}
+/* === END: PACKAGE STATE === */
+/* getPlayerPaymentsData_ superseded — see the live-clock version earlier in the file, under PAYMENT SYSTEM EDIT */
+/* === START: PLAYER PHOTO — DRIVE STORAGE === */
+const PHOTO_FOLDER_NAME = 'Livity Player Photos';
+const PHOTO_COL = 12; // Players column L
+
+function getPhotoFolder_() {
+  const it = DriveApp.getFoldersByName(PHOTO_FOLDER_NAME);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(PHOTO_FOLDER_NAME);
+}
+
+/** Finds the player's row and checks that the caller knows the registered number. */
+function authPlayerRow_(playerId, contact) {
+  if (!playerId || !contact) return { error: 'Missing playerId or contact.' };
+  const sheet = sheet_(SHEETS.PLAYERS.name);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] !== playerId) continue;
+    if (normPhone_(data[i][5]) !== normPhone_(contact)) return { error: 'Not authorised.' };
+    return { sheet: sheet, rowIndex: i + 1, oldUrl: String(data[i][PHOTO_COL - 1] || '') };
+  }
+  return { error: 'Player not found.' };
+}
+
+function trashOldPhoto_(url) {
+  const m = /[?&]id=([\w-]+)/.exec(url || '');
+  if (!m) return;
+  try { DriveApp.getFileById(m[1]).setTrashed(true); } catch (e) {}
+}
+
+function handleSavePhoto_(body) {
+  const a = authPlayerRow_(body.playerId, body.contact);
+  if (a.error) return { success: false, error: a.error };
+
+  const image = String(body.image || '');
+  if (image.length > 200000) return { success: false, error: 'Photo is too large.' };
+  const m = /^data:image\/(jpeg|png);base64,(.+)$/.exec(image);
+  if (!m) return { success: false, error: 'Invalid image.' };
+
+  if (a.sheet.getRange(1, PHOTO_COL).getValue() !== 'PhotoURL') a.sheet.getRange(1, PHOTO_COL).setValue('PhotoURL');
+  trashOldPhoto_(a.oldUrl);
+
+  const blob = Utilities.newBlob(Utilities.base64Decode(m[2]), 'image/' + m[1], body.playerId + '.' + (m[1] === 'png' ? 'png' : 'jpg'));
+  const file = getPhotoFolder_().createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  const url = 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w320';
+
+  a.sheet.getRange(a.rowIndex, PHOTO_COL).setValue(url);
+  logAudit_('PLAYER_PHOTO_SAVED', body.playerId, null);
+  return { success: true, photoUrl: url };
+}
+
+function handleRemovePhoto_(body) {
+  const a = authPlayerRow_(body.playerId, body.contact);
+  if (a.error) return { success: false, error: a.error };
+  trashOldPhoto_(a.oldUrl);
+  a.sheet.getRange(a.rowIndex, PHOTO_COL).setValue('');
+  logAudit_('PLAYER_PHOTO_REMOVED', body.playerId, null);
+  return { success: true };
+}
+/* === END: PLAYER PHOTO — DRIVE STORAGE === */
+/* === START: QR PASS + SCAN — LIVITY BACKEND === */
+function qrSecret_() {
+  const props = PropertiesService.getScriptProperties();
+  let s = props.getProperty('QR_SECRET');
+  if (!s) { s = Utilities.getUuid() + Utilities.getUuid(); props.setProperty('QR_SECRET', s); }
+  return s;
+}
+
+/** Permanent per-player token. Para i-invalidate lahat ng QR: burahin ang QR_SECRET sa Script Properties. */
+function qrToken_(playerId) {
+  const sig = Utilities.computeHmacSha256Signature(String(playerId), qrSecret_());
+  return sig.slice(0, 6).map(function (b) { return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('').slice(0, 10);
+}
+
+function testQr() { Logger.log(qrToken_('LVT-00001')); } // patakbuhin isang beses para ma-authorize
+
+ /* === START: STAFF KEY EDIT — CONFIG-BACKED (DEFAULT 000000) === */
+const DEFAULT_STAFF_KEY_ = '000000';
+
+/** Gumagawa ng StaffKey + LateGraceMinutes row sa Config kung wala pa. Plain-text ang cell para hindi maging 0 ang "000000". */
+function ensureScanConfig_() {
+  const sheet = sheet_(SHEETS.CONFIG.name);
+  const data = sheet.getDataRange().getValues();
+  const rowOf = {};
+  for (let i = 1; i < data.length; i++) rowOf[data[i][0]] = i + 1;
+
+  if (!rowOf['StaffKey']) {
+    sheet.appendRow(['StaffKey', '']);
+    sheet.getRange(sheet.getLastRow(), 2).setNumberFormat('@').setValue(DEFAULT_STAFF_KEY_);
+  } else {
+    const cell = sheet.getRange(rowOf['StaffKey'], 2);
+    const cur = cell.getValue();
+    if (cur === '' || cur === null) cell.setNumberFormat('@').setValue(DEFAULT_STAFF_KEY_);
+  }
+  if (!rowOf['LateGraceMinutes']) sheet.appendRow(['LateGraceMinutes', 10]);
+}
+
+/** Binabasa ang StaffKey sa Config. Kapag wala/blank, gagawa ng default 000000. */
+function getStaffKey_() {
+  let k = getConfigValue_('StaffKey');
+  if (k === null || k === undefined || k === '') { ensureScanConfig_(); k = getConfigValue_('StaffKey'); }
+  if (typeof k === 'number') k = String(k).padStart(6, '0'); // safety net kapag naging number ang "000000"
+  return String(k == null ? '' : k).trim();
+}
+
+function staffOk_(key) {
+  const k = getStaffKey_();
+  return !!k && String(key == null ? '' : key).trim() === k;
+}
+
+/** Menu: Livity Admin → Setup Scanner */
+function setupScannerPrompt_() {
+  ensureScanConfig_();
+  SpreadsheetApp.getUi().alert('Scanner ready.\n\nStaff key: ' + getStaffKey_() + '\n\nPalitan sa Config sheet → StaffKey, o gamitin ang "Change Staff Key" sa menu.');
+}
+
+/** Menu: Livity Admin → Change Staff Key */
+function changeStaffKeyPrompt_() {
+  const ui = SpreadsheetApp.getUi();
+  const res = ui.prompt('Change Staff Key', 'Bagong staff key (min. 6 characters):', ui.ButtonSet.OK_CANCEL);
+  if (res.getSelectedButton() !== ui.Button.OK) return;
+  const v = res.getResponseText().trim();
+  if (v.length < 6) { ui.alert('Masyadong maikli — at least 6 characters.'); return; }
+  ensureScanConfig_();
+  const sheet = sheet_(SHEETS.CONFIG.name);
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === 'StaffKey') { sheet.getRange(i + 1, 2).setNumberFormat('@').setValue(v); break; }
+  }
+  logAudit_('STAFF_KEY_CHANGED', 'StaffKey updated via menu', null);
+  ui.alert('Staff key updated. Ilagay ulit sa scanner ("Change staff key" link).');
+}
+
+/** Run sa Apps Script editor → tingnan ang Execution log. Sinusubok ang key, sessions, QR token, lookup (walang nire-record). */
+function testScanApi() {
+  const key = getStaffKey_();
+  const tz = Session.getScriptTimeZone();
+  Logger.log('TZ: ' + tz + ' | Now: ' + Utilities.formatDate(new Date(), tz, 'EEEE HH:mm'));
+  Logger.log('Wrong key   → ' + JSON.stringify(getScanSessions_({ key: 'wrong-key' })));
+  Logger.log('Sessions    → ' + JSON.stringify(getScanSessions_({ key: key })));
+  const ps = sheet_(SHEETS.PLAYERS.name);
+  if (ps.getLastRow() < 2) { Logger.log('Walang player pa — mag-enroll muna ng isa.'); return; }
+  const pid = ps.getRange(2, 1).getValue();
+  const token = qrToken_(pid);
+  Logger.log('QR payload  → ?lvt=' + pid + '&t=' + token);
+  Logger.log('Good lookup → ' + JSON.stringify(handleScanPlayer_({ key: key, code: pid + '.' + token, manual: '0', lookup: '1' })).slice(0, 300));
+  Logger.log('Bad token   → ' + JSON.stringify(handleScanPlayer_({ key: key, code: pid + '.deadbeef00', manual: '0', lookup: '1' })));
+}
+/* === END: STAFF KEY EDIT === */
+
+/** Tumatanggap ng full URL ("?lvt=LVTFA-XXXXXXX&t=TOKEN"), "LVTFA-XXXXXXX.TOKEN", o bare "LVTFA-XXXXXXX" (manual entry). Tugma sa actual player ID format ng nextPlayerId_(). */
+function parseScanCode_(code) {
+  const s = String(code || '').trim();
+  const lvtParam = /[?&]lvt=([^&]+)/i.exec(s);
+  const idSource = lvtParam ? decodeURIComponent(lvtParam[1]) : s;
+  const idMatch = /LVTFA-[A-Z0-9]{7}/i.exec(idSource);
+  if (!idMatch) return null;
+  const playerId = idMatch[0].toUpperCase();
+  const tParam = /[?&]t=([A-Za-z0-9]+)/.exec(s);
+  const tDot = /\.([A-Za-z0-9]+)\s*$/.exec(idSource);
+  const token = tParam ? tParam[1] : (tDot ? tDot[1] : '');
+  return { playerId: playerId, token: token };
+}
+
+function scanCounts_(scheduleId, programId) {
+  const tz = Session.getScriptTimeZone();
+  const today = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  const att = sheet_(SHEETS.ATTENDANCE.name).getDataRange().getValues();
+    let present = 0, late = 0;
+  const attendedIds = {};
+  for (let i = 1; i < att.length; i++) {
+    const r = att[i];
+    if (r[2] !== scheduleId || !r[3]) continue;
+    if (Utilities.formatDate(new Date(r[3]), tz, 'yyyy-MM-dd') !== today) continue;
+    if (r[5] === 'Present') { present++; attendedIds[r[1]] = true; } else if (r[5] === 'Late') { late++; attendedIds[r[1]] = true; }
+  }
+  // Union ng roster + mga nag-attend na: kapag naubos ng scan ang huling session, hindi mawawala sa expected.
+  const expectedIds = {};
+  getSessionRecipients_(scheduleId, programId, new Date()).forEach(function (p) { expectedIds[p[0]] = true; });
+  Object.keys(attendedIds).forEach(function (id) { expectedIds[id] = true; });
+  const expected = Object.keys(expectedIds).length;
+  return { total: Math.max(expected, present + late), present: present, late: late, unconfirmed: Math.max(0, expected - present - late) };
+}
+
+/** Today's sessions, straight from the Schedule sheet. */
+function getScanSessions_(body) {
+  if (!staffOk_(body.key)) return { success: false, error: 'Wrong or missing staff key.' };
+  const tz = Session.getScriptTimeZone();
+  const dayName = Utilities.formatDate(new Date(), tz, 'EEEE');
+
+  const pd = sheet_(SHEETS.PROGRAMS.name).getDataRange().getValues();
+  const names = {};
+  for (let i = 1; i < pd.length; i++) names[pd[i][0]] = pd[i][1];
+
+  const sched = sheet_(SHEETS.SCHEDULE.name).getDataRange().getValues();
+  const sessions = [];
+  for (let i = 1; i < sched.length; i++) {
+    const r = sched[i];
+    if (r[2] !== dayName) continue;
+    sessions.push({
+      scheduleId: r[0], programId: r[1], programName: names[r[1]] || r[1],
+      start: fmtTime_(r[3]), end: fmtTime_(r[4]), venue: r[5],
+      counts: scanCounts_(r[0], r[1])
+    });
+  }
+  sessions.sort(function (a, b) { return a.start.localeCompare(b.start); });
+  return { success: true, day: dayName, sessions: sessions };
+}
+
+/** lookup=1 → player info lang. Otherwise nire-record ang attendance at dini-deduct ang session. */
+function handleScanPlayer_(body) {
+  if (!staffOk_(body.key)) return { success: false, error: 'Wrong or missing staff key.' };
+
+  const parsed = parseScanCode_(body.code);
+  if (!parsed) return { success: false, error: 'Not a Livity QR.' };
+  const manual = String(body.manual) === '1';
+  if (!manual && parsed.token !== qrToken_(parsed.playerId)) return { success: false, error: 'Invalid or outdated QR.' };
+
+  const row = findRowById_(SHEETS.PLAYERS.name, parsed.playerId);
+  if (!row) return { success: false, error: 'Player not found.' };
+  if (String(row[9] || 'Active').trim().toLowerCase() !== 'active') {
+    return { success: false, error: 'This player is not active. Please check with Admin JA.' };
+  }
+
+  const infoOf = function () {
+    return { playerId: row[0], fullName: row[1], category: row[3], guardianName: row[4], photoUrl: row[11] || '', programs: getPlayerRelationships_(row[0]) };
+  };
+  let info = infoOf();
+
+  if (String(body.lookup) === '1') return { success: true, result: 'LOOKUP', player: info };
+
+  const sched = findRowById_(SHEETS.SCHEDULE.name, body.scheduleId);
+  if (!sched) return { success: false, error: 'Pick a session first.' };
+  const programId = sched[1];
+
+  const tz = Session.getScriptTimeZone();
+  const now = new Date();
+  const dateStr = Utilities.formatDate(now, tz, 'yyyy-MM-dd');
+
+  const existing = findAttendanceRow_(info.playerId, sched[0], now);
+  if (existing && (existing.attendanceStatus === 'Present' || existing.attendanceStatus === 'Late')) {
+    try {
+      sendNotification_('ADMIN_DUP_CHECKIN', { email: getConfigValue_('AdminEmail') }, { playerName: info.fullName, programName: sched[1] });
+    } catch (e) { /* non-blocking */ }
+    return { success: true, result: 'DUPLICATE', message: 'Already checked in', programId: programId, player: info, counts: scanCounts_(sched[0], programId) };
+  }
+
+  const startDate = Utilities.parseDate(dateStr + ' ' + fmtTime_(sched[3]), tz, 'yyyy-MM-dd HH:mm');
+  const grace = Number(getConfigValue_('LateGraceMinutes')) || 10;
+  const mins = Math.floor((now - startDate) / 60000);
+  const isLate = mins > grace;
+  const status = isLate ? 'Late' : 'Present';
+
+  const inProgram = info.programs.some(function (p) { return p.programId === programId && p.state !== 'none'; });
+  if (inProgram) registerForSession(info.playerId, sched[0]);
+  if (!inProgram) {
+    try {
+      sendNotification_('ADMIN_UNREGISTERED_SCAN', { email: getConfigValue_('AdminEmail') }, { playerName: info.fullName, programName: sched[1] });
+    } catch (e) { /* non-blocking */ }
+  }
+
+  const r = checkIn(info.playerId, sched[0], null, status, now);
+
+  info = infoOf(); // refreshed sessions left
+  const prog = info.programs.filter(function (p) { return p.programId === programId; })[0];
+  let warn = '';
+  if (r.registrationStatus === 'Walkin') warn = 'Not enrolled in this program — recorded as walk-in' + (r.walkInSurcharge ? ' (1.5× surcharge)' : '') + '.';
+  else if (prog && prog.state === 'pending_payment') warn = 'Payment still pending.';
+  else if (prog && (prog.state === 'expired' || prog.state === 'exhausted')) warn = 'Package ' + prog.state + ' — ask to top up.';
+
+  logAudit_('SCAN_CHECKIN', info.playerId + ' — ' + status + ' (' + sched[0] + ')', null);
+  return {
+    success: true, result: isLate ? 'LATE' : 'PRESENT', minutesLate: isLate ? mins : 0,
+    programId: programId, warn: warn, player: info, counts: scanCounts_(sched[0], programId)
+  };
+}
+/* === END: QR PASS + SCAN — LIVITY BACKEND === */
+/** Active packages for a player, with sessions remaining computed. */
+function getPlayerActivePackages_(playerId) {
+  const pkgData = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  const packages = [];
+  for (let i = 1; i < pkgData.length; i++) {
+    const row = pkgData[i];
+    if (row[1] !== playerId || row[7] !== 'Active') continue;
+    const priceRow = findRowById_(SHEETS.PRICING.name, row[2]);
+    const sessionsTotal = Number(row[4]), sessionsUsed = Number(row[5]);
+    packages.push({
+      packageId: row[0],
+      priceId: row[2],
+      programId: priceRow ? priceRow[1] : '',
+      packageType: priceRow ? priceRow[3] : '',
+      sessionsTotal: sessionsTotal,
+      sessionsUsed: sessionsUsed,
+      remaining: sessionsTotal - sessionsUsed,
+      expiryDate: row[6] ? new Date(row[6]).toISOString() : ''
+    });
+  }
+  return packages;
+}
+
+/**
+ * One player, many training relationships. Aggregates ALL programs a player has ever
+ * bought a package in (skipping the one-time Membership Fee row, which isn't a training
+ * relationship on its own) — this is what lets "Miguel Santos" show Academy + Regular + Private
+ * as separate lines under one identity, instead of one program per player record.
+ */
+function getPlayerRelationships_(playerId) {
+  const programsData = sheet_(SHEETS.PROGRAMS.name).getDataRange().getValues();
+  const programNames = {};
+  for (let i = 1; i < programsData.length; i++) programNames[programsData[i][0]] = programsData[i][1];
+
+  // Every programId the player has EVER purchased a package in (any status) — not just Active,
+  // so an exhausted/expired-but-not-flipped-to-Completed package still surfaces its real state.
+  const pkgData = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  const programIds = {};
+  for (let i = 1; i < pkgData.length; i++) {
+    const row = pkgData[i];
+    if (row[1] !== playerId || row[2] === 'PRC-MEMB') continue;
+    const priceRow = findRowById_(SHEETS.PRICING.name, row[2]);
+    if (priceRow) programIds[priceRow[1]] = true;
+  }
+
+  // Private Training has no fixed-price package row — surface it anyway so it's not silently dropped.
+  const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+  if (playerRow && playerRow[7]) programIds[playerRow[7]] = true;
+
+  return Object.keys(programIds).map(function (pid) {
+    const s = computeProgramState_(playerId, pid);
+    return {
+      programId: pid,
+      programName: programNames[pid] || pid,
+      remaining: s.remaining,
+      total: s.total || 0,
+      hasPackage: s.state !== 'none',
+      state: s.state,
+      expiryDate: s.expiryDate
+    };
+  });
+}
+
+/** Existing-player purchase (top-up/renewal): resolves the PriceID server-side by program, never trusts a client price. */
+function handleTopup_(body) {
+  const playerId = body.playerId;
+  const programId = body.programId;
+  const category = body.category || '';
+  const packageKey = body.packageKey || '';
+  const paymentMethod = body.paymentMethod || 'Unspecified';
+
+  if (!playerId || !programId) {
+    return { success: false, error: 'Missing playerId or programId.' };
+  }
+
+  const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+  if (!playerRow) {
+    return { success: false, error: 'Player not found.' };
+  }
+
+ let priceId = resolveTopupPriceId_(programId, category, packageKey);
+  if (programId === 'PRG-REG' && packageKey !== 'single' && !playerHasRemainingSessions_(playerId, programId)) {
+    priceId = ({ 'U5-U7':'PRC-U57', 'U9-U13':'PRC-U913', 'U15+':'PRC-U15' })[category] || null;
+  }
+  if (!priceId) {
+    return { success: false, error: "This isn't available to purchase online yet — please WhatsApp Admin JA." };
+  }
+
+  const priceCheck_ = findRowById_(SHEETS.PRICING.name, priceId);
+  if (!priceCheck_ || !(Number(priceCheck_[5]) > 0)) {
+    return { success: false, error: "This isn't available to purchase online yet — please WhatsApp Admin JA." };
+  }
+
+  let packageId;
+  try {
+    packageId = purchasePackage(playerId, priceId); // Top-Up type enforces "must have remaining sessions"; new Academy packages don't need that check
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+
+  const pricingRow = findRowById_(SHEETS.PRICING.name, priceId);
+  let amount = Number(pricingRow[5]);
+  if (programId === 'PRG-ACAD' && !playerHasMembership_(playerId)) {
+    purchasePackage(playerId, 'PRC-MEMB');
+    amount += membershipFee_();
+  }
+  // === START: PAYMENT STATE — SUBMISSIONS START PENDING, NOT PAID ===
+  const paymentId = recordPayment(playerId, packageId, amount, paymentMethod, 'Pending');
+  // === END: PAYMENT STATE ===
+
+  logAudit_('WEB_TOPUP', playerId + ' purchased via web — ' + priceId, null);
+
+  const playerName = playerRow[1], guardianName = playerRow[4], guardianEmail = playerRow[6];
+
+  sendNotification_('PAY_SUBMITTED', { id: playerId, email: guardianEmail }, {
+    amount: amount, playerName: playerName
+  });
+  sendNotification_('ADMIN_NEW_PAYMENT', { email: getConfigValue_('AdminEmail') }, {
+    guardianName: guardianName, amount: amount
+  });
+
+  return { success: true, packageId: packageId, paymentId: paymentId, amountDue: amount };
+}
+
+/**
+ * Adds a NEW training relationship to an EXISTING player — reuses their LVT ID and on-file
+ * guardian/consent info entirely. Never creates a new Players row. Blocks re-adding a program
+ * the player is already in (that's what Top-Up/renewal is for, not this).
+ */
+function handleAddProgram_(body) {
+  const playerId = body.playerId;
+  const programId = body.programId;
+  const category = body.category || '';
+  const packageKey = body.packageKey || '';
+  const paymentMethod = body.paymentMethod || 'Unspecified';
+
+  if (!playerId || !programId) {
+    return { success: false, error: 'Missing playerId or programId.' };
+  }
+
+  const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+  if (!playerRow) {
+    return { success: false, error: 'Player not found.' };
+  }
+
+  const alreadyIn = getPlayerRelationships_(playerId).some(function (r) { return r.programId === programId; });
+  if (alreadyIn) {
+    return { success: false, error: 'This player is already in that program — use Top Up instead.' };
+  }
+
+  const priceId = resolvePriceId_(programId, packageKey, category);
+  let pricingRow = null, packageId = null, totalPrice = 0;
+
+  if (priceId) {
+    pricingRow = findRowById_(SHEETS.PRICING.name, priceId);
+    if (!pricingRow) return { success: false, error: 'Unknown PriceID resolved: ' + priceId };
+    packageId = purchasePackage(playerId, priceId);
+    totalPrice = Number(pricingRow[5]);
+  }
+  if (!priceId && programId !== 'PRG-PRIV') {
+    return { success: false, error: 'Could not resolve a valid package for this program/category.' };
+  }
+
+  if (programId === 'PRG-ACAD') {
+    if (!playerHasMembership_(playerId)) {
+      purchasePackage(playerId, 'PRC-MEMB');
+      totalPrice += membershipFee_();
+    }
+  }
+  if (programId === 'PRG-PRIV') purchasePackage(playerId, 'PRC-PRIV'); // 0 sessions, ₱0 — para may record ang relationship
+
+  // === START: PAYMENT STATE — SUBMISSIONS START PENDING, NOT PAID ===
+ const paymentId = totalPrice > 0 ? recordPayment(playerId, packageId || 'PENDING', totalPrice, paymentMethod, 'Pending') : null;
+  // === END: PAYMENT STATE ===
+ logAudit_('WEB_ADD_PROGRAM', playerId + ' added ' + programId + ' via web', null);
+  if (category && !playerRow[3]) {
+    const ps = sheet_(SHEETS.PLAYERS.name), pd = ps.getDataRange().getValues();
+    for (let i = 1; i < pd.length; i++) if (pd[i][0] === playerId) { ps.getRange(i + 1, 4).setValue(category); break; }
+  }
+
+  const playerName = playerRow[1], guardianName = playerRow[4], guardianEmail = playerRow[6];
+
+  sendNotification_('ENROLL_SUBMITTED', { id: playerId, email: guardianEmail }, {
+    guardianName: guardianName, playerName: playerName, programName: lbProgramLabelServer_(programId)
+  });
+  sendNotification_('ADMIN_NEW_ENROLLMENT', { email: getConfigValue_('AdminEmail') }, {
+    playerName: playerName, programName: lbProgramLabelServer_(programId)
+  });
+
+  return { success: true, packageId: packageId, paymentId: paymentId, amountDue: totalPrice };
+}
+
+// ============================================================
+// MESSAGING API — "Ask Admin JA" in-app chat (Sheet-backed)
+// ============================================================
+
+/** Handles a new chat message from a guardian. ContactKey = their WhatsApp number. */
+function handleSendMessage_(body) {
+  if (!body.contactKey || !body.body) {
+    return { success: false, error: 'Missing contactKey or body.' };
+  }
+
+  const id = nextId_('MSG', SHEETS.MESSAGES.name);
+  sheet_(SHEETS.MESSAGES.name).appendRow([
+    id, body.contactKey, body.guardianName || '', body.whatsapp || body.contactKey,
+    'Parent', body.body, new Date(), 'Unread'
+  ]);
+  logAudit_('CHAT_MESSAGE_RECEIVED', id + ' — ' + (body.guardianName || body.contactKey) + ': ' + body.body, null);
+
+  sendNotification_('ADMIN_NEW_PARENT_REQUEST', { email: getConfigValue_('AdminEmail') }, {
+    guardianName: body.guardianName || body.contactKey,
+    details: body.body
+  });
+
+  return { success: true, messageId: id };
+}
+
+/** Returns full conversation history for a given contactKey (WhatsApp number), oldest first. */
+function getMessages_(contactKey) {
+  if (!contactKey) return { success: false, error: 'Missing contact.' };
+
+  const data = sheet_(SHEETS.MESSAGES.name).getDataRange().getValues();
+  const messages = [];
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (normPhone_(row[1]) !== normPhone_(contactKey)) continue;
+    messages.push({
+      messageId: row[0], sender: row[4], body: row[5],
+      timestamp: new Date(row[6]).toISOString(), status: row[7]
+    });
+  }
+  return { success: true, messages: messages };
+}
+
+function jsonResponse_(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+// ============================================================
+// NIGHTLY 9:00 PM REMINDERS — Payment check + tomorrow's session
+// ============================================================
+
+/** Run once (or via menu) to install the daily 9PM trigger. Safe to re-run — clears old ones first. */
+function installNightlyReminderTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'run9PMReminders_') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('run9PMReminders_')
+    .timeBased()
+    .atHour(21)
+    .nearMinute(0)
+    .everyDays(1)
+    .create();
+  SpreadsheetApp.getUi().alert('9:00 PM nightly reminder trigger installed.');
+}
+
+/** Fired by the time-driven trigger at ~9:00 PM daily. */
+function run9PMReminders_() {
+  try {
+    sendPaymentDueReminders_();
+  } catch (err) {
+    logAudit_('SYS_GAS_ERROR', '9PM payment reminder failed: ' + err, null);
+    notifySystem_('SYS_GAS_ERROR', 'Nightly payment reminder failed: ' + err);
+  }
+  try {
+    sendTomorrowSessionReminders_();
+  } catch (err) {
+    logAudit_('SYS_GAS_ERROR', '9PM session reminder failed: ' + err, null);
+    notifySystem_('SYS_GAS_ERROR', 'Nightly session reminder failed: ' + err);
+  }
+}
+
+
+/** Part 2 — find tomorrow's scheduled sessions and remind every active player on that program. */
+function sendTomorrowSessionReminders_() {
+  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowName = DAY_NAMES[tomorrow.getDay()];
+
+  const scheduleData = sheet_(SHEETS.SCHEDULE.name).getDataRange().getValues();
+  const tomorrowSessions = scheduleData.slice(1).filter(function (r) { return r[2] === tomorrowName; });
+  if (tomorrowSessions.length === 0) return;
+
+  const playersData = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+
+  tomorrowSessions.forEach(function (session) {
+    const programId = session[1], startTime = fmtTime_(session[3]), venue = session[5];
+    const recipients = getSessionRecipients_(session[0], programId, tomorrow);
+
+    for (let i = 0; i < recipients.length; i++) {
+      const p = recipients[i];
+      const playerId = p[0], playerName = p[1], email = p[6];
+
+      sendNotification_('SCHEDULE_SESSION_REMINDER',
+        { id: playerId, email: email },
+        { playerName: playerName, sessionDate: tomorrowName + ' ' + startTime, venue: venue });
+    }
+  });
+
+  logAudit_('NIGHTLY_SESSION_REMINDERS_SENT', tomorrowSessions.length + ' session(s) for ' + tomorrowName, null);
+}
+
+/** Run once (or via menu) to install the daily 8AM trigger. Safe to re-run — clears old ones first. */
+function installMorningReminderTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'run8AMReminders_') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('run8AMReminders_')
+    .timeBased()
+    .atHour(8)
+    .nearMinute(0)
+    .everyDays(1)
+    .create();
+  SpreadsheetApp.getUi().alert('8:00 AM morning reminder trigger installed.');
+}
+
+/** Fired by the time-driven trigger at ~8:00 AM daily. */
+function run8AMReminders_() {
+  try {
+    sendPaymentDueReminders_(); // same elapsed-time logic — anything still Pending now reads as overdue
+  } catch (err) {
+    logAudit_('SYS_GAS_ERROR', '8AM payment escalation failed: ' + err, null);
+    notifySystem_('SYS_GAS_ERROR', 'Morning payment escalation failed: ' + err);
+  }
+  try {
+    sendTodaySessionReminders_();
+  } catch (err) {
+    logAudit_('SYS_GAS_ERROR', '8AM session reminder failed: ' + err, null);
+    notifySystem_('SYS_GAS_ERROR', 'Morning session reminder failed: ' + err);
+  }
+}
+
+/** Part 2 (morning) — find today's scheduled sessions and remind every active player on that program. */
+function sendTodaySessionReminders_() {
+  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const today = new Date();
+  const todayName = DAY_NAMES[today.getDay()];
+
+  const scheduleData = sheet_(SHEETS.SCHEDULE.name).getDataRange().getValues();
+  const todaySessions = scheduleData.slice(1).filter(function (r) { return r[2] === todayName; });
+  if (todaySessions.length === 0) return;
+
+  const playersData = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+
+  todaySessions.forEach(function (session) {
+    const programId = session[1], startTime = fmtTime_(session[3]), venue = session[5];
+    const recipients = getSessionRecipients_(session[0], programId, today);
+
+    for (let i = 0; i < recipients.length; i++) {
+      const p = recipients[i];
+      const playerId = p[0], playerName = p[1], email = p[6];
+
+      sendNotification_('SCHEDULE_SESSION_REMINDER',
+        { id: playerId, email: email },
+        { playerName: playerName, sessionDate: 'Today, ' + startTime, venue: venue });
+    }
+  });
+
+  logAudit_('MORNING_SESSION_REMINDERS_SENT', todaySessions.length + ' session(s) for ' + todayName, null);
+}
+
+/** Run once (or via menu) to install the daily 5PM trigger. Safe to re-run — clears old ones first. */
+function installFinalReminderTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'run5PMReminders_') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('run5PMReminders_')
+    .timeBased()
+    .atHour(17)
+    .nearMinute(0)
+    .everyDays(1)
+    .create();
+  SpreadsheetApp.getUi().alert('5:00 PM final reminder trigger installed.');
+}
+
+/** Fired by the time-driven trigger at ~5:00 PM daily. Warning only — no penalty applied here. */
+function run5PMReminders_() {
+  try {
+    sendPaymentWarning5PM_();
+  } catch (err) {
+    logAudit_('SYS_GAS_ERROR', '5PM payment warning failed: ' + err, null);
+    notifySystem_('SYS_GAS_ERROR', 'Final payment warning failed: ' + err);
+  }
+  try {
+    sendEveningSessionFinalReminders_();
+  } catch (err) {
+    logAudit_('SYS_GAS_ERROR', '5PM evening session reminder failed: ' + err, null);
+    notifySystem_('SYS_GAS_ERROR', 'Evening session final reminder failed: ' + err);
+  }
+}
+
+
+/** Run once (or via menu) to install the daily 8PM penalty trigger. Safe to re-run — clears old ones first. */
+function installPenaltyTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'run8PMPenalty_') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('run8PMPenalty_')
+    .timeBased()
+    .atHour(20)
+    .nearMinute(0)
+    .everyDays(1)
+    .create();
+  SpreadsheetApp.getUi().alert('8:00 PM overdue penalty trigger installed.');
+}
+
+/** Fired by the time-driven trigger at ~8:00 PM daily. Safety net only — flags Overdue via the live-clock logic (never mutates Amount). */
+function run8PMPenalty_() {
+  try {
+    applyOverduePenalty8PM_();
+  } catch (err) {
+    logAudit_('SYS_GAS_ERROR', '8PM penalty application failed: ' + err, null);
+    notifySystem_('SYS_GAS_ERROR', '8PM penalty application failed: ' + err);
+  }
+}
+
+
+/** Part 2 (5PM) — final nudge for today's evening sessions only (excludes AM-only days like Saturday). */
+function sendEveningSessionFinalReminders_() {
+  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const today = new Date();
+  const todayName = DAY_NAMES[today.getDay()];
+
+  const scheduleData = sheet_(SHEETS.SCHEDULE.name).getDataRange().getValues();
+  const eveningSessions = scheduleData.slice(1).filter(function (r) {
+    return r[2] === todayName && Number(fmtTime_(r[3]).split(':')[0]) >= 12; // StartTime hour >= 12 → PM session
+  });
+  if (eveningSessions.length === 0) return;
+
+  const playersData = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+
+  eveningSessions.forEach(function (session) {
+    const programId = session[1], startTime = fmtTime_(session[3]), venue = session[5];
+    const recipients = getSessionRecipients_(session[0], programId, today);
+
+    for (let i = 0; i < recipients.length; i++) {
+      const p = recipients[i];
+      const playerId = p[0], playerName = p[1], email = p[6];
+
+      sendNotification_('SCHEDULE_SESSION_REMINDER',
+        { id: playerId, email: email },
+        { playerName: playerName, sessionDate: 'Tonight, ' + startTime, venue: venue });
+    }
+  });
+
+  logAudit_('EVENING_SESSION_FINAL_REMINDERS_SENT', eveningSessions.length + ' session(s) for ' + todayName, null);
+}
+
+// ============================================================
+// EVERY-3-DAYS SESSIONS-REMAINING FOLLOW-UP
+// ============================================================
+
+/** Run once (or via menu) to install the every-3-days trigger. Safe to re-run — clears old ones first. */
+function installSessionsRemainingTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'runSessionsRemainingCheck_') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('runSessionsRemainingCheck_')
+    .timeBased()
+    .everyDays(3)
+    .atHour(10)
+    .nearMinute(0)
+    .create();
+  SpreadsheetApp.getUi().alert('Every-3-days sessions-remaining follow-up trigger installed.');
+}
+
+/** Fired every 3 days. Tells each guardian how many sessions are left on their Active package(s). */
+function runSessionsRemainingCheck_() {
+  try {
+    sendSessionsRemainingFollowUps_();
+  } catch (err) {
+    logAudit_('SYS_GAS_ERROR', '3-day sessions-remaining follow-up failed: ' + err, null);
+    notifySystem_('SYS_GAS_ERROR', 'Sessions-remaining follow-up failed: ' + err);
+  }
+}
+
+function sendSessionsRemainingFollowUps_() {
+  const pkgData = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+
+  for (let i = 1; i < pkgData.length; i++) {
+    const row = pkgData[i];
+    if (row[7] !== 'Active') continue;
+
+    const playerId = row[1], sessionsTotal = Number(row[4]), sessionsUsed = Number(row[5]);
+    const remaining = sessionsTotal - sessionsUsed;
+    if (sessionsTotal <= 0 || remaining <= 0) continue; // 0-session rows (e.g. Membership) or fully used — skip
+
+    const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+    if (!playerRow) continue;
+    const playerName = playerRow[1], guardianName = playerRow[4], guardianEmail = playerRow[6];
+
+    sendNotification_('PACKAGE_SESSIONS_REMAINING',
+      { id: playerId, email: guardianEmail },
+      { guardianName: guardianName, playerName: playerName, remaining: remaining, total: sessionsTotal });
+  }
+
+  logAudit_('SESSIONS_REMAINING_FOLLOWUP_SENT', 'Follow-up pass completed', null);
+}
+
+// ============================================================
+// FULL SYSTEM OVERVIEW DIALOG
+// ============================================================
+
+function showFullSystemDialog() {
+  const html = HtmlService.createHtmlOutput(buildFullSystemHtml_())
+    .setWidth(760)
+    .setHeight(600);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Livity — Full System Overview');
+}
+
+function buildFullSystemHtml_() {
+
+  const config = sheetToObjects_(SHEETS.CONFIG.name, ['Key', 'Value']);
+  const programs = sheetToObjects_(SHEETS.PROGRAMS.name);
+  const schedule = sheetToObjects_(SHEETS.SCHEDULE.name);
+  const pricing = sheetToObjects_(SHEETS.PRICING.name);
+  const coaches = sheetToObjects_(SHEETS.COACHES.name);
+
+  const style = `
+    <style>
+      * { box-sizing:border-box; }
+      body {
+        font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+        color:#0B2F64;
+        margin:0;
+        padding:20px 24px 32px;
+        background:#fff;
+      }
+      h2 {
+        font-size:20px;
+        margin:0 0 2px;
+        color:#171714;
+      }
+      .sub {
+        color:#5a5a5a;
+        font-size:12px;
+        margin:0 0 20px;
+      }
+      .section {
+        margin-bottom:26px;
+      }
+      .section h3 {
+        font-size:14px;
+        letter-spacing:.4px;
+        text-transform:uppercase;
+        color:#0B2F64;
+        margin:0 0 10px;
+        padding-bottom:6px;
+        border-bottom:2px solid #FFDE00;
+      }
+      table {
+        width:100%;
+        border-collapse:collapse;
+        font-size:12.5px;
+      }
+      th {
+        text-align:left;
+        background:#171714;
+        color:#FFDE00;
+        padding:7px 10px;
+        font-weight:600;
+        white-space:nowrap;
+      }
+      td {
+        padding:7px 10px;
+        border-bottom:1px solid #e2e2e2;
+        vertical-align:top;
+      }
+      tr:nth-child(even) td {
+        background:#F5EEE0;
+      }
+      .empty {
+        color:#999;
+        font-style:italic;
+        font-size:12px;
+        padding:8px 0;
+      }
+      .count {
+        color:#5a5a5a;
+        font-weight:400;
+        font-size:11px;
+      }
+    </style>
+  `;
+
+  let body = `<h2>Livity — Full System Overview</h2>
+    <p class="sub">Generated ${new Date().toLocaleString()}</p>`;
+
+  body += renderSection_('Config', config);
+  body += renderSection_('Programs', programs);
+  body += renderSection_('Schedule', schedule);
+  body += renderSection_('Pricing', pricing);
+  body += renderSection_('Coaches', coaches);
+
+  return `<html><head><base target="_top">${style}</head><body>${body}</body></html>`;
+}
+
+function renderSection_(title, rows) {
+  if (!rows || rows.length === 0) {
+    return `<div class="section"><h3>${title}</h3><div class="empty">No data yet.</div></div>`;
+  }
+  const headers = Object.keys(rows[0]);
+  const thead = headers.map(h => `<th>${h}</th>`).join('');
+  const tbody = rows.map(r =>
+    '<tr>' + headers.map(h => `<td>${escapeHtml_(r[h])}</td>`).join('') + '</tr>'
+  ).join('');
+  return `
+    <div class="section">
+      <h3>${title} <span class="count">(${rows.length})</span></h3>
+      <table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>
+    </div>
+  `;
+}
+
+function sheetToObjects_(sheetName, forceHeaders) {
+  const sheet = sheet_(sheetName);
+  if (!sheet) return [];
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return [];
+  const headers = forceHeaders || data[0];
+  return data.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = row[i]; });
+    return obj;
+  });
+}
+
+function escapeHtml_(val) {
+  if (val === null || val === undefined) return '';
+  return String(val)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+// ============================================================
+// LIVE APP PREVIEW DIALOG
+// ============================================================
+
+const LIVITY_APP_URL = 'https://livityportal.artiplay.app';
+
+function showAppDialog() {
+  const html = HtmlService.createHtmlOutput(buildAppIframeHtml_())
+    .setWidth(500)
+    .setHeight(760);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Livity App — Preview');
+}
+
+function buildAppIframeHtml_() {
+  return `
+    <html>
+      <head>
+        <base target="_top">
+        <style>
+          * { box-sizing:border-box; }
+          html, body {
+            margin:0;
+            padding:0;
+            height:100%;
+            background:#000;
+            font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
+          }
+          .bar {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:8px 12px;
+            background:#171714;
+            color:#FFDE00; 
+            font-size:12px;
+            font-weight:700;
+          }
+          .bar a {
+            color:#FFE066;
+            text-decoration:none;
+            font-size:11px;
+          }
+          iframe {
+            width:100%;
+            height:calc(100% - 34px);
+            border:0;
+            display:block;
+          }
+          .fallback {
+            color:#ddd;
+            font-size:12px;
+            padding:16px;
+            text-align:center;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="bar">
+          <span>LIVITY — Live Preview</span>
+          <a href="${LIVITY_APP_URL}" target="_blank" rel="noopener">Open in new tab ↗</a>
+        </div>
+        <iframe src="${LIVITY_APP_URL}" title="Livity App"></iframe>
+      </body>
+    </html>
+  `;
+}
+function fmtTime_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, getTargetSs_().getSpreadsheetTimeZone(), 'HH:mm');
+  return String(v == null ? '' : v);
+}
+/** Active players enrolled in programId: Players.ProgramID match OR Active, unexpired package na may natitirang sessions sa program na yon. */
+function getProgramRosterRows_(programId) {
+  const now = new Date();
+  const pricing = sheet_(SHEETS.PRICING.name).getDataRange().getValues();
+  const programOfPrice = {};
+  for (let i = 1; i < pricing.length; i++) programOfPrice[pricing[i][0]] = pricing[i][1];
+
+  const players = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+  const byId = {}, out = [], seen = {};
+  for (let i = 1; i < players.length; i++) {
+    const r = players[i];
+    if (String(r[9] || 'Active').trim().toLowerCase() !== 'active') continue;
+    byId[r[0]] = r;
+    if (r[7] === programId) { seen[r[0]] = true; out.push(r); }
+  }
+
+  const pkgs = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  for (let i = 1; i < pkgs.length; i++) {
+    const r = pkgs[i];
+    if (r[7] !== 'Active' || r[2] === 'PRC-MEMB') continue;
+    if (programOfPrice[r[2]] !== programId) continue;
+    if (r[6] && now > new Date(r[6])) continue;
+    if (Number(r[5]) >= Number(r[4])) continue;
+    const p = byId[r[1]];
+    if (!p || seen[p[0]]) continue;
+    seen[p[0]] = true;
+    out.push(p);
+  }
+  return out;
+}
+
+/** Sino ang inaasahan sa isang session. Private = booked lang (Registered rows sa Attendance); ibang program = package-based roster. */
+function getSessionRecipients_(scheduleId, programId, date) {
+  if (programId !== 'PRG-PRIV') return getProgramRosterRows_(programId);
+
+  const tz = Session.getScriptTimeZone();
+  const dateKey = Utilities.formatDate(date, tz, 'yyyy-MM-dd');
+  const players = sheet_(SHEETS.PLAYERS.name).getDataRange().getValues();
+  const byId = {};
+  for (let i = 1; i < players.length; i++) {
+    if (String(players[i][9] || 'Active').trim().toLowerCase() === 'active') byId[players[i][0]] = players[i];
+  }
+  const att = sheet_(SHEETS.ATTENDANCE.name).getDataRange().getValues();
+  const out = [], seen = {};
+  for (let i = 1; i < att.length; i++) {
+    const r = att[i];
+    if (r[2] !== scheduleId || !r[3] || r[4] !== 'Registered') continue;
+    if (Utilities.formatDate(new Date(r[3]), tz, 'yyyy-MM-dd') !== dateKey) continue;
+    const p = byId[r[1]];
+    if (p && !seen[p[0]]) { seen[p[0]] = true; out.push(p); }
+  }
+  return out;
+}
+
+/** Menu: Livity Admin → Book Private Session. Gumagawa ng Registered row para ma-remind at ma-sweep as Absent kapag di sumipot. */
+function bookPrivateSessionPrompt_() {
+  const ui = SpreadsheetApp.getUi();
+  const pRes = ui.prompt('Book Private Session', 'PlayerID (e.g. LVTFA-XXXXXXX):', ui.ButtonSet.OK_CANCEL);
+  if (pRes.getSelectedButton() !== ui.Button.OK) return;
+  const playerId = pRes.getResponseText().trim().toUpperCase();
+  const playerRow = findRowById_(SHEETS.PLAYERS.name, playerId);
+  if (!playerRow) { ui.alert('PlayerID not found: ' + playerId); return; }
+
+  const sRes = ui.prompt('Book Private Session', 'ScheduleID ng Private slot (e.g. SCH-002):', ui.ButtonSet.OK_CANCEL);
+  if (sRes.getSelectedButton() !== ui.Button.OK) return;
+  const scheduleId = sRes.getResponseText().trim();
+  const sched = findRowById_(SHEETS.SCHEDULE.name, scheduleId);
+  if (!sched || sched[1] !== 'PRG-PRIV') { ui.alert('Hindi Private slot ang ScheduleID na yan.'); return; }
+
+  const dRes = ui.prompt('Book Private Session', 'Petsa (yyyy-MM-dd):', ui.ButtonSet.OK_CANCEL);
+  if (dRes.getSelectedButton() !== ui.Button.OK) return;
+  const tz = Session.getScriptTimeZone();
+  let date;
+  try { date = Utilities.parseDate(dRes.getResponseText().trim(), tz, 'yyyy-MM-dd'); }
+  catch (e) { ui.alert('Invalid date. Gamitin ang yyyy-MM-dd.'); return; }
+  const dayName = Utilities.formatDate(date, tz, 'EEEE');
+  if (dayName !== sched[2]) { ui.alert('Ang petsang yan ay ' + dayName + ', pero ang slot ay tuwing ' + sched[2] + '.'); return; }
+
+  if (!playerHasRemainingSessions_(playerId, 'PRG-PRIV') &&
+      ui.alert('Walang Private sessions na natitira', 'I-book pa rin?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+
+  const attId = registerForSession(playerId, scheduleId, date);
+  logAudit_('PRIVATE_BOOKED', attId + ' — ' + playerId + ' ' + scheduleId + ' ' + Utilities.formatDate(date, tz, 'yyyy-MM-dd'), null);
+  try {
+    sendNotification_('SCHEDULE_CONFIRMED', { id: playerId, email: playerRow[6] }, {
+      playerName: playerRow[1],
+      scheduleDetails: 'Private · ' + Utilities.formatDate(date, tz, 'EEEE, MMM d') + ' ' + fmtTime_(sched[3]) + ' · ' + sched[5]
+    });
+  } catch (e) { logAudit_('SYS_GAS_ERROR', 'Private booking notify failed: ' + e, null); }
+  ui.alert('Booked: ' + playerRow[1] + ' (' + attId + ')');
+}
+/** Run sa editor, palitan ang PID/PROG. Walang binabago, ipinapakita lang kung anong package ang babawasan. */
+function testDeductPreview_() {
+  const PID = 'LVTFA-XXXXXXX', PROG = 'PRG-ACAD';
+  const data = sheet_(SHEETS.PACKAGES.name).getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1] !== PID) continue;
+    const pr = findRowById_(SHEETS.PRICING.name, data[i][2]);
+    Logger.log(data[i][0] + ' | ' + data[i][2] + ' | prog=' + (pr ? pr[1] : '?') + ' | ' + data[i][5] + '/' + data[i][4] + ' | ' + data[i][7] + ' | exp=' + data[i][6] + (pr && pr[1] === PROG && data[i][7] === 'Active' && Number(data[i][5]) < Number(data[i][4]) ? '  ← CANDIDATE' : ''));
+  }
+  Logger.log('State → ' + JSON.stringify(computeProgramState_(PID, PROG)));
+}
