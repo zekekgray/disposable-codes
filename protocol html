@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<html lang="en" data-view="home">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ArtiBytte Executive Protocol</title>
+<script>window.addEventListener("error",function(e){if(window.__abErr)return;window.__abErr=1;var d=document.createElement("div");d.onclick=function(){d.remove();window.__abErr=0};d.style.cssText="position:fixed;left:0;right:0;top:0;z-index:99999;background:#b3261e;color:#fff;font:12px/1.4 monospace;padding:8px;white-space:pre-wrap;max-height:50vh;overflow:auto";d.textContent="JS error: "+e.message+" (line "+e.lineno+", col "+e.colno+")";(document.body||document.documentElement).appendChild(d);try{fetch(location.href.split("#")[0],{cache:"reload"}).then(function(r){return r.text()}).then(function(t){var L=t.split("\n"),n=e.lineno,o="";for(var i=n-3;i<=n+1;i++){if(L[i-1]!==undefined)o+="\n"+i+": "+L[i-1].slice(0,300)}d.textContent+=o+"\n(tap to dismiss)"}).catch(function(){})}catch(x){}});</script>
+<script>window.addEventListener("error",function(e){if(!/Invalid or unexpected/.test(e.message||""))return;try{var S=document.scripts,T="",i;for(i=0;i<S.length;i++)if(S[i].text.length>T.length)T=S[i].text;var L=T.split("\n"),lo=1,hi=L.length,bad=function(n){try{new Function(L.slice(0,n).join("\n"))}catch(x){return /Invalid or unexpected/.test(x.message)}return false};while(lo<hi){var m=(lo+hi)>>1;if(bad(m))hi=m;else lo=m+1}var d=document.createElement("div");d.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#222;color:#ff0;font:12px/1.4 monospace;padding:8px;white-space:pre-wrap;max-height:40vh;overflow:auto";d.textContent=(lo>=L.length&&!bad(lo)?"Inconclusive. ":"")+"Bad token near script line "+lo+":\n"+L.slice(Math.max(0,lo-2),lo+1).join("\n").slice(0,900);d.onclick=function(){d.remove()};(document.body||document.documentElement).appendChild(d)}catch(x){}});</script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f6;--surface:#fff;--ink:#141a2b;--mute:#5a6378;--line:#c9d0e0;--accent:#2d4bd6;--on:#fff;--ok:#14703b;--on-ok:#fff;--bad:#b3261e;--on-bad:#fff;--hover:rgba(45,75,214,.08)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1220;--surface:#171d31;--ink:#e8ecf8;--mute:#9aa4c0;--line:#2f3858;--accent:#8fa6ff;--on:#0e1220;--ok:#4ade80;--on-ok:#04210f;--bad:#ff8a80;--on-bad:#2a0a07;--hover:rgba(143,166,255,.12);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1220;--surface:#171d31;--ink:#e8ecf8;--mute:#9aa4c0;--line:#2f3858;--accent:#8fa6ff;--on:#0e1220;--ok:#4ade80;--on-ok:#04210f;--bad:#ff8a80;--on-bad:#2a0a07;--hover:rgba(143,166,255,.12);color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation;overscroll-behavior:none}
+body{touch-action:pan-x pan-y}
+body{margin:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font-family:Sora,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:1rem;line-height:1.5;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+[hidden]{display:none!important}
+@media (pointer:coarse){input,select,textarea{font-size:16px!important}}
+h1,h2,p{margin:0}
+code{font:.8125rem ui-monospace,Menlo,Consolas,monospace;background:var(--bg);padding:1px 6px;border-radius:6px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button{font-family:inherit}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.home{flex:1;position:relative;isolation:isolate;display:grid;place-items:center;padding:24px 20px;overflow:hidden}
+@property --a{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes ringspin{to{--a:360deg}}
+.orb{position:relative;width:64px;height:64px;border-radius:50%;border:0;padding:0;cursor:pointer;background:radial-gradient(circle at 34% 28%,rgba(255,246,218,.5),transparent 45%),linear-gradient(160deg,#e9d6a4 0,#d4b373 12%,#e3c98f 22%,#c29a58 34%,#dcc084 46%,#b98f4f 58%,#d8ba7c 70%,#b08545 84%,#9a7238 100%);box-shadow:inset -11px -11px 18px rgba(25,12,0,.5),0 0 0 rgba(240,210,140,0);transition:box-shadow .25s ease}
+.orb::before,.orb::after{content:"";position:absolute;left:50%;top:50%;width:160px;height:56px;pointer-events:none;background:conic-gradient(from var(--a),transparent 0,rgba(255,255,255,.5) 6%,transparent 14%,transparent 100%),radial-gradient(ellipse closest-side,transparent 0 60%,#6b5636 61%,#b79a63 65%,#d9c08a 70%,#8a7650 74%,#15100a 75.5%,#15100a 77%,#e6d3a3 78.5%,#f3e5bb 85%,#cdb27a 91%,#a38a58 96%,transparent 100%);-webkit-mask:radial-gradient(ellipse closest-side,transparent 59%,#000 61%,#000 97%,transparent 100%);mask:radial-gradient(ellipse closest-side,transparent 59%,#000 61%,#000 97%,transparent 100%);animation:ringspin 9s linear infinite}
+.orb::before{z-index:-1;transform:translate(-50%,-50%) rotate(-20deg)}
+.orb::after{z-index:1;transform:translate(-50%,-50%) rotate(-20deg);clip-path:inset(50% 0 0 0)}
+.orb:hover{box-shadow:inset -11px -11px 18px rgba(25,12,0,.5),0 0 22px rgba(240,210,140,.55)}
+.home-foot{position:absolute;left:0;right:0;bottom:14px;padding:0 24px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.hf-ver{font-size:.6875rem;font-weight:600;letter-spacing:.04em;color:var(--mute)}
+.hf-copy{font-size:.6875rem;line-height:1.4;color:var(--mute)}
+.hf-legal{font-size:.65rem;line-height:1.5;color:var(--mute);max-width:32ch;text-wrap:balance}
+.setup-foot{margin-top:auto;padding-top:32px;text-align:center}
+.setup-foot .how{text-align:left}
+.ftl{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:6px}
+#setup{flex:1;display:flex;flex-direction:column}
+.wrap{width:100%;max-width:640px;margin:0 auto;padding:0 16px 20px;flex:1;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:16px}
+.bar{display:flex;align-items:center;gap:4px}
+.fillbar{height:100%;width:0;background:var(--accent);transition:width .25s ease}
+.cnt{flex:1;font-size:.8125rem;font-weight:600;text-align:center}
+.ic{width:44px;height:44px;border-radius:50%;border:0;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer;flex:none;padding:0}
+.ic svg{width:20px;height:20px;display:block}
+.ic:hover{background:var(--hover)}
+.sm{font-weight:600;font-size:.875rem;min-height:44px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:10px 18px;cursor:pointer}
+.sm:hover:not(:disabled){background:var(--hover)}
+.sm.p{background:var(--accent);color:var(--on);border-color:transparent}
+.sm.ok{background:var(--ok);color:var(--on-ok);border-color:transparent}
+.sm.bad{background:var(--bad);color:var(--on-bad);border-color:transparent}
+.sm.d{color:var(--bad);border-color:var(--bad)}
+.sm:disabled{opacity:.5;cursor:not-allowed}
+.lnk{background:none;border:0;padding:6px 0;font:inherit;font-size:.8125rem;color:var(--accent);text-decoration:underline;cursor:pointer;min-height:32px}
+.card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:14px;padding:14px;margin-bottom:10px;flex-wrap:wrap}
+.card.done{border-left-color:var(--ok)}
+.n{width:36px;height:36px;border-radius:50%;border:0;background:var(--accent);color:var(--on);font:600 .9375rem Sora,system-ui,sans-serif;cursor:pointer;flex:none}
+.card.done .n{background:var(--ok);color:var(--on-ok)}
+.card h2{font-size:1rem;flex:1;min-width:0}
+.acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.field{flex-basis:100%;display:grid;gap:4px}
+.field label{font-size:.8125rem;font-weight:600}
+input[type=text],input[type=search]{font:inherit;font-size:.9375rem;min-height:44px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 12px;width:100%}
+.sec{font-size:1.05rem;margin:28px 0 10px}
+.eform{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px;display:grid;gap:12px}
+.eform h2{font-size:1rem}
+.eform select,.eform textarea{font:inherit;font-size:.9375rem;min-height:44px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 12px;width:100%}
+.eform textarea{resize:vertical;min-height:88px}
+.how{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:16px}
+.how h2{font-size:1rem}
+.how ol{margin:6px 0 0;padding-left:20px}
+.how li{font-size:.875rem;line-height:1.6;margin:8px 0}
+.ct{flex:1;min-width:0}
+.sub{margin:2px 0 0;font-size:.8125rem;line-height:1.4;color:var(--mute)}
+.store .sh{display:flex;align-items:center;gap:8px}
+.store .sh .lnk{margin-left:auto;min-height:44px;padding:0 4px}
+.tag{font-size:.6875rem;font-weight:600;letter-spacing:.04em;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--mute)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:600 .8125rem Sora,system-ui,sans-serif;min-height:44px;padding:0 16px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;cursor:pointer}
+.chip:hover{background:var(--hover)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on);border-color:transparent}
+.lrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lact{display:flex;gap:16px}
+.lact .lnk{min-height:44px;padding:0 2px}
+.sm.full{width:100%;min-height:48px;font-size:.9375rem}
+.store .acts .push{margin-left:auto}
+.eform textarea#s_text{min-height:140px;font:.8125rem/1.5 ui-monospace,Menlo,Consolas,monospace}
+.fillbar.hot{background:var(--bad)}
+.peek{margin:8px 0 0;font:.75rem/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mute);display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.none{text-align:center;padding:28px 16px;border:1px dashed var(--line);border-radius:14px;color:var(--mute);font-size:.8125rem}
+.none b{display:block;color:var(--ink);font-size:.9375rem;margin-bottom:4px}
+.perks{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:8px}
+.perks li{position:relative;padding-left:22px;font-size:.875rem;color:var(--mute)}
+.perks li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:600}
+.perks b{color:var(--ink);font-weight:600}
+.perks li.soon::before{content:"•";color:var(--mute)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools input{flex:1;min-width:140px}
+.file{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.file h3{margin:0;font-size:.9375rem;overflow-wrap:anywhere}
+.meta{color:var(--mute);font-size:.8125rem}
+.file .acts{margin-top:10px}
+.meter{height:4px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:6px}
+.cmd{font:.8125rem ui-monospace,Menlo,Consolas,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:4px 8px;min-height:32px;cursor:pointer}
+.cmd.ok{background:var(--ok);color:var(--on-ok);border-color:transparent}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);max-width:min(92vw,440px);padding:12px 18px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:.875rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:60}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--bad);color:var(--on-bad)}
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:20px;max-width:min(92vw,400px);width:100%}
+dialog::backdrop{background:rgba(10,14,30,.55)}
+dialog h2{font-size:1.05rem;margin-bottom:6px}
+dialog p{font-size:.9375rem;color:var(--mute)}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.plan{position:relative;display:block;border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;text-align:center}
+.plan input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.plan:has(input:checked){border-color:var(--accent);background:var(--hover)}
+.plan b{display:block;font-size:1.1rem}
+.plan span{font-size:.75rem;color:var(--mute)}
+.gal{display:flex;justify-content:space-between;gap:12px;margin-top:10px}
+.gal a.lnk{display:inline-flex;align-items:center}
+.gerr{color:var(--bad);min-height:1.2em;margin:6px 0 10px}
+.gcode{font:600 1.25rem ui-monospace,Menlo,Consolas,monospace;text-align:center;padding:14px;border:1px dashed var(--line);border-radius:12px;margin:12px 0;user-select:all;overflow-wrap:anywhere}
+
+.gal{display:flex;justify-content:space-between;gap:12px;margin-top:10px}
+.gal a.lnk{display:inline-flex;align-items:center}
+.gerr{color:var(--bad);min-height:1.2em;margin:6px 0 10px}
+.gcode{font:600 1.25rem ui-monospace,Menlo,Consolas,monospace;text-align:center;padding:14px;border:1px dashed var(--line);border-radius:12px;margin:12px 0;user-select:all;overflow-wrap:anywhere}
+/* === START: PROFILE MENU CSS === */
+.av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on);display:grid;place-items:center;font:600 .8125rem Sora,system-ui,sans-serif;text-transform:uppercase;flex:none}
+.av.lg{width:40px;height:40px;font-size:1rem}
+.avb{width:44px;height:44px;border-radius:50%;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0;flex:none}
+.avb:hover{background:var(--hover)}
+dialog.prof{margin:calc(56px + env(safe-area-inset-top,0px)) 12px auto auto;padding:8px;width:min(86vw,300px);max-width:none}
+.pmh{display:flex;align-items:center;gap:12px;padding:8px 8px 12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.pmh div{min-width:0}
+.pmh b{display:block;font-size:.9375rem;overflow-wrap:anywhere}
+.pmh .sb{display:block;font-size:.75rem;color:var(--mute);overflow-wrap:anywhere}
+.pmi{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 10px;border:0;border-radius:10px;background:none;color:var(--ink);font:inherit;font-size:.9375rem;text-align:left;cursor:pointer}
+.pmi:hover{background:var(--hover)}
+.pmi svg{width:18px;height:18px;flex:none;color:var(--mute);fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.pmi .soon{margin-left:auto;font-size:.6875rem;font-weight:600;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;border-bottom:1px solid var(--line);font-size:.9375rem}
+.srow .lnk{min-height:44px}
+.msel{font:inherit;font-size:.8125rem;min-height:40px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px}
+.mh{font-size:.9375rem;margin:16px 0 8px}
+.mfld{display:flex;align-items:center;gap:8px}
+.mfld input{flex:1;min-width:0}
+#m_link{font:.8125rem ui-monospace,Menlo,Consolas,monospace}
+.mrow{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line)}
+.mrow .mi{flex:1;min-width:0}
+.mrow b{display:block;font-size:.9375rem;overflow-wrap:anywhere}
+.sub b{color:var(--ink)}
+.msel{font:inherit;font-size:.8125rem;min-height:40px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px}
+.mh{font-size:.9375rem;margin:16px 0 8px}
+.mfld{display:flex;align-items:center;gap:8px}
+.mfld input{flex:1;min-width:0}
+#m_link{font:.8125rem ui-monospace,Menlo,Consolas,monospace}
+.mrow{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line)}
+.mrow .mi{flex:1;min-width:0}
+.mrow b{display:block;font-size:.9375rem;overflow-wrap:anywhere}
+.sub b{color:var(--ink)}
+/* === END: PROFILE MENU CSS === */
+@media not all{
+/* === START: PROFILE MENU CSS (DUPLICATE, DISABLED) === */
+.av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on);display:grid;place-items:center;font:600 .8125rem Sora,system-ui,sans-serif;text-transform:uppercase;flex:none}
+.av.lg{width:40px;height:40px;font-size:1rem}
+.avb{width:44px;height:44px;border-radius:50%;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0;flex:none}
+.avb:hover{background:var(--hover)}
+dialog.prof{margin:calc(56px + env(safe-area-inset-top,0px)) 12px auto auto;padding:8px;width:min(86vw,300px);max-width:none}
+.pmh{display:flex;align-items:center;gap:12px;padding:8px 8px 12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.pmh div{min-width:0}
+.pmh b{display:block;font-size:.9375rem;overflow-wrap:anywhere}
+.pmh .sb{display:block;font-size:.75rem;color:var(--mute);overflow-wrap:anywhere}
+.pmi{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 10px;border:0;border-radius:10px;background:none;color:var(--ink);font:inherit;font-size:.9375rem;text-align:left;cursor:pointer}
+.pmi:hover{background:var(--hover)}
+.pmi svg{width:18px;height:18px;flex:none;color:var(--mute);fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.pmi .soon{margin-left:auto;font-size:.6875rem;font-weight:600;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;border-bottom:1px solid var(--line);font-size:.9375rem}
+.srow .lnk{min-height:44px}
+/* === END: PROFILE MENU CSS === */
+/* === START: PROFILE MENU CSS === */
+.av{width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on);display:grid;place-items:center;font:600 .8125rem Sora,system-ui,sans-serif;text-transform:uppercase;flex:none}
+.av.lg{width:40px;height:40px;font-size:1rem}
+.avb{width:44px;height:44px;border-radius:50%;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0;flex:none}
+.avb:hover{background:var(--hover)}
+dialog.prof{margin:calc(56px + env(safe-area-inset-top,0px)) 12px auto auto;padding:8px;width:min(86vw,300px);max-width:none}
+.pmh{display:flex;align-items:center;gap:12px;padding:8px 8px 12px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.pmh div{min-width:0}
+.pmh b{display:block;font-size:.9375rem;overflow-wrap:anywhere}
+.pmh .sb{display:block;font-size:.75rem;color:var(--mute);overflow-wrap:anywhere}
+.pmi{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 10px;border:0;border-radius:10px;background:none;color:var(--ink);font:inherit;font-size:.9375rem;text-align:left;cursor:pointer}
+.pmi:hover{background:var(--hover)}
+.pmi svg{width:18px;height:18px;flex:none;color:var(--mute);fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.pmi .soon{margin-left:auto;font-size:.6875rem;font-weight:600;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:1px 8px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;border-bottom:1px solid var(--line);font-size:.9375rem}
+.srow .lnk{min-height:44px}
+.msel{font:inherit;font-size:.8125rem;min-height:40px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px}
+.mh{font-size:.9375rem;margin:16px 0 8px}
+.mfld{display:flex;align-items:center;gap:8px}
+.mfld input{flex:1;min-width:0}
+#m_link{font:.8125rem ui-monospace,Menlo,Consolas,monospace}
+.mrow{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line)}
+.mrow .mi{flex:1;min-width:0}
+.mrow b{display:block;font-size:.9375rem;overflow-wrap:anywhere}
+.sub b{color:var(--ink)}
+/* === END: PROFILE MENU CSS (DUPLICATE, DISABLED) === */
+}
+.stp{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:600;border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--mute)}
+.stp::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.stp.off::before{background:var(--bad)}
+.ofl{max-height:32dvh;overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:8px}
+.ofl .fr:last-child{border-bottom:0}
+.ofn{font-size:.8125rem;line-height:1.5;color:var(--mute);margin:8px 0}
+/* === START: UX REFRESH CSS === */:root{--bg:#f6f4ee;--surface:#fff;--ink:#1f1d19;--mute:#7a766c;--line:#e6e1d6;--accent:#c4693f;--on:#fff;--hover:rgba(196,105,63,.08)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171512;--surface:#211e1a;--ink:#f1ede4;--mute:#a39d90;--line:#37322a;--accent:#e8946a;--on:#1b1208;--hover:rgba(232,148,106,.12)}}
+:root[data-theme="dark"]{--bg:#171512;--surface:#211e1a;--ink:#f1ede4;--mute:#a39d90;--line:#37322a;--accent:#e8946a;--on:#1b1208;--hover:rgba(232,148,106,.12)}
+.ttl{flex:1;min-width:0}
+.ttl{display:flex;align-items:baseline;gap:8px;white-space:nowrap;overflow:hidden}
+.ttl b{display:block;font-size:1rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis}
+.ttl span{display:block;flex:none;font-size:.75rem;color:var(--mute)}
+.top{border-bottom:0;margin-bottom:4px}
+.wsrow{display:flex;align-items:center;gap:10px;margin:8px 0}
+.wsrow .tag{background:var(--line);border:0;color:var(--mute);text-transform:uppercase;padding:8px 14px;font-size:.8125rem}
+.wsrow .lnk{min-height:32px}
+.wsrow #stT{margin-left:auto;font-size:.875rem;color:var(--mute)}
+.meter{height:6px;margin:0 0 8px}
+.sec{font-size:1.25rem;font-weight:600;margin:24px 0 12px}
+.sech{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:24px 0 12px}
+.sech .sec{margin:0}
+.sech .ic{margin-right:-10px}
+.sect .sub{margin:2px 0 0}
+.bar{flex-wrap:wrap}
+.brk{flex-basis:100%;height:0}
+.bar .ttl{flex:0 1 auto}
+#avBtn{margin-left:auto}
+.card,.card.done{border:1px solid var(--line);border-radius:18px;padding:16px;gap:12px;flex-wrap:nowrap}
+.card .n{width:32px;height:32px;background:transparent;color:var(--accent);border:1.5px solid var(--accent);font-size:.875rem}
+.card.done .n{background:var(--ok);color:var(--on-ok);border-color:var(--ok)}
+.card h2{font-size:1.1rem}
+.card .sm.p{background:var(--surface);color:var(--ink);border:1px solid var(--line);padding:10px 22px}
+.card .sm.ok{background:var(--ok);color:var(--on-ok);border-color:transparent}
+.card .sm.bad{background:var(--bad);color:var(--on-bad);border-color:transparent}
+.field label{font-weight:400;color:var(--mute);font-size:.9375rem}
+.eform select,.eform input[type=text]{border-radius:999px;padding:8px 18px}
+.eform textarea{border-radius:18px;padding:14px 18px}
+.store{background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:24px 0 0;margin-top:24px}
+.store h2{font-size:1.25rem;font-weight:600}
+/* === END: UX REFRESH CSS === */
+/* === START: SHEET MODALS CSS === */
+dialog.sheet{padding:0;border:0;background:transparent;width:100%;max-width:min(92vw,520px);max-height:86dvh;overflow:auto;color:var(--ink)}
+dialog.sheet>*{position:relative;margin:0}
+dialog.sheet h2{padding-right:44px}
+dialog.sheet .sheet-x{position:absolute;top:6px;right:6px;z-index:1}
+.toast{top:auto;right:auto;margin:0;border:0;overflow:visible}
+/* === END: SHEET MODALS CSS === */
+/* === START: SYSTEM PROMPT PREVIEW CSS === */
+.pvw{margin:12px 0;max-height:55dvh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:.8125rem/1.6 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px 14px;user-select:text;-webkit-user-select:text}
+.acts .ic.eye{width:40px;height:40px;border:1px solid var(--line);background:var(--surface)}
+/* === END: SYSTEM PROMPT PREVIEW CSS === */
+/* === START: PROFILE ICON CSS === */
+.avb.new::after{display:none}
+#avL,#pAvL{font-size:0;position:relative}
+#avL::before,#pAvL::before{content:"";position:absolute;left:50%;top:50%;width:58%;height:58%;transform:translate(-50%,-50%);background:currentColor;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/><circle cx='12' cy='7' r='4'/></svg>") center/contain no-repeat}
+/* === END: PROFILE ICON CSS === */
+/* === START: SPRING + MOTION CSS === */
+:root{--spring:cubic-bezier(.34,1.56,.64,1)}
+@supports (transition-timing-function:linear(0,1)){:root{--spring:linear(0,.009,.035 2.1%,.141,.281 6.7%,.723 12.9%,.938 16.7%,1.017,1.077,1.121,1.149 24.3%,1.159,1.163,1.161,1.154 29.9%,1.129 32.8%,1.051 39.6%,1.017 43.1%,.991,.977 51%,.974 53.8%,.975 57.1%,.997 69.8%,1.003 76.9%,1)}}
+button,select,.card{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes check{from{transform:scale(.55)}to{transform:scale(1)}}
+.sm,.chip,.ic,.n,.cmd,.lnk{transition:transform .45s var(--spring),background-color .2s ease,box-shadow .25s ease,opacity .2s}
+.sm:active:not(:disabled),.chip:active,.ic:active,.n:active,.cmd:active{transform:scale(.93);transition-duration:.1s}
+.lnk:active{transform:scale(.96);opacity:.7}
+.orb{transition:transform .5s var(--spring),box-shadow .25s ease}
+.orb:active{transform:scale(.9);transition-duration:.1s}
+.fillbar{transition:width .7s var(--spring),background-color .2s}
+.toast{transition:opacity .2s,transform .5s var(--spring)}
+dialog[open]{animation:pop .5s var(--spring)}
+dialog[open]::backdrop{animation:fadeIn .25s ease}
+#setup:not([hidden]) .card{animation:rise .55s var(--spring) both}
+#card-pc{animation-delay:.05s!important}
+#card-cf{animation-delay:.1s!important}
+#card-or{animation-delay:.15s!important}
+.card.done .n{animation:check .5s var(--spring)}
+@media (max-width:600px){
+  dialog.sheet{margin:auto auto 0;max-width:100%;max-height:90dvh}
+  dialog.sheet[open]{animation:sheetUp .45s cubic-bezier(.2,.9,.3,1)}
+  dialog.sheet>*{border-radius:22px 22px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+}
+/* === END: SPRING + MOTION CSS === */
+.pro-b{margin-left:6px;font-size:.6875rem;font-weight:600;border:1px solid var(--line);border-radius:999px;padding:1px 8px;color:var(--mute)}
+.ai{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.ai a{display:inline-flex;align-items:center;text-decoration:none}
+.ai a:first-child{background:var(--accent);color:var(--on);border-color:transparent}
+.rate{display:flex;gap:8px;margin-bottom:8px}
+.rate .chip{flex:1}
+.rtm{display:block;width:100%;min-height:88px;resize:vertical;font:inherit;font-size:.9375rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:18px;padding:12px 16px;margin-bottom:8px}
+.avb{position:relative}
+.avb.new::after{content:"";position:absolute;top:8px;right:8px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-left:auto;flex:none}
+.srow.new{background:var(--hover);border-radius:10px;padding:0 10px;margin:4px 0}
+.srow.new .lnk{font-weight:600}
+.upd{padding:12px 0;border-bottom:1px solid var(--line)}
+.upd.new{background:var(--hover);border-radius:12px;padding:12px;border-bottom:0;margin:6px 0}
+.upd b{font-size:.9375rem}
+.upd p{font-size:.8125rem;line-height:1.5;color:var(--mute);margin:4px 0 0}
+.nw{font-size:.6875rem;font-weight:600;color:var(--on);background:var(--accent);border-radius:999px;padding:1px 8px;margin-left:8px}
+.dra .sm{padding:10px 6px;font-size:.8125rem;white-space:nowrap;min-width:0}
+.ntin{display:block;width:100%;font:inherit;font-size:.9375rem;min-height:44px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 16px;margin-bottom:8px}
+.ntx{display:block;width:100%;font:inherit;font-size:.9375rem;min-height:120px;resize:vertical;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:18px;padding:12px 16px;margin-bottom:8px}
+.ntb{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.ntb .sm.p{flex:1}
+.nti{padding:12px 0;border-bottom:1px solid var(--line)}
+.nti b{display:block;font-size:.9375rem;overflow-wrap:anywhere}
+.nti .pv{margin:6px 0 0;font:.75rem/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mute);display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;white-space:pre-wrap}
+.nti .lact{margin-top:4px}
+.hl{display:grid;gap:8px;margin:12px 0}
+.faq{border-bottom:1px solid var(--line)}
+.faq summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-size:.9375rem;font-weight:600}
+.faq p{font-size:.8125rem;line-height:1.5;color:var(--mute);margin:0 0 12px}
+.lg h3.mh{margin:18px 0 6px}
+.lg p,.lg li{font-size:.8125rem;line-height:1.6;color:var(--mute)}
+.lg p{margin:6px 0}
+.lg ul{margin:6px 0;padding-left:18px}
+.lg li{margin:4px 0}
+.lg b{color:var(--ink)}
+.lg .lgm{font-size:.75rem;margin:2px 0 4px}
+.cpo{display:grid;gap:8px;margin-top:14px}
+.cpo .plan{text-align:left;padding:12px 14px}
+.cpo .plan b{font-size:.9375rem}
+.cpf{margin-top:10px;max-height:28dvh;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:4px 12px}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px;font-size:.875rem;overflow-wrap:anywhere}
+.chk input{width:18px;height:18px;flex:none;accent-color:var(--accent)}
+#cpS{margin-top:12px}
+#cpk .row{flex-wrap:wrap}
+/* === START: PARTICLE SPHERE CSS === */
+/* === START: NO BLACK DISC === */
+.orb{width:min(80vw,330px);height:min(80vw,330px);background:transparent;box-shadow:none}
+/* === END: NO BLACK DISC === */
+/* === START: SPHERE MATERIAL (LIGHT + SHADOW) === */
+.orb::before,.orb::after{display:block;animation:none;-webkit-mask:none;mask:none;clip-path:none;border-radius:50%;pointer-events:none}
+.orb::before{left:50%;top:auto;bottom:-13%;width:72%;height:12%;transform:translateX(-38%);z-index:-1;background:radial-gradient(ellipse at center,rgba(0,0,0,.45),transparent 70%);filter:blur(8px)}
+.orb::after{left:0;top:0;width:100%;height:100%;transform:none;z-index:1;
+background-image:
+radial-gradient(ellipse 34% 22% at 32% 22%,rgba(255,244,228,.22),transparent 70%),
+radial-gradient(circle at 50% 50%,transparent 62%,rgba(150,170,255,.14) 92%,rgba(190,205,255,.28) 100%),
+/* === START: FILL LIGHT LOBE === */
+radial-gradient(circle at 84% 86%,rgba(120,150,255,.13),transparent 40%),
+/* === END: FILL LIGHT LOBE === */
+radial-gradient(circle at 74% 82%,rgba(0,0,0,.35),transparent 55%),
+url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .16 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+background-size:auto,auto,auto,auto,140px 140px;background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,repeat}
+/* === START: RIM LIGHT (BRONZE + COOL EDGE) === */
+.orb::after{transition:box-shadow .35s ease;box-shadow:inset 1.2px 1.4px 0 rgba(226,180,130,.60),inset 3px 4px 8px -2px rgba(190,135,90,.22),inset -1px -1.2px 0 rgba(178,198,255,.22),inset 0 0 0 1px rgba(255,255,255,.05)}
+.orb:hover::after{box-shadow:inset 1.2px 1.4px 0 rgba(232,188,140,.75),inset 3px 4px 8px -2px rgba(196,142,96,.30),inset -1px -1.2px 0 rgba(188,206,255,.30),inset 0 0 0 1px rgba(255,255,255,.08)}
+/* === END: RIM LIGHT (BRONZE + COOL EDGE) === */
+/* === END: SPHERE MATERIAL (LIGHT + SHADOW) === */
+.orb:hover{box-shadow:none}
+.orb canvas{position:absolute;inset:-5%;width:110%;height:110%;display:block;border-radius:0;pointer-events:none}
+.orb::before,.orb::after{display:none}
+/* === END: PARTICLE SPHERE CSS === */
+/* === START: ENTRANCE BACKGROUND (THEME-INDEPENDENT) === */
+html[data-view="home"],html[data-view="home"] body{background:#f6f4ee}
+/* === START: AMBIENT ATMOSPHERE === */
+#home{color:#1f1d19;background:#f6f4ee}#home::before{display:none}#home .hf-copy,#home .hf-ver{color:#7a766c}
+#home::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");background-size:160px 160px}
+/* === END: AMBIENT ATMOSPHERE === */
+#home .hf-legal{color:var(--mute)}
+#home :focus-visible{outline-color:rgba(226,190,150,.85)}
+/* === END: ENTRANCE BACKGROUND (THEME-INDEPENDENT) === */
+dialog.drawer{margin:0 auto 0 0;padding:0;border:0;border-radius:0 22px 22px 0;width:min(88vw,360px);max-width:none;height:100dvh;max-height:none;overflow:auto}
+dialog.drawer[open]{animation:drawerIn .4s cubic-bezier(.2,.9,.3,1)}
+@keyframes drawerIn{from{transform:translateX(-100%)}to{transform:none}}
+/* === START: DRAWER SWIPE CSS === */
+dialog.drawer{touch-action:pan-y;overscroll-behavior:contain}
+/* === END: DRAWER SWIPE CSS === */
+
+.dr{display:flex;flex-direction:column;gap:12px;min-height:100%;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.drh{display:flex;align-items:center;justify-content:space-between}
+.drh b{font-size:1.25rem}
+.dra{display:flex;gap:8px}
+.dra .sm{flex:1;padding:10px 8px}
+.fr{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:8px 10px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:inherit;font-size:.9375rem;text-align:left;cursor:pointer}
+.fr:hover{background:var(--hover)}
+.fr .ln{min-width:2.5ch;text-align:right;color:var(--mute);font:.8125rem ui-monospace,Menlo,Consolas,monospace}
+.fr .nm{flex:1;min-width:0;overflow-wrap:anywhere}
+.fr .vv{color:var(--mute);font-size:.8125rem}
+.drf{margin-top:auto;display:flex;justify-content:center;gap:24px;padding-top:12px}
+dialog.editor{margin:0;padding:0;border:0;border-radius:0;width:100%;max-width:none;height:100dvh;max-height:none;overflow:hidden;background:var(--bg)}
+dialog.editor[open]{animation:sheetUp .4s cubic-bezier(.2,.9,.3,1)}
+.ed{display:flex;flex-direction:column;height:100%;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.edh{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.edh input{flex:1;min-width:0;font-size:16px}
+.edh .sm{white-space:nowrap}
+.edt{display:flex;align-items:center;gap:16px;min-height:40px;padding:0 16px;border-bottom:1px solid var(--line)}
+.edt .lnk{min-height:36px}
+.edx{display:flex;gap:16px;margin-left:auto}
+.lim{font-size:.75rem;color:var(--mute);white-space:nowrap}
+.lim.over{color:var(--bad);font-weight:600}
+.lim{font-size:.75rem;color:var(--mute);white-space:nowrap}
+.lim.over{color:var(--bad);font-weight:600}.code{flex:1;display:flex;min-height:0;font:16px/1.5 ui-monospace,Menlo,Consolas,monospace}
+.code pre{margin:0;padding:12px 10px 40px 12px;min-width:3ch;text-align:right;color:var(--mute);background:var(--surface);border-right:1px solid var(--line);overflow:hidden;user-select:none;-webkit-user-select:none;font:inherit}
+.code textarea{flex:1;min-width:0;border:0;border-radius:0;background:var(--bg);color:var(--ink);padding:12px 14px 40px;font:inherit;resize:none;white-space:pre;overflow:auto}
+.code textarea:focus-visible{outline:0}
+/* === START: NOTES UI CSS === */
+.ntrow{display:block;width:100%;text-align:left;background:none;border:0;padding:0;color:inherit;font:inherit;cursor:pointer}
+.ntrow b{display:block;font-size:.9375rem;overflow-wrap:anywhere}
+.ntrow .meta{display:block;margin-top:4px}
+.nti .lact{flex-wrap:wrap;gap:0 16px}
+.ntok{width:20px;height:20px;color:var(--ok);display:block}
+#nt_x{flex:1;min-height:0;width:100%;border:0;border-radius:0;background:var(--bg);color:var(--ink);padding:16px;font:inherit;font-size:16px;line-height:1.6;resize:none}
+#nt_x:focus-visible{outline:0}
+#nt_vs{flex:1;overflow:auto}
+#ntSide{border-bottom:1px solid var(--line);margin-bottom:8px}
+.ntck{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);margin-right:10px;vertical-align:middle;color:var(--on);font-size:.75rem;font-weight:600}
+.nti.sel .ntck{background:var(--accent)}
+.nti.sel{background:var(--hover);border-radius:12px;padding-left:10px;padding-right:10px}
+#nt_st{position:relative;width:44px;height:44px;border-radius:50%;border:0;padding:0;margin-left:4px;cursor:pointer;flex:none;background:none;color:var(--ok)}
+#nt_st:empty{background:var(--accent);color:var(--on)}
+#nt_st::before{content:"";position:absolute;left:50%;top:50%;width:22px;height:22px;transform:translate(-50%,-50%);background:currentColor;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 13l4 4L19 7'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 13l4 4L19 7'/></svg>") center/contain no-repeat}
+#nt_st svg{display:none}
+.ntpill{display:flex;align-items:center;border:1px solid var(--line);background:var(--surface);border-radius:999px;flex:none}
+.ntpill button{width:44px;height:40px;border:0;background:none;color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0;border-radius:999px}
+.ntpill button:hover{background:var(--hover)}
+.ntpill svg{width:20px;height:20px;display:block}
+.ntpill button+button{border-left:1px solid var(--line);border-radius:0 999px 999px 0}
+.ntpill button:first-child{border-radius:999px 0 0 999px}
+#ntS .ai .chip{min-height:44px}
+#ntO .fr.dng{color:var(--bad)}
+#nt_st:active{transform:scale(.93)}
+/* === END: NOTES UI CSS === */
+/* === START: PILL BUTTONS === */
+#proBtn,.ftl .lnk,.drf .lnk{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:0 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:600 .8125rem Sora,system-ui,sans-serif;text-decoration:none;white-space:nowrap;cursor:pointer}
+#proBtn:hover,.ftl .lnk:hover,.drf .lnk:hover{background:var(--hover)}
+#proBtn{background:var(--accent);color:var(--on);border-color:transparent}
+#proBtn:hover{background:var(--accent);opacity:.9}
+.ftl{gap:8px;margin-bottom:10px}
+.drf{gap:8px;flex-wrap:wrap}
+.wsrow{gap:8px}
+.pmi[data-p="tr"] .soon{display:none}
+/* === END: PILL BUTTONS === */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<main class="home" id="home">
+  <h1 class="sr">ArtiBytte Executive Protocol</h1>
+  <!-- === START: PARTICLE SPHERE HTML === -->
+<button class="orb" id="go" type="button" aria-label="Open setup"><canvas id="orbCv" aria-hidden="true"></canvas></button>
+<!-- === END: PARTICLE SPHERE HTML === -->
+  <footer class="home-foot">
+       <p class="hf-copy">&copy; 2026 ArtiBytte. All rights reserved.</p>
+  </footer>
+</main>
+
+<main id="setup" hidden>
+<div class="wrap">
+  <header class="top">
+    <div class="bar">
+      <button class="ic" id="back" type="button" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+      <span class="brk"></span>
+      <button class="ic" id="menuBtn" type="button" aria-label="Files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg></button>
+<!-- === START: TITLE EDIT === -->
+<div class="ttl"><b>Workspace</b></div>
+<!-- === END: TITLE EDIT === -->
+      <button class="avb" id="avBtn" type="button" aria-label="Account menu" aria-haspopup="dialog"><span class="av" id="avL">A</span></button>
+    </div>
+  </header>
+
+  <h1 class="sr" id="h1s" tabindex="-1">Setup</h1>
+<!-- === START: PLAN + STORAGE ROW === -->
+<div class="wsrow"><span class="tag" id="planTag">Free</span><button class="lnk" id="proBtn" type="button">Upgrade</button><span id="stT"></span></div>
+<div class="meter" id="meterW" role="progressbar" aria-label="Storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fillbar" id="stF"></div></div>
+<!-- === END: PLAN + STORAGE ROW === -->
+
+  <section class="how" id="howSec" aria-labelledby="howT" hidden>
+    <h2 id="howT">How to use</h2>
+<!-- === START: HAPTICS TOGGLE === -->
+<button class="lnk" id="hapBtn" type="button">Haptics: On</button>
+<!-- === END: HAPTICS TOGGLE === -->
+    <ol>
+      <li>Fill in the form below. Legal name, jurisdiction, currency, industry and mission are required.</li>
+      <li>Copy cards 1 to 4 in order and paste each into a new chat with your AI.</li>
+      <li>Send <button class="cmd" data-copy="Protocol, activate." type="button">Protocol, activate.</button></li>
+      <li>Optional: in Files, open Notes, tap Select, choose notes, then Mitochondria. Paste that prompt only after cards 1 to 4 are active in the chat. Its output is a claim until you verify it.</li>
+      <li>When done, send <button class="cmd" data-copy="Update the operating record." type="button">Update the operating record.</button> then <button class="cmd" data-copy="Produce session snapshot." type="button">Produce session snapshot.</button> Paste the output into Files (Add file) and tap Commit changes.</li>
+    </ol>
+    <h3 class="mh">Open your AI</h3>
+    <p class="sub">Tap to open a new chat, then paste cards 1 to 4 in order.</p>
+    <div class="ai">
+      <a class="chip" href="https://chat.deepseek.com/" target="_blank" rel="noopener noreferrer">DeepSeek</a>
+      <a class="chip" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">ChatGPT</a>
+      <a class="chip" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">Claude</a>
+      <a class="chip" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer">Gemini</a>
+      <a class="chip" href="https://grok.com/" target="_blank" rel="noopener noreferrer">Grok</a>
+      <a class="chip" href="https://www.perplexity.ai/" target="_blank" rel="noopener noreferrer">Perplexity</a>
+      <a class="chip" href="https://copilot.microsoft.com/" target="_blank" rel="noopener noreferrer">Copilot</a>
+      <a class="chip" href="https://chat.mistral.ai/chat" target="_blank" rel="noopener noreferrer">Mistral</a>
+      <a class="chip" href="https://www.kimi.com/" target="_blank" rel="noopener noreferrer">Kimi</a>
+      <a class="chip" href="https://chat.qwen.ai/" target="_blank" rel="noopener noreferrer">Qwen</a>
+    </div>
+  </section>
+
+  <div class="eform" id="eform" hidden>
+    <h2>Your organization</h2>
+    <div class="field"><label for="e_name">Legal name</label><input type="text" id="e_name" autocomplete="organization" placeholder="e.g. Acme Trading Inc."></div>
+    <div class="field"><label for="e_type">Entity type</label>
+      <select id="e_type">
+        <option value="incorporated company">Incorporated company</option>
+        <option value="limited liability company">Limited liability company</option>
+        <option value="partnership">Partnership</option>
+        <option value="sole proprietorship">Sole proprietorship</option>
+        <option value="non-profit organization">Non-profit organization</option>
+        <option value="other organization">Other</option>
+      </select>
+    </div>
+    <div class="field"><label for="e_jur">Jurisdiction</label><input type="text" id="e_jur" placeholder="e.g. Philippines"></div>
+    <div class="field"><label for="e_cur">Reporting currency</label><input type="text" id="e_cur" placeholder="e.g. PHP"></div>
+    <div class="field"><label for="e_ind">Industry</label><input type="text" id="e_ind" placeholder="e.g. Food and beverage"></div>
+    <div class="field"><label for="e_mis">Mission (one sentence)</label><textarea id="e_mis" placeholder="What the organization exists to do."></textarea></div>
+    <p class="sub" id="e_hint" aria-live="polite"></p>
+    <button class="sm p full" id="e_save" type="button">Save</button>
+  </div>
+
+  <!-- === START: PROMPTS HEADING === -->
+<div class="sech"><div class="sect"><h2 class="sec">Prompts &amp; Setup</h2><p class="sub" id="progT" aria-live="polite"></p></div><button class="ic" id="resetSteps" type="button" aria-label="New chat: reset steps" title="New chat: reset steps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button></div>
+<!-- === END: PROMPTS HEADING === -->
+<div class="card" id="card-sp">
+    <button class="n" type="button" data-n="sp" aria-label="Toggle step 1 done">1</button>
+    <div class="ct"><h2>System prompt</h2><p class="sub">Sets the rules. Paste this first.</p></div>
+    <!-- === START: SYSTEM PROMPT EYE BTN === -->
+<div class="acts"><button class="ic eye" id="spEye" type="button" aria-label="Preview system prompt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="sm p" id="cp" type="button">Copy</button></div>
+<!-- === END: SYSTEM PROMPT EYE BTN === -->
+  </div>
+
+  <div class="card" id="card-pc">
+    <button class="n" type="button" data-n="pc" aria-label="Toggle step 2 done">2</button>
+    <div class="ct"><h2>Protocol core</h2><p class="sub">The full protocol. Paste this second.</p></div>
+    <!-- === START: PROTOCOL CORE EYE BTN === -->
+<div class="acts"><button class="ic eye" id="pcEye" type="button" aria-label="Preview protocol core"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="sm p" id="cp3" type="button">Copy</button></div>
+<!-- === END: PROTOCOL CORE EYE BTN === -->
+  </div>
+
+  <div class="card" id="card-cf">
+    <button class="n" type="button" data-n="cf" aria-label="Toggle step 3 done">3</button>
+    <div class="ct"><h2>Configuration record</h2><p class="sub">Your organization's details, built from the form.</p></div>
+    <!-- === START: CONFIG RECORD EYE BTN === -->
+<div class="acts"><button class="ic eye" id="cfEye" type="button" aria-label="Preview configuration record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="sm p" id="cp4" type="button">Copy</button></div>
+<!-- === END: CONFIG RECORD EYE BTN === -->
+  </div>
+
+  <div class="card" id="card-or">
+    <button class="n" type="button" data-n="or" aria-label="Toggle step 4 done">4</button>
+    <div class="ct"><h2>Operating record</h2><p class="sub">A blank log to start tracking from.</p></div>
+    <!-- === START: OPERATING RECORD EYE BTN === -->
+<div class="acts"><button class="ic eye" id="orEye" type="button" aria-label="Preview operating record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="sm p" id="cp2" type="button">Copy</button></div>
+<!-- === END: OPERATING RECORD EYE BTN === -->
+  </div>
+
+<input type="file" id="pick" hidden accept=".md,.txt,.json,.csv,.yaml,.yml,text/*">
+  <input type="file" id="pickJson" hidden accept=".json,application/json">
+
+  <footer class="setup-foot">
+    <section class="how lg" id="legalSec" hidden>
+      <h2>Legal</h2>
+      <p class="lgm">ArtiBytte Executive Protocol. Last updated: October 18, 2026. By using this app you agree to these terms.</p>
+
+      <h3 class="mh">1. Ownership and copyright</h3>
+      <p>&copy; 2026 ArtiBytte. All rights reserved. The app, the Protocol text, prompts, templates, design, code and trademarks are owned by ArtiBytte and are proprietary and confidential. Nothing here transfers ownership to you.</p>
+
+      <h3 class="mh">2. License to use</h3>
+      <p>We grant you a limited, personal, non-exclusive, non-transferable, revocable license to use the app and the Protocol for your own internal business operations, under a valid license code (including a free guest code).</p>
+
+      <h3 class="mh">3. What you may not do</h3>
+      <ul>
+        <li>Copy, publish, resell, sublicense or distribute the app or Protocol, in whole or in part, without written permission.</li>
+        <li>Remove copyright, confidentiality or proprietary notices.</li>
+        <li>Reverse engineer, scrape or build a competing product from the app or Protocol.</li>
+        <li>Share your license code, or bypass plan limits, roles or license checks.</li>
+        <li>Use the app for unlawful, fraudulent or harmful purposes.</li>
+      </ul>
+
+      <h3 class="mh">4. Not professional advice</h3>
+      <p>The Protocol is an operating framework and design draft. It is <b>not</b> legal, accounting, tax, financial, investment, employment or compliance advice. It has not been legally reviewed, tested or certified. Consult qualified professionals in your jurisdiction before relying on it for material decisions. Nothing here creates a lawyer-client, advisor or fiduciary relationship.</p>
+
+      <h3 class="mh">5. AI output and your responsibility</h3>
+      <p>The app prepares prompts and records for use with third-party AI tools. AI output can be wrong, incomplete or fabricated. You are solely responsible for reviewing, verifying and approving any output, and for every decision, action and filing you make based on it. Final authority for material decisions stays with you.</p>
+
+      <h3 class="mh">6. Your content and data</h3>
+      <p>You own what you enter, including organization details, files and versions. This app stores them in your ArtiBytte account on our cloud backend, so they are available on any device where you log in with your license. Deleted files and workspaces are kept in Trash for a limited period, then purged. Plan storage limits apply. Export backups regularly.</p>
+
+      <h3 class="mh">7. Privacy</h3>
+      <ul>
+        <li><b>What we store:</b> your license code and email, files and versions, AI notes, organization details, members and roles, settings, feedback, support messages and waitlist entries, plus basic usage logs (audit log kept up to 90 days).</li>
+        <li><b>What we send:</b> transactional emails such as license, invitation, storage and backup notices, from team@artibytte.co.</li>
+        <li><b>Fonts:</b> the app loads a font from Google Fonts, so your browser connects to Google when the page opens. See Google's privacy policy.</li>
+        <li><b>No sale of data</b> and no ads or tracking in this version.</li>
+        <li>We aim to handle any personal data we receive in line with the Data Privacy Act of 2012 (Republic Act No. 10173) and other applicable law. You may ask us to access, correct or delete data you sent us by emailing the address below.</li>
+        <li>Do not enter data you are not allowed to store or share, such as another person's sensitive personal information without a lawful basis.</li>
+      </ul>
+
+      <h3 class="mh">8. Licenses, Free and Pro</h3>
+      <p>License codes are issued and verified by our server. Pro is a paid subscription, billed monthly or yearly through PayPal. We never see or store your card details. The subscription renews until you cancel it in your PayPal account, and Pro stays active until the end of the period you paid for. Prices and plan limits may change for future billing periods. For billing or refund questions, email team@artibytte.co.</p>
+
+      <h3 class="mh">9. Members and roles</h3>
+      <p>Members, roles and invite links are enforced by our server for each workspace. Anyone with an active invite link can join with the role set on the link, so reset the link if it is shared by mistake.</p>
+
+      <h3 class="mh">10. Third-party services</h3>
+      <p>AI tools, email apps, browsers and fonts you use with the app are provided by third parties under their own terms and privacy policies. We do not control them and are not responsible for them.</p>
+
+      <h3 class="mh">11. Disclaimer of warranties</h3>
+      <p>The app and Protocol are provided "as is" and "as available", without warranties of any kind, express or implied, including merchantability, fitness for a particular purpose, accuracy, availability, non-infringement and uninterrupted or error-free operation. We do not warrant that the Protocol is legally valid, compliant with any law, or suitable for your organization.</p>
+
+      <h3 class="mh">12. Limitation of liability</h3>
+      <p>To the maximum extent permitted by law, ArtiBytte and its owners, officers, contractors and affiliates are not liable for any indirect, incidental, special, consequential or punitive damages, or for loss of data, profits, revenue, business or goodwill, arising from your use of or inability to use the app or Protocol, even if advised of the possibility. Our total liability for any claim is limited to the amount you paid us for the app in the 12 months before the claim, or PHP 0 if you paid nothing. Nothing here limits liability that cannot be limited by law.</p>
+
+      <h3 class="mh">13. Indemnity</h3>
+      <p>You agree to defend and hold ArtiBytte harmless from claims, losses and expenses arising from your breach of these terms, your content, or your decisions and actions based on the app or AI output.</p>
+
+      <h3 class="mh">14. Termination</h3>
+      <p>You may stop using the app at any time. We may suspend or revoke a license if you breach these terms. Sections on ownership, restrictions, disclaimers, liability, indemnity and governing law survive termination.</p>
+
+      <h3 class="mh">15. Changes</h3>
+      <p>We may update these terms and the app. The "Last updated" date above shows the latest version. Continued use after an update means you accept it.</p>
+
+      <h3 class="mh">16. Governing law</h3>
+      <p>These terms are governed by the laws of the Republic of the Philippines. Disputes fall under the courts of the city where ArtiBytte maintains its principal office, unless the law requires otherwise. If any part of these terms is unenforceable, the rest remains in effect.</p>
+
+      <h3 class="mh">17. Contact</h3>
+      <p>Questions, privacy requests or license issues: <b>team@artibytte.co</b></p>
+    </section>
+    <nav class="ftl" aria-label="Info">
+      <button class="lnk" type="button" data-tg="howSec">How to use</button>
+      <button class="lnk" type="button" data-tg="eform">Organization</button>
+      <button class="lnk" type="button" data-tg="legalSec">Legal</button>
+    </nav>
+    <p class="hf-ver" id="homeVer"></p>
+  </footer>
+</div>
+
+<dialog class="drawer" id="drawer" aria-label="Files">
+    <div class="dr">
+      <div class="drh"><b id="drT">Files</b><button class="ic" id="drClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button></div>
+      <div class="dra"><button class="sm p" id="newBtn" type="button">Add file</button><button class="sm" id="aiBtn" type="button">AI Notes</button></div>
+      <div id="tools" hidden><input type="search" id="q" placeholder="Search" aria-label="Search files"></div>
+      <div id="ntSide"></div><div id="list"></div>
+      <div class="none" id="empty">No files</div>
+      <div class="drf"><button class="lnk" id="cpkBtn" type="button">Context Pack</button><button class="lnk" id="exportBtn" type="button">Export</button><button class="lnk" id="importBtn" type="button">Import</button></div>
+    </div>
+  </dialog>
+
+  <dialog class="editor" id="editor" aria-label="Editor">
+    <div class="ed">
+      <div class="edh">
+        <button class="ic" id="edClose" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+        <input type="text" id="s_title" placeholder="Name your file" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="sm p" id="s_save" type="button" disabled>Commit changes</button>
+      </div>
+      <div class="edt"><button class="lnk" id="s_paste" type="button">Paste</button><button class="lnk" id="s_up" type="button">Upload<span class="pro-b">Pro</span></button><span class="lim" id="s_lim" aria-live="polite"></span><span class="edx" id="edTools" hidden><button class="lnk" data-a="copy" type="button">Copy</button><button class="lnk" data-a="dl" type="button">Download</button><button class="lnk" data-a="del" type="button">Delete</button></span></div>
+      <div class="code"><pre id="gut" aria-hidden="true">1</pre><textarea id="s_text" wrap="off" placeholder="Paste or type here" spellcheck="false"></textarea></div>
+    </div>
+    <select id="s_type" hidden><option value="op"></option><option value="ss"></option><option value="cf"></option><option value=""></option></select>
+    <p id="s_hint" hidden></p>
+  </dialog>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite" popover="manual"></div>
+
+<dialog id="dlg" aria-labelledby="dT" aria-describedby="dM">
+  <form method="dialog"><h2 id="dT"></h2><p id="dM"></p>
+    <div class="row"><button class="sm" value="no" type="submit">Cancel</button><button class="sm p" value="yes" id="dOk" type="submit">OK</button></div>
+  </form>
+</dialog>
+
+<dialog id="cpk" aria-labelledby="cpkT">
+  <h2 id="cpkT">Export Context Pack</h2>
+  <div class="cpo">
+    <label class="plan"><input type="radio" name="cps" value="all" checked><b>All files, every version</b></label>
+    <label class="plan"><input type="radio" name="cps" value="lat"><b>Latest versions + operating history</b><span>Operating records and snapshots keep all versions</span></label>
+    <!-- === START: COMPACT MODE OPTION === -->
+<label class="plan"><input type="radio" name="cps" value="cmp"><b>Compact (smallest handoff)</b><span>Latest version of each file only</span></label>
+<!-- === END: COMPACT MODE OPTION === -->
+<label class="plan"><input type="radio" name="cps" value="sel"><b>Selected files only</b></label>
+  </div>
+  <div class="cpf" id="cpF" hidden></div>
+  <p class="sub" id="cpS" aria-live="polite"></p>
+  <div class="row"><button class="sm" id="cpX" type="button">Close</button><button class="sm" id="cpDl" type="button">Download .md</button><button class="sm p" id="cpCopy" type="button">Copy</button></div>
+</dialog>
+
+<dialog class="prof" id="prof" aria-label="Account menu">
+  <div class="pmh"><span class="av lg" id="pAvL">A</span><div><b id="pEm"></b><span class="sb" id="pPl"></span></div></div>
+  <button class="pmi" type="button" data-p="ws" data-n="Switch workspace"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Switch workspace<span class="soon">Soon</span></button>
+  <button class="pmi" type="button" data-p="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg>Settings</button>
+  <button class="pmi" type="button" data-p="off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Offline pages</button>
+  <button class="pmi" type="button" data-p="mem" data-n="Members"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Members</button>  <button class="pmi" type="button" data-p="tr" data-n="Trash"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Trash<span class="soon">Soon</span></button>
+  <button class="pmi" type="button" data-p="help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help &amp; support</button>
+</dialog>
+
+<!-- === START: SYSTEM PROMPT PREVIEW DIALOG === -->
+<dialog class="sheet" id="spD" aria-label="System prompt preview">
+  <section class="how">
+    <button class="ic sheet-x" id="spX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>System prompt</h2>
+    <p class="sub" id="sp_meta" aria-live="polite"></p>
+    <div class="pvw" id="sp_pre" tabindex="0"></div>
+    <button class="sm p full" id="sp_cp" type="button">Copy</button>
+  </section>
+</dialog>
+<!-- === END: SYSTEM PROMPT PREVIEW DIALOG === -->
+<!-- === START: WORKSPACES DIALOG === -->
+<dialog class="sheet" id="wsD" aria-label="Workspaces">
+  <section class="how">
+    <button class="ic sheet-x" id="wsX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Workspaces</h2>
+    <p class="sub">Each workspace has its own files, notes, organization and steps. Switching never deletes or changes another workspace.</p>
+    <div id="ws_list"></div>
+    <h3 class="mh">New workspace</h3>
+    <div class="mfld"><input type="text" id="ws_new" placeholder="Workspace name" aria-label="New workspace name" autocomplete="off"><button class="sm p" id="ws_add" type="button">Create</button></div>
+    <p class="sub">Creating one switches to it. Export and Context Pack include only the active workspace.</p>
+  </section>
+</dialog>
+<!-- === END: WORKSPACES DIALOG === -->
+<dialog class="sheet" id="helpD" aria-label="Help and support">
+  <section class="how">
+    <button class="ic sheet-x" id="helpX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Help &amp; support</h2>
+    <p class="sub" id="h_ver"></p>
+    <div class="hl">
+      <button class="sm full" id="h_how" type="button">How to use</button>
+      <button class="sm p full" id="h_mail" type="button">Email support</button>
+      <button class="sm full" id="h_bug" type="button">Report a problem</button>
+    </div>
+    <h3 class="mh">Common questions</h3>
+    <details class="faq"><summary>Where are my files saved?</summary><p>In your ArtiBytte cloud account. The Free plan holds up to 5 MB. Export a backup from Files regularly.</p></details>
+    <details class="faq"><summary>What are Notes?</summary><p>A place for your raw thinking and anything your AI tells you. Open Files, then tap Notes or a folder. Notes autosave and keep versions. They are separate from workspace files and not in Context Pack, but they are included in Export. Mitochondria only reads the notes you select. It never edits them, and nothing is sent anywhere until you copy the prompt.</p></details>
+    <details class="faq"><summary>What can I save on the Free plan?</summary><p>Text only. Use Add file to type or paste. Uploading photos and files is for Pro.</p></details>
+    <details class="faq"><summary>How do versions work?</summary><p>Saving with the same file name creates a new version (v1, v2, v3). If nothing changed, no new version is made.</p></details>
+    <details class="faq"><summary>How do I back up or move my files?</summary><p>Open Files, then tap Export to download a backup, or Context Pack to export everything as one .md file. Import restores a backup.</p></details>
+    <details class="faq"><summary>I lost my license code</summary><p>Tap Email support and include the email address you used. We will send your license code to that email.</p></details>
+    <details class="faq"><summary>What happens when I paste long text?</summary><p>Pasted paragraphs are split into rows of about 100 characters. Rows you type have no limit. The maximum is 50,000 lines per file.</p></details>
+    <details class="faq"><summary>Do members work across devices?</summary><p>Yes. Members join through an invite link or by email and see the same workspace on any device.</p></details>
+  </section>
+</dialog>
+
+<dialog class="sheet" id="trD" aria-label="Trash">
+  <section class="how">
+    <button class="ic sheet-x" id="trX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Trash</h2>
+    <p class="sub" id="tr_sub"></p>
+    <div id="tr_list"></div>
+  </section>
+</dialog>
+
+<dialog class="sheet" id="updD" aria-label="What's new">
+  <section class="how">
+    <button class="ic sheet-x" id="updX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>What's new</h2>
+    <p class="sub">Updates from the ArtiBytte team.</p>
+    <div id="upd_list"></div>
+  </section>
+</dialog>
+<dialog class="editor" id="aiD" aria-label="Notes">
+  <div class="ed">
+    <div class="edh">
+      <button class="ic" id="aiX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+      <b id="ai_h" style="flex:1;min-width:0;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Notes</b>
+    </div>
+    <div class="ntb" style="margin:0;padding:10px 12px;border-bottom:1px solid var(--line)"><button class="sm p" id="ai_new" type="button">New note</button><button class="sm p" id="ai_mito" type="button" hidden>Mitochondria</button><button class="sm" id="ai_sel" type="button">Select</button><button class="sm" id="ai_all" type="button" hidden>All</button></div>
+    <div id="ai_list" style="flex:1;min-height:0;overflow:auto;padding:0 16px 24px"></div>
+  </div>
+</dialog>
+
+<dialog class="editor" id="ntE" aria-label="Note">
+  <div class="ed">
+    <div class="edh">
+      <button class="ic" id="nt_back" type="button" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg></button>
+      <span style="flex:1"></span>
+      <button class="lnk" id="nt_hist" type="button" hidden>Versions</button>
+      <div class="ntpill">
+        <button id="nt_sh" type="button" aria-label="Share note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg></button>
+        <button id="nt_mo" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.7" fill="currentColor"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/><circle cx="19" cy="12" r="1.7" fill="currentColor"/></svg></button>
+      </div>
+      <button id="nt_st" type="button" aria-label="Save note"></button>
+    </div>
+    <textarea id="nt_x" aria-label="Note" placeholder="Start typing…" spellcheck="false"></textarea>
+    <div id="nt_vs" hidden></div>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="mtD" aria-label="Mitochondria">
+  <section class="how">
+    <button class="ic sheet-x" id="mtX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Mitochondria</h2>
+    <p class="sub" id="mt_sub" aria-live="polite"></p>
+    <h3 class="mh">Fragments</h3>
+    <div class="ofl" id="mt_fr"></div>
+    <h3 class="mh">Objective</h3>
+    <textarea class="rtm" id="mt_obj" placeholder="What do you want to solve or explore?" aria-label="Objective"></textarea>
+    <h3 class="mh">Output type</h3>
+    <select class="msel" id="mt_ty" aria-label="Output type"></select>
+    <h3 class="mh">Prompt</h3>
+    <textarea class="ntx" id="mt_p" aria-label="Prompt" spellcheck="false" style="min-height:240px;font:.8125rem/1.5 ui-monospace,Menlo,Consolas,monospace"></textarea>
+    <div class="ntb"><button class="sm p" id="mt_cp" type="button">Copy prompt</button><button class="lnk" id="mt_rs" type="button">Reset</button></div>
+    <div class="ai">
+      <a class="chip" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">Claude</a>
+      <a class="chip" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">ChatGPT</a>
+      <a class="chip" href="https://gemini.google.com/app" target="_blank" rel="noopener noreferrer">Gemini</a>
+      <a class="chip" href="https://chat.deepseek.com/" target="_blank" rel="noopener noreferrer">DeepSeek</a>
+    </div>
+  </section>
+</dialog>
+
+<dialog class="sheet" id="ntM" aria-label="Move note">
+  <section class="how">
+    <button class="ic sheet-x" id="ntMX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Move note</h2>
+    <div id="ntM_list"></div>
+    <div class="mfld" style="margin-top:12px"><input type="text" id="ntM_new" placeholder="New folder" aria-label="New folder name" autocomplete="off"><button class="sm p" id="ntM_add" type="button">Move</button></div>
+  </section>
+</dialog>
+<dialog class="sheet" id="ntS" aria-label="Share note">
+  <section class="how">
+    <button class="ic sheet-x" id="ntSX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Share note</h2>
+    <p class="sub">Some apps can't receive text from a web page. For those, the note is copied first, then the app opens so you can paste.</p>
+    <h3 class="mh">AI models</h3>
+    <div class="ai" id="ntS_ai"></div>
+    <h3 class="mh">Send to</h3>
+    <div class="ai" id="ntS_ap"></div>
+  </section>
+</dialog>
+
+<dialog class="sheet" id="ntO" aria-label="Note actions">
+  <section class="how">
+    <button class="ic sheet-x" id="ntOX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Note</h2>
+    <div>
+      <button class="fr" id="ntO_pin" type="button">Pin</button>
+      <button class="fr" id="ntO_dup" type="button">Duplicate</button>
+      <button class="fr" id="ntO_mv" type="button">Move to folder</button>
+      <button class="fr dng" id="ntO_del" type="button">Delete</button>
+    </div>
+  </section>
+</dialog>
+<dialog class="sheet" id="ofD" aria-label="Offline pages">
+  <section class="how">
+    <button class="ic sheet-x" id="ofX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Offline pages</h2>
+    <p class="sub"><span class="stp" id="of_net"></span></p>
+    <h3 class="mh">What works without internet</h3>
+    <p class="ofn">Everything you saved here: files and versions, AI notes, organization, members and settings. They live in this browser, so you can open and edit them without internet while this page is open. Free and Pro work the same way today.</p>
+    <h3 class="mh" id="of_h">Saved on this device</h3>
+    <div class="ofl" id="of_list"></div>
+    <p class="ofn" id="of_st"></p>
+    <div class="srow"><span>Last backup</span><span class="meta" id="of_bk"></span></div>
+    <div class="srow"><span>Backup file</span><span class="lact"><button class="lnk" id="of_exp" type="button">Export</button><button class="lnk" id="of_imp" type="button">Import</button></span></div>
+    <h3 class="mh">Open the app without internet</h3>
+    <p class="ofn" id="of_app"></p>
+    <button class="sm full" id="of_save" type="button">Save app copy (.html)</button>
+    <h3 class="mh">Cloud sync</h3>
+    <p class="ofn">Not available yet, on Free or Pro. Your files are not copied to any server, so they are not on your other devices and are not backed up for you. Edits you make offline are saved here, and nothing waits to sync.</p>
+  </section>
+</dialog>
+
+<dialog class="sheet" id="memD" aria-label="Members">  <section class="how">
+    <button class="ic sheet-x" id="memX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Members</h2>
+    <p class="sub" id="mem_sub"></p>
+    <div id="m_inv">
+      <h3 class="mh">Invite link</h3>
+      <div class="mfld"><input type="text" id="m_link" readonly aria-label="Invite link"><button class="sm" id="m_cp" type="button">Copy</button></div>
+      <div class="mfld" style="margin-top:8px"><span class="meta">Link joins as</span><select class="msel" id="m_lrole" aria-label="Role for invite link"><option value="member">Member</option><option value="restricted">Restricted member</option></select><button class="lnk" id="m_reset" type="button" style="margin-left:auto">Reset link</button></div>
+      <h3 class="mh">Add by email</h3>
+      <div class="mfld"><input type="text" id="m_email" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="name@example.com" aria-label="Email address"></div>
+      <div class="mfld" style="margin-top:8px"><select class="msel" id="m_role" aria-label="Permission level"><option value="member">Member</option><option value="restricted">Restricted member</option></select><button class="sm p" id="m_add" type="button" style="margin-left:auto">Add</button></div>
+    </div>
+    <h3 class="mh">Workspace members</h3>
+    <div id="m_list"></div>
+    <h3 class="mh">Permission levels</h3>
+    <div id="m_leg"></div>
+  </section>
+</dialog>
+
+<dialog class="sheet" id="memD" aria-label="Members">
+  <section class="how">
+    <button class="ic sheet-x" id="memX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Members</h2>
+    <p class="sub" id="mem_sub"></p>
+    <div id="m_inv">
+      <h3 class="mh">Invite link</h3>
+      <div class="mfld"><input type="text" id="m_link" readonly aria-label="Invite link"><button class="sm" id="m_cp" type="button">Copy</button></div>
+      <div class="mfld" style="margin-top:8px"><span class="meta">Link joins as</span><select class="msel" id="m_lrole" aria-label="Role for invite link"><option value="member">Member</option><option value="restricted">Restricted member</option></select><button class="lnk" id="m_reset" type="button" style="margin-left:auto">Reset link</button></div>
+      <h3 class="mh">Add by email</h3>
+      <div class="mfld"><input type="text" id="m_email" inputmode="email" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="name@example.com" aria-label="Email address"></div>
+      <div class="mfld" style="margin-top:8px"><select class="msel" id="m_role" aria-label="Permission level"><option value="member">Member</option><option value="restricted">Restricted member</option></select><button class="sm p" id="m_add" type="button" style="margin-left:auto">Add</button></div>
+    </div>
+    <h3 class="mh">Workspace members</h3>
+    <div id="m_list"></div>
+    <h3 class="mh">Permission levels</h3>
+    <div id="m_leg"></div>
+  </section>
+</dialog>
+
+<dialog class="sheet" id="setD" aria-label="Settings">  <section class="how">
+    <button class="ic sheet-x" id="setX" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+    <h2>Settings</h2>
+    <div class="srow"><span>Haptics</span><button class="lnk" id="set_hap" type="button"></button></div>
+    <div class="srow"><span>Organization</span><button class="lnk" id="set_org" type="button">Edit</button></div>
+    <div class="srow"><span>License</span><code id="set_lic"></code></div>
+    <div class="srow"><span>Plan</span><span id="set_plan"></span></div>
+    <div class="srow"><span>Subscription</span><span class="meta" id="set_sub"></span></div>
+    <div class="srow" id="set_updR"><span>What's new</span><button class="lnk" id="set_upd" type="button">View</button></div>
+    <h3 class="mh">Storage</h3>
+    <div class="meter" id="set_meterW" role="progressbar" aria-label="Storage used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fillbar" id="set_stF"></div></div>
+    <p class="sub" id="set_st"></p>
+    <p class="sub">Limits: 1.5 MB per file and 50,000 lines per file.</p>
+    <div class="srow"><span>Protected from browser cleanup</span><button class="lnk" id="set_pers" type="button"></button></div>
+    <div class="srow"><span>Backup</span><span class="lact"><button class="lnk" id="set_exp" type="button">Export</button><button class="lnk" id="set_imp" type="button">Import</button></span></div>
+    <div class="srow"><span>Theme</span><select class="msel" id="set_theme" aria-label="Theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+    <h3 class="mh">Rate us</h3>
+    <div class="rate"><button class="chip" id="rt_g" type="button" aria-pressed="false">Good</button><button class="chip" id="rt_b" type="button" aria-pressed="false">Bad</button></div>
+    <textarea class="rtm" id="rt_m" placeholder="Tell us more (optional)" aria-label="Feedback message"></textarea>
+    <button class="sm p full" id="rt_s" type="button">Send feedback</button>
+    <button class="sm d full" id="set_clr" type="button" style="margin-top:14px">Clear this device</button>    <button class="sm bad full" id="set_out" type="button" style="margin-top:14px">Log out</button>
+  </section>
+</dialog>
+
+<dialog class="prof" id="prof" aria-label="Account menu">
+  <div class="pmh"><span class="av lg" id="pAvL">A</span><div><b id="pEm"></b><span class="sb" id="pPl"></span></div></div>
+  <button class="pmi" type="button" data-p="ws" data-n="Switch workspace"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Switch workspace<span class="soon">Soon</span></button>
+  <button class="pmi" type="button" data-p="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg>Settings</button>
+  <button class="pmi" type="button" data-p="off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Offline pages</button>
+  <button class="pmi" type="button" data-p="mem" data-n="Members"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Members</button>
+  <button class="pmi" type="button" data-p="tr" data-n="Trash"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Trash<span class="soon">Soon</span></button>
+  <button class="pmi" type="button" data-p="help"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>Help &amp; support</button>
+</dialog>
+
+<dialog id="gate" aria-labelledby="gT">
+  <div id="gA">
+    <h2 id="gT">Protocol access</h2>
+    <p>Enter your license to continue.</p>
+    <div class="field" style="margin-top:12px"><label for="g_lic">License</label><input type="text" id="g_lic" placeholder="ARTI-000000" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+    <p class="sub gerr" id="g_err" aria-live="polite"></p>
+    <button class="sm p full" id="g_go" type="button">Unlock</button>
+    <div class="gal"><button class="lnk" id="g_guest" type="button">Continue as guest</button><a class="lnk" id="g_get" href="#">Get your license</a></div>
+  </div>
+  <div id="gB" hidden>
+    <h2>Free account</h2>
+    <p>Enter your email to create a free guest license.</p>
+    <div class="field" style="margin-top:12px"><label for="g_email">Email</label><input type="text" id="g_email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com"></div>
+    <p class="sub gerr" id="g_merr" aria-live="polite"></p>
+    <button class="sm p full" id="g_mk" type="button">Create free account</button>
+    <div class="gal"><button class="lnk" id="g_back" type="button">Back</button></div>
+  </div>
+  <div id="gC" hidden>
+    <h2>You're in</h2>
+    <p>Your free license. Keep it safe.</p>
+    <div class="gcode" id="g_code"></div>
+    <button class="sm full" id="g_cp" type="button">Copy</button>
+    <button class="sm p full" id="g_ct" type="button" style="margin-top:8px">Continue</button>
+  </div>
+  <div class="row"><button class="sm" id="g_x" type="button">Close</button></div>
+</dialog>
+
+<dialog id="gate" aria-labelledby="gT">
+  <div id="gA">
+    <h2 id="gT">Protocol access</h2>
+    <p>Enter your license to continue.</p>
+    <div class="field" style="margin-top:12px"><label for="g_lic">License</label><input type="text" id="g_lic" placeholder="ARTI-000000" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+    <p class="sub gerr" id="g_err" aria-live="polite"></p>
+    <button class="sm p full" id="g_go" type="button">Unlock</button>
+    <div class="gal"><button class="lnk" id="g_guest" type="button">Continue as guest</button><a class="lnk" id="g_get" href="#">Get your license</a></div>
+  </div>
+  <div id="gB" hidden>
+    <h2>Free account</h2>
+    <p>Enter your email to create a free guest license.</p>
+    <div class="field" style="margin-top:12px"><label for="g_email">Email</label><input type="text" id="g_email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com"></div>
+    <p class="sub gerr" id="g_merr" aria-live="polite"></p>
+    <button class="sm p full" id="g_mk" type="button">Create free account</button>
+    <div class="gal"><button class="lnk" id="g_back" type="button">Back</button></div>
+  </div>
+  <div id="gC" hidden>
+    <h2>You're in</h2>
+    <p>Your free license. Keep it safe.</p>
+    <div class="gcode" id="g_code"></div>
+    <button class="sm full" id="g_cp" type="button">Copy</button>
+    <button class="sm p full" id="g_ct" type="button" style="margin-top:8px">Continue</button>
+  </div>
+  <div class="row"><button class="sm" id="g_x" type="button">Close</button></div>
+</dialog>
+
+<dialog id="pro" aria-labelledby="proT">  <form method="dialog">
+    <h2 id="proT">ArtiBytte Pro</h2>
+    <p id="pro_p">Pro is coming soon. Join the waitlist and we'll tell you when it opens.</p>
+    <ul class="perks"><li class="soon"><b>Upload photos and files</b>, not just text</li><li class="soon"><b>Cloud storage</b> that survives clearing your browser</li><li class="soon"><b>Every device</b>, same records</li><li class="soon"><b>Automatic backups</b> of every version</li><li class="soon"><b>Restore deleted files</b> from Trash</li></ul>    <div class="plans">
+      <label class="plan"><input type="radio" name="plan" value="m" checked><b id="pm"></b><span>per month</span></label>
+      <label class="plan"><input type="radio" name="plan" value="y"><b id="py"></b><span>per year</span></label>
+    </div>
+    <div id="pp_box" hidden><div id="pp_btn"></div><p class="sub" id="pp_msg" aria-live="polite"></p></div>
+    <div class="row"><button class="sm" value="no" type="submit">Not now</button><button class="sm p" id="proGo" value="no" type="submit">Join waitlist</button></div>
+  </form>
+</dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);if(window.onStore)setTimeout(window.onStore,0);return true}catch(e){return false}}};
+const fmt=t=>new Date(t).toLocaleString([],{dateStyle:"medium",timeStyle:"short"});
+const kb=n=>n<1024?n+" B":n<1048576?(n/1024).toFixed(1)+" KB":(n/1048576).toFixed(2)+" MB";
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const API_URL="https://script.google.com/macros/s/AKfycbxnf7GVRd8kioWrgv1eWiD93ga8M1g_vG5oad_I_9wjL5t1eLXc4JfUSyDzGFIie8Nl/exec"; /* Apps Script web app URL (…/exec) */
+const TKK="artibytte-token-v1";
+let PLAN="free",LIMIT=5*1048576,STUSED=0,STLAST=0,SESS=null,CFG={};
+{const m=location.hash.match(/^#join=([\w-]+)/);if(m)LS.set("artibytte-pendjoin",m[1])}
+async function api(action,params,o){
+  o=o||{};let r;
+  try{
+    const res=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,params:params||{},token:o.noAuth?"":(LS.get(TKK)||"")})});
+    r=await res.json();
+  }catch(e){const x=new Error("Can't reach the server. Check your internet.");x.code="NET";throw x}
+  if(!r||!r.ok){
+    const er=(r&&r.error)||{},x=new Error(er.message||"Something went wrong.");x.code=er.code||"SERVER";
+    if((x.code==="AUTH"||x.code==="LICENSE")&&!o.quiet)authLost();
+    throw x;
+  }
+  return r.data;
+}
+function authLost(){
+  LS.set(TKK,"");SESS=null;
+  if(cur==="setup"){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}pushed=false;show("home")}
+  toast("Session expired. Log in again.","err");
+}
+async function loadCfg(){
+  try{CFG=await api("config.get",{},{noAuth:true,quiet:true});VER=CFG.protocolVersion||VER;setPrice(CFG.proPriceMonth||999,CFG.proPriceYear);paintVer()}catch(e){}
+}
+async function refreshUsed(){
+  try{const s=await api("storage.status",{wsId:WSID},{quiet:true});STUSED=s.used;LIMIT=s.limit;STLAST=s.lastBackupAt;render();if(window.onStore)window.onStore()}catch(e){}
+}
+function loadSession(s){
+  SESS=s;PLAN=s.user.plan;LIMIT=s.limits.storage;STUSED=s.storage.used;STLAST=s.user.lastBackupAt;
+  WSR.list=s.workspaces.map(w=>({id:w.id,name:w.name,isDefault:w.isDefault,role:w.role}));
+  const sv=LS.get(WSK);
+  WSID=WSR.list.some(w=>w.id===sv)?sv:(WSR.list.find(w=>w.isDefault)||WSR.list[0]).id;WSR.active=WSID;wsSave();
+  LS.set(LICK,JSON.stringify({code:s.user.code,email:s.user.email,type:s.user.plan==="free"?"free":"license",t:Date.now()}));
+  LS.set("artibytte-haptics",s.user.haptics);LS.set(THK,s.user.theme);applyTheme();paintHap();
+  UPD.latest=s.latestUpdate;UPD.seen=s.user.seenUpdate;paintNew();
+}
+async function hydrate(){
+  const x=await api("ws.export",{wsId:WSID,sync:true});
+  db={};for(const n in x.files){const f=x.files[n];if(f&&Array.isArray(f.vs)&&f.vs.length)db[n]={next:f.next||f.vs.length+1,vs:f.vs}}
+  ent=x.entity||{};st=x.steps||{};entDirty=false;
+  NT=(x.notes||[]).map(n=>({id:n.id,sid:n.id,folder:n.folder||"",pin:!!n.pin,t:n.t,text:n.text,lastSent:n.text,vs:[]}));
+  MB.me=x.me||null;
+}
+function paintAll(){
+  EF.forEach(k=>{$("e_"+k).value=ent[k]||(k==="type"?DEF_TYPE:"")});
+  eh();paintSteps();$("s_title").value=CHIPS.op();sbState();render();ntRender();paintProf();wsPaint();wsRender();
+}
+async function bootApp(){
+  if(!VER)loadCfg();
+  try{
+    if(!SESS)loadSession(await api("me.get"));
+    const pj=LS.get("artibytte-pendjoin");
+    const ps=LS.get("artibytte-pendsub");
+    if(ps){ppConfirm(ps).then(r=>{if(!r.pending){LS.set("artibytte-pendsub","");if(r.pro){loadSession(r.session);render();paintProf();toast("Pro is active. Thank you!")}}}).catch(e=>{if(e.code==="PAY"||e.code==="EXISTS")LS.set("artibytte-pendsub","")})}
+    if(pj){LS.set("artibytte-pendjoin","");try{const j=await api("member.join",{token:pj});await refreshWs();WSID=j.id;WSR.active=j.id;wsSave();toast("Joined "+j.name+".")}catch(e){toast(e.message,"err")}}
+    await hydrate();paintAll();
+  }catch(e){if(e.code!=="AUTH"&&e.code!=="LICENSE")toast(e.message,"err")}
+}
+
+/* === START: WORKSPACES CORE === */
+const WSK="artibytte-ws-v1";
+let WSR={list:[],active:""};
+let WSID="";
+const wsSave=()=>LS.set(WSK,WSID);
+/* === END: WORKSPACES CORE === */
+/* === START: HAPTICS JS === */
+const HAP=(()=>{
+  let lab=null;
+  try{
+    const i=document.createElement("input");i.type="checkbox";i.id="hapi";i.setAttribute("switch","");
+    lab=document.createElement("label");lab.setAttribute("for","hapi");lab.setAttribute("aria-hidden","true");
+    lab.style.cssText="position:fixed;left:-99px;top:-99px;opacity:0;pointer-events:none";
+    lab.appendChild(i);document.body.appendChild(lab);
+  }catch(e){}
+  const tick=()=>{try{lab&&lab.click()}catch(e){}};
+  const PAT={light:[8],medium:[18],success:[10,50,10],error:[28,50,28,50,28]};
+  return function(k){
+    if(matchMedia("(prefers-reduced-motion:reduce)").matches||LS.get("artibytte-haptics")==="off")return;
+    const p=PAT[k]||PAT.light;
+    if(navigator.vibrate){try{navigator.vibrate(p);return}catch(e){}}
+    let t=0;p.forEach((ms,i)=>{if(i%2===0)setTimeout(tick,t);t+=ms});
+  };
+})();
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");
+  if(!b||b.matches(".sm.p,[data-copy],.cmd"))return;
+  HAP(b.matches(".d,.bad")?"medium":"light");
+});
+/* === END: HAPTICS JS === */
+let toastT;
+function toast(m,k){HAP(k==="err"?"error":"success");const t=$("toast");try{if(t.matches(":popover-open"))t.hidePopover();t.showPopover()}catch(e){}t.textContent=m;t.className="toast on"+(k==="err"?" err":"");clearTimeout(toastT);toastT=setTimeout(()=>{t.className="toast"},k==="err"?6000:2200)}
+function confirmBox(title,msg,ok,danger){
+  const d=$("dlg");if(!d.showModal)return Promise.resolve(true);
+  $("dT").textContent=title;$("dM").textContent=msg;
+  const b=$("dOk");b.textContent=ok||"OK";b.className="sm "+(danger?"bad":"p");d.returnValue="";
+  return new Promise(r=>{d.addEventListener("close",()=>r(d.returnValue==="yes"),{once:true});d.showModal()});
+}
+function flash(b,cls,txt,ms){if(!b.dataset.l)b.dataset.l=b.textContent;b.classList.remove("ok","bad");if(cls)b.classList.add(cls);b.textContent=txt||b.dataset.l;clearTimeout(b._t);if(ms)b._t=setTimeout(()=>flash(b),ms)}
+function legacy(t){const a=document.createElement("textarea");a.value=t;a.setAttribute("readonly","");a.style.cssText="position:fixed;opacity:0";document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand("copy")}catch(e){}a.remove();return ok}
+async function copyText(text,btn){
+  let ok=false;
+  if(navigator.clipboard&&navigator.clipboard.writeText){try{await navigator.clipboard.writeText(text);ok=true}catch(e){}}
+  if(!ok)ok=legacy(text);
+  if(ok){HAP("success");flash(btn,"ok","Copied",1500)}else{flash(btn,"bad","Copy failed",2500);toast("Copy failed. Try again.","err")}
+  return ok;
+}
+document.addEventListener("click",e=>{const c=e.target.closest("[data-copy]");if(c)copyText(c.dataset.copy,c)});
+   let VER="";
+const DEF_TYPE="incorporated company";
+function paintVer(){
+  const t=VER?"v"+VER.replace("-draft","")+(CFG.backend?" · app "+CFG.backend:""):"";
+  $("homeVer").textContent=t;
+  const h=$("h_ver");if(h){const l=getLic()||{};h.textContent=[t,l.code].filter(Boolean).join(" · ")}
+}
+
+const SK="artibytte-protocol-steps-v1",EK="artibytte-entity-v2";
+const STEPS=["sp","pc","cf","or"];
+let st={};try{st=JSON.parse(LS.get(SK)||"{}")}catch(e){}
+function paintSteps(){
+  let n=0;
+  STEPS.forEach((k,i)=>{const c=$("card-"+k),d=!!st[k];c.classList.toggle("done",d);c.querySelector(".n").textContent=d?"✓":String(i+1);if(d)n++});
+  /* === START: STEP LABEL EDIT === */
+const nx=STEPS.findIndex(k=>!st[k]);$("progT").textContent=nx<0?"All 4 steps done":"Step "+(nx+1)+" of 4 · copy in order";
+/* === END: STEP LABEL EDIT === */
+}
+async function stSet(p){try{const r=await api("steps.set",Object.assign({wsId:WSID},p));st=r.steps;paintSteps()}catch(e){toast(e.message,"err")}}
+function mark(k){if(!st[k])stSet({key:k,value:true})}
+document.querySelectorAll(".n").forEach(b=>b.onclick=()=>stSet({key:b.dataset.n}));
+$("resetSteps").onclick=async()=>{await stSet({reset:true});toast("Steps reset.")};
+
+/* entity form */
+const EF=["name","type","jur","cur","ind","mis"];
+let ent={};try{ent=JSON.parse(LS.get(EK)||"{}")||{}}catch(e){}
+const getEnt=()=>({name:(ent.name||"").trim(),type:ent.type||DEF_TYPE,jur:(ent.jur||"").trim(),cur:(ent.cur||"").trim(),ind:(ent.ind||"").trim(),mis:(ent.mis||"").trim()});
+EF.forEach(k=>{
+  const el=$("e_"+k);
+  if(ent[k])el.value=ent[k];else if(k==="type")el.value=DEF_TYPE;
+  el.addEventListener("input",()=>{ent[k]=el.value;entDirty=true});
+});
+
+/* copy cards */
+const slug=s=>(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"entity";
+const today=()=>new Date().toLocaleDateString("en-CA");
+const REQ=[["name","Legal name"],["jur","Jurisdiction"],["cur","Currency"],["ind","Industry"],["mis","Mission"]];
+let pend=null,entDirty=false;
+async function entPush(){
+  const x=await api("entity.save",Object.assign({wsId:WSID},getEnt()));
+  ent=x.entity;entDirty=false;return x;
+}
+const CC=new Map();
+const ccKey=k=>WSID+"|"+k+"|"+VER+(k==="pc"?"":"|"+today()+"|"+JSON.stringify(getEnt()));
+const PCK="artibytte-pc-v1";
+async function getCard(k){
+  if(entDirty)await entPush();
+  let key=ccKey(k),hit=CC.get(key);
+  if(hit)return hit;
+  if(k==="pc"&&VER){try{const s=JSON.parse(LS.get(PCK)||"null");if(s&&s.ver===VER&&s.text){hit={version:VER,missing:[],cards:{pc:{text:s.text,bytes:s.bytes,needsOrg:false,ready:true}}};CC.set(key,hit);return hit}}catch(e){}}
+  return getCardNet(k);
+}
+async function getCardNet(k){
+  if(entDirty)await entPush();
+  const r=await api("protocol.get",{wsId:WSID,card:k});
+  VER=r.version;
+  const c=r.cards[k];
+  if(c&&c.text&&(!c.needsOrg||c.ready)){
+    if(CC.size>=24)CC.delete(CC.keys().next().value);
+    CC.set(ccKey(k),r);
+    if(k==="pc")LS.set(PCK,JSON.stringify({ver:r.version,text:c.text,bytes:c.bytes}));
+  }
+  return r;
+}
+/* iOS-safe: clipboard write that waits for the server text */
+async function copyLater(p,btn){
+  try{
+    if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){
+      await navigator.clipboard.write([new ClipboardItem({"text/plain":p.then(t=>new Blob([t],{type:"text/plain"}))})]);
+      HAP("success");flash(btn,"ok","Copied",1500);return true;
+    }
+  }catch(e){}
+  return copyText(await p,btn);
+}
+function cc(id,k){
+  $(id).onclick=async()=>{
+    const b=$(id);let miss=null;
+    const p=getCard(k).then(r=>{const c=r.cards[k];if(c.needsOrg&&!c.ready){miss=r.missing;throw new Error("miss")}if(!c.text)throw new Error("Protocol Core is not published yet.");return c.text});
+    p.catch(()=>{});
+    let ok=false;
+    try{ok=await copyLater(p,b)}catch(e){
+      if(miss){pend=b;openSheet("eform");toast("Fill in: "+miss.join(", ")+".","err");setTimeout(()=>{const m=REQ.find(q=>!getEnt()[q[0]]);if(m)$("e_"+m[0]).focus()},60)}
+      else toast(e.message,"err");
+      return;
+    }
+    if(ok)mark(k);
+  };
+}
+cc("cp","sp");cc("cp3","pc");cc("cp4","cf");cc("cp2","or");
+
+/* saved versions */
+const KEY="artibytte-protocol-files-v2";
+let db={},q="";
+try{const o=JSON.parse(LS.get(KEY)||"{}");for(const n in o)if(o[n]&&Array.isArray(o[n].vs))db[n]=o[n]}catch(e){}
+const lastOf=f=>f.vs[f.vs.length-1];
+const used=()=>STUSED;let warnLvl=0,persistAsked=false;
+function warnStorage(){
+  const p=used()/LIMIT*100,lv=p>=90?2:p>=80?1:0;
+  if(lv>warnLvl)setTimeout(()=>toast("Storage is "+(lv===2?"90":"80")+"% full. Export a backup and remove old files.","err"),2500);
+  warnLvl=lv;
+}
+const names=()=>Object.keys(db).filter(n=>db[n].vs.length).sort((a,b)=>lastOf(db[b]).t-lastOf(db[a]).t);
+function render(){
+  const all=names(),shown=all.filter(n=>n.toLowerCase().includes(q)),has=all.length>0;
+  $("tools").hidden=!has;$("empty").hidden=has;
+  const u=used(),p=Math.min(100,u/LIMIT*100);
+  $("stF").style.width=(u>0?Math.max(p,1.5):0)+"%";$("stF").classList.toggle("hot",p>=90);
+  $("planTag").textContent=PLAN==="pro"?"Pro plan":"Free plan";document.querySelector("#s_up .pro-b").hidden=PLAN==="pro";$("proBtn").hidden=PLAN==="pro";
+  $("stT").textContent=kb(u)+" / "+(LIMIT/1048576)+" MB";  $("meterW").setAttribute("aria-valuenow",Math.round(p));
+  $("drT").textContent=has?"Files · "+all.length:"Files";
+  $("list").innerHTML=shown.map((n,i)=>{const c=lastOf(db[n]),N=esc(n);return `<button class="fr" type="button" data-a="open" data-n="${N}"><span class="ln">${i+1}</span><span class="nm">${N}</span><span class="vv">v${c.v}</span></button>`}).join("")||(has?'<p class="meta">No match</p>':"");
+}
+async function saveFile(n,t,o){
+  const r=await api("file.save",Object.assign({wsId:WSID,name:n,text:t},o||{}));
+  if(r.noChange)return r;
+  const d=db[r.name]||(db[r.name]={next:1,vs:[]});
+  d.vs.push({v:r.v,t:Date.now(),size:r.size,text:t.replace(/\r\n?/g,"\n")});d.next=r.v+1;
+  refreshUsed();return r;
+}
+async function handleFiles(files,target){
+  if(PLAN!=="pro")return;
+  files=[...files];if(!files.length)return;if(target)files=files.slice(0,1);
+  let added=0;
+  for(const f of files){
+    let t;try{t=await f.text()}catch(e){toast("Could not read "+f.name,"err");continue}
+    try{const r=await saveFile(target||f.name,t,{upload:true});if(r.noChange)toast((target||f.name)+": no changes.");else added++}
+    catch(e){toast(f.name+": "+e.message,"err")}
+  }
+  render();if(added)toast("Saved.");
+}
+let target=null;
+function pickFile(t){target=t;$("pick").multiple=!t;$("pick").click()}
+$("pick").onchange=e=>{const f=e.target.files,t=target;e.target.value="";handleFiles(f,t)};
+$("s_up").onclick=()=>{
+  if(PLAN!=="pro"){toast("Upload is for Pro. Free supports text only: type or Paste here.","err");const d=$("pro");if(d.showModal&&!d.open)d.showModal();return}
+  pickFile(null);
+};
+
+/* storage box */
+const EXT=/\.(md|txt|json|csv|ya?ml)$/i;
+const finalName=s=>{s=s.replace(/\s+/g," ").trim();return s?(EXT.test(s)?s:s+".md"):""};
+const CHIPS={op:()=>"operating-record-"+slug(getEnt().name)+".md",ss:()=>"session-snapshot-"+today()+".md",cf:()=>"config-"+slug(getEnt().name)+".md"};
+const MAX_LINES=50000,MAX_LINE=100; /* MAX_LINE = lapad ng pag-distribute pag nag-paste lang, hindi limit */function wrapRows(t){
+  t=t.replace(/\r\n?/g,"\n");
+  const out=[];let ch=false;
+  for(const s of t.split("\n")){
+    if(s.length<=MAX_LINE){out.push(s);continue}
+    ch=true;let r=s;
+    while(r.length>MAX_LINE){
+      let cut=r.lastIndexOf(" ",MAX_LINE-1);
+      cut=cut<MAX_LINE*.5?MAX_LINE:cut+1;
+      out.push(r.slice(0,cut));r=r.slice(cut);
+    }
+    out.push(r);
+  }
+  return ch?out.join("\n"):t;
+}function limCheck(t){
+  const a=t.split("\n");let bad=0;
+  /* walang limit per row */
+  const many=a.length>MAX_LINES;
+  return{lines:a.length,bad,over:many||!!bad,msg:many?"Max "+MAX_LINES.toLocaleString()+" lines.":bad?"Line "+bad+" is over "+MAX_LINE.toLocaleString()+" characters.":""};
+}
+function wrapRows(t){
+  t=t.replace(/\r\n?/g,"\n");
+  const out=[];let ch=false;
+  for(const s of t.split("\n")){
+    if(s.length<=MAX_LINE){out.push(s);continue}
+    ch=true;let r=s;
+    while(r.length>MAX_LINE){
+      let cut=r.lastIndexOf(" ",MAX_LINE-1);
+      cut=cut<MAX_LINE*.5?MAX_LINE:cut+1;
+      out.push(r.slice(0,cut));r=r.slice(cut);
+    }
+    out.push(r);
+  }
+  return ch?out.join("\n"):t;
+}
+function limCheck(t){
+  const a=t.split("\n");let bad=0;
+  /* walang limit per row */
+  const many=a.length>MAX_LINES;
+  return{lines:a.length,bad,over:many||!!bad,msg:many?"Max "+MAX_LINES.toLocaleString()+" lines.":bad?"Line "+bad+" is over "+MAX_LINE.toLocaleString()+" characters.":""};
+}
+let nameTouched=false;const DETECT=[["op",/OPERATING RECORD/i],["ss",/SESSION SNAPSHOT/i],["cf",/CONFIGURATION RECORD/i]];
+function detect(t){const h=t.slice(0,400);for(const[k,r]of DETECT)if(r.test(h))return k;return null}
+function sbState(){
+  const n=finalName($("s_title").value),t=$("s_text").value,ex=n&&db[n],has=!!t.trim();
+  const lm=limCheck(t);
+  $("s_save").disabled=!n||!has||lm.over;syncType();
+  const le=$("s_lim");le.textContent=lm.over?lm.msg:lm.lines.toLocaleString()+" / "+MAX_LINES.toLocaleString()+" lines";le.classList.toggle("over",lm.over);  $("s_save").textContent="Commit changes";gut();
+  document.querySelectorAll(".chip[data-t]").forEach(c=>c.setAttribute("aria-pressed",String(!!n&&n===CHIPS[c.dataset.t]())));
+  $("s_hint").textContent=!has&&!n?"Paste your AI's output to begin.":!has?"Now paste the output.":!n?"Pick a file type above, or type a file name.":(ex?"Saves as v"+db[n].next+" of "+n:"Saves as a new file: "+n)+" · "+kb(new Blob([t]).size);
+}
+/* === START: RECORD TYPE SELECT JS === */
+function syncType(){const n=finalName($("s_title").value);let v="";for(const k in CHIPS)if(n&&n===CHIPS[k]())v=k;$("s_type").value=v}
+$("s_type").onchange=()=>{const k=$("s_type").value;if(!k)return;if((k==="op"||k==="cf")&&!getEnt().name){openSheet("eform");setTimeout(()=>$("e_name").focus(),60)}nameTouched=true;$("s_title").value=CHIPS[k]();sbState();$("s_text").focus()};
+/* === END: RECORD TYPE SELECT JS === */
+document.querySelectorAll(".chip[data-t]").forEach(c=>c.onclick=()=>{nameTouched=true;$("s_title").value=CHIPS[c.dataset.t]();sbState();$("s_text").focus()});
+$("s_title").addEventListener("input",()=>{nameTouched=true;sbState()});
+$("s_text").addEventListener("paste",e=>{
+  const txt=(e.clipboardData||window.clipboardData).getData("text");
+  if(!txt)return;
+  const w=wrapRows(txt);
+  if(w===txt)return;
+  e.preventDefault();
+  const el=$("s_text");
+  el.setRangeText(w,el.selectionStart,el.selectionEnd,"end");
+  el.dispatchEvent(new Event("input"));
+});$("s_text").addEventListener("input",()=>{
+  if(!nameTouched){const k=detect($("s_text").value);if(k)$("s_title").value=CHIPS[k]()}
+  sbState();
+});
+$("s_text").addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key==="Enter"&&!$("s_save").disabled)$("s_save").click()});
+$("s_paste").onclick=async()=>{
+  try{const t=await navigator.clipboard.readText();if(!t){toast("Clipboard is empty.","err");return}$("s_text").value=wrapRows(t);$("s_text").dispatchEvent(new Event("input"));$("s_text").focus()}
+  catch(e){toast("Can't read the clipboard. Long-press the box and paste.","err")}
+};
+$("s_save").onclick=async()=>{
+  const n=finalName($("s_title").value),t=$("s_text").value,b=$("s_save");
+  if(!n||!t.trim())return;
+  b.disabled=true;
+  try{
+    const r=await saveFile(n,t);
+    if(r.noChange){toast("No changes.");sbState();return}
+    nameTouched=false;$("s_text").value="";$("s_title").value="";sbState();render();$("editor").close();toast("Committed v"+r.v+".");
+  }catch(e){toast(e.message,"err");sbState()}
+};
+$("q").oninput=e=>{q=e.target.value.trim().toLowerCase();render()};
+const lh=async e=>{
+  const b=e.target.closest("[data-a]");if(!b)return;
+  const n=b.dataset.n,f=db[n];if(!f)return;const c=lastOf(f);
+  if(b.dataset.a==="copy")copyText(c.text,b);
+  else if(b.dataset.a==="open")openEd(n);
+  else if(b.dataset.a==="dl"){
+    const dot=n.lastIndexOf("."),nm=(dot>0?n.slice(0,dot):n)+"-v"+c.v+(dot>0?n.slice(dot):".txt");
+    const url=URL.createObjectURL(new Blob([c.text],{type:"text/plain"})),a=document.createElement("a");
+    a.href=url;a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  }else if(b.dataset.a==="del"){
+    if(!await confirmBox("Delete file?",`Delete "${n}" and all its versions?`,"Delete",true))return;
+    try{await api("file.delete",{wsId:WSID,name:n});delete db[n];refreshUsed();render();$("editor").close()}catch(x){toast(x.message,"err")}
+  }
+};
+$("list").addEventListener("click",lh);$("editor").addEventListener("click",lh);
+$("exportBtn").onclick=async()=>{
+  try{
+    const x=await api("ws.export",{wsId:WSID}),fn=x.filename;delete x.filename;
+    const url=URL.createObjectURL(new Blob([JSON.stringify(x)],{type:"application/json"})),a=document.createElement("a");
+    a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    STLAST=Date.now();
+  }catch(e){toast(e.message,"err")}
+};
+$("importBtn").onclick=()=>$("pickJson").click();
+$("pickJson").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  let o;try{o=JSON.parse(await f.text())}catch(err){toast("Not a valid backup.","err");return}
+  try{
+    const r=await api("ws.import",{wsId:WSID,backup:o});
+    await hydrate();paintAll();refreshUsed();
+    toast(r.versionsAdded||r.notesAdded?"Imported "+r.versionsAdded+" version(s), "+r.notesAdded+" note(s).":"Nothing new to import.");
+  }catch(err){toast(err.message,"err")}
+};
+function openSheet(id){const d=$(id).closest("dialog");if(d&&!d.open)d.showModal()}
+["howSec","eform","legalSec"].forEach(id=>{
+  const s=$(id),d=document.createElement("dialog");
+  d.className="sheet";d.setAttribute("aria-label",(s.querySelector("h2")||{}).textContent||"Info");
+  s.hidden=false;s.parentNode.insertBefore(d,s);d.appendChild(s);
+  const x=document.createElement("button");x.type="button";x.className="ic sheet-x";x.setAttribute("aria-label","Close");
+  x.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>';
+  x.onclick=()=>d.close();s.prepend(x);
+/* === START: SWIPE TO CLOSE === */
+let y0=null,dy=0;
+d.addEventListener("touchstart",e=>{y0=d.scrollTop<=0?e.touches[0].clientY:null;dy=0;d.style.transition="none"},{passive:true});
+d.addEventListener("touchmove",e=>{if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);d.style.transform="translateY("+dy+"px)"},{passive:true});
+d.addEventListener("touchend",()=>{if(y0===null)return;d.style.transition="transform .45s var(--spring)";if(dy>100){HAP("light");d.close()}else d.style.transform="";y0=null});
+d.addEventListener("close",()=>{d.style.transform="";d.style.transition=""});
+/* === END: SWIPE TO CLOSE === */
+  d.addEventListener("click",e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()});
+});
+/* === END: SHEET MODALS JS === */
+$("eform").closest("dialog").addEventListener("close",()=>{const b=pend;pend=null;if(b&&!REQ.some(r=>!getEnt()[r[0]]))b.click()});
+function eh(){const m=REQ.filter(r=>!getEnt()[r[0]]);$("e_hint").textContent=m.length?(REQ.length-m.length)+" of "+REQ.length+" required fields filled. Missing: "+m.map(r=>r[1]).join(", ")+".":"All required fields filled. Tap Save."}
+$("eform").addEventListener("input",eh);eh();
+$("e_save").onclick=async()=>{
+  try{await entPush()}catch(e){toast(e.message,"err");return}
+  const m=REQ.filter(r=>!getEnt()[r[0]]);
+  if(m.length){toast("Still needed: "+m.map(r=>r[1]).join(", ")+".","err");$("e_"+m[0][0]).focus();return}
+  if(!pend)toast("Saved.");
+  $("eform").closest("dialog").close();
+};
+/* footer toggles */
+document.querySelectorAll("[data-tg]").forEach(b=>b.onclick=()=>{
+  openSheet(b.dataset.tg);
+});
+
+/* files drawer + editor */
+function gut(){const t=$("s_text"),g=$("gut"),n=t.value.split("\n").length;if(g._n!==n){g._n=n;g.textContent=Array.from({length:n},(_,i)=>i+1).join("\n")}g.scrollTop=t.scrollTop}
+$("s_text").addEventListener("scroll",()=>{$("gut").scrollTop=$("s_text").scrollTop});
+function openEd(n){
+  const f=n&&db[n],c=f&&lastOf(f);
+  $("s_title").value=n||"";$("s_text").value=c?c.text:"";nameTouched=!!n;
+  $("edTools").hidden=!n;document.querySelectorAll("#edTools [data-a]").forEach(b=>b.dataset.n=n||"");
+  sbState();$("editor").showModal();setTimeout(()=>$("s_text").focus(),60);
+}
+$("newBtn").onclick=()=>openEd("");
+$("menuBtn").onclick=()=>$("drawer").showModal();
+/* === START: DRAWER SWIPE JS === */
+(function(){
+  const d=$("drawer");
+  let x0=0,y0=0,dx=0,axis=null,on=false;
+  d.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1){on=false;return}
+    x0=e.touches[0].clientX;y0=e.touches[0].clientY;dx=0;axis=null;on=true;
+  },{passive:true});
+  d.addEventListener("touchmove",e=>{
+    if(!on)return;
+    const mx=e.touches[0].clientX-x0,my=e.touches[0].clientY-y0;
+    if(!axis){
+      if(Math.abs(mx)<8&&Math.abs(my)<8)return;
+      axis=Math.abs(mx)>Math.abs(my)*1.2?"x":"y";
+      if(axis==="x")d.style.transition="none";
+    }
+    if(axis!=="x")return;
+    dx=Math.min(0,mx); /* left only */
+    d.style.transform="translateX("+dx+"px)";
+  },{passive:true});
+  const end=()=>{
+    if(!on)return;on=false;
+    if(axis!=="x"){return}
+    d.style.transition="transform .35s cubic-bezier(.2,.9,.3,1)";
+    if(dx<-Math.min(90,d.clientWidth*.28)){
+      HAP("light");
+      d.style.transform="translateX(-100%)";
+      setTimeout(()=>{d.close();d.style.transform="";d.style.transition=""},230);
+    }else{
+      d.style.transform="";
+      setTimeout(()=>{d.style.transition=""},360);
+    }
+  };
+  d.addEventListener("touchend",end);
+  d.addEventListener("touchcancel",end);
+  d.addEventListener("close",()=>{d.style.transform="";d.style.transition="";on=false});
+})();
+/* === END: DRAWER SWIPE JS === */
+$("drClose").onclick=()=>$("drawer").close();
+$("edClose").onclick=async()=>{if(edDirty()&&!await confirmBox("Discard changes?","You have changes that are not committed yet.","Discard",true))return;$("editor").close()};
+$("drawer").addEventListener("click",e=>{if(e.target===$("drawer"))$("drawer").close()});
+/* context pack */
+const cpMode=()=>document.querySelector('input[name="cps"]:checked').value;
+let cpR=null,cpSeq=0;
+async function cpFetch(){
+  const picked=[...document.querySelectorAll("#cpF input:checked")].map(c=>c.value),sq=++cpSeq;
+  $("cpS").textContent="Building…";$("cpCopy").disabled=$("cpDl").disabled=true;
+  try{
+    const r=await api("pack.build",{wsId:WSID,mode:cpMode(),names:picked});
+    if(sq!==cpSeq)return;cpR=r;
+    $("cpS").textContent=r.files+" files · "+r.versions+" versions · "+kb(r.bytes)+" · ~"+r.tokens.toLocaleString()+" tokens"+(r.tooLarge?" · Very large. Choose Compact or Selected files.":"");
+    $("cpCopy").disabled=$("cpDl").disabled=!r.files;
+  }catch(e){if(sq===cpSeq){cpR=null;$("cpS").textContent=e.message}}
+}
+function cpRefresh(){$("cpF").hidden=cpMode()!=="sel";cpFetch()}
+$("cpkBtn").onclick=()=>{
+  if(!names().length){toast("No saved files yet.","err");return}
+  $("cpF").innerHTML=names().sort().map(n=>`<label class="chk"><input type="checkbox" value="${esc(n)}" checked><span>${esc(n)}</span></label>`).join("");
+  cpRefresh();$("cpk").showModal();
+};
+document.querySelectorAll('input[name="cps"]').forEach(r=>r.onchange=cpRefresh);
+$("cpF").addEventListener("change",cpRefresh);
+$("cpX").onclick=()=>$("cpk").close();
+$("cpCopy").onclick=()=>{if(cpR)copyText(cpR.text,$("cpCopy"))};
+$("cpDl").onclick=()=>{
+  if(!cpR)return;
+  const url=URL.createObjectURL(new Blob([cpR.text],{type:"text/markdown"})),a=document.createElement("a");
+  a.href=url;a.download=cpR.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+};
+/* pro */
+const CUR="₱";
+function setPrice(m,y){$("pm").textContent=CUR+Number(m).toLocaleString();$("py").textContent=CUR+Number(y||Number(m)*12).toLocaleString()}
+setPrice(999);
+/* === START: PAYPAL === */
+let ppState=0;
+function ppLoad(c){
+  return new Promise((res,rej)=>{
+    if(window.paypal)return res();
+    const s=document.createElement("script");
+    s.src="https://www.paypal.com/sdk/js?client-id="+encodeURIComponent(c.clientId)+"&vault=true&intent=subscription";
+    s.onload=res;s.onerror=()=>rej(new Error("Could not load PayPal. Check your internet."));
+    document.head.appendChild(s);
+  });
+}
+async function ppConfirm(id){
+  for(let i=0;i<5;i++){
+    const r=await api("pay.confirm",{subId:id});
+    if(!r.pending)return r;
+    await new Promise(x=>setTimeout(x,3000));
+  }
+  return {pending:true};
+}
+async function ppInit(){
+  if(!CFG.paypal)await loadCfg();
+  const c=CFG.paypal||{};
+  if(!c.enabled)return;
+  $("pp_box").hidden=false;$("proGo").hidden=true;
+  $("pro_p").textContent="Choose a plan and pay securely with PayPal. Cancel anytime in your PayPal account.";
+  if(ppState)return;
+  ppState=1;
+  try{
+    await ppLoad(c);
+    paypal.Buttons({
+      style:{layout:"vertical",shape:"pill",label:"subscribe"},
+      createSubscription:(d,a)=>{
+        const y=document.querySelector('input[name="plan"]:checked').value==="y";
+        return a.subscription.create({plan_id:y?c.planYear:c.planMonth,custom_id:(getLic()||{}).code});
+      },
+      onApprove:async d=>{
+        $("pp_msg").textContent="Confirming payment…";LS.set("artibytte-pendsub",d.subscriptionID);
+        try{
+          const r=await ppConfirm(d.subscriptionID);if(!r.pending)LS.set("artibytte-pendsub","");
+          if(r.pending){$("pp_msg").textContent="Payment is still processing. Pro turns on once PayPal confirms it.";return}
+          if(!r.pro){$("pp_msg").textContent="";toast("Subscription is "+String(r.status).toLowerCase()+".","err");return}
+          loadSession(r.session);render();paintProf();$("pp_msg").textContent="";
+          $("pro").close();toast("Pro is active. Thank you!");
+        }catch(e){$("pp_msg").textContent=e.message;toast(e.message,"err")}
+      },
+      onCancel:()=>{$("pp_msg").textContent="Payment cancelled."},
+      onError:()=>{$("pp_msg").textContent="PayPal had a problem. Try again."}
+    }).render("#pp_btn");
+    ppState=2;
+  }catch(e){ppState=0;$("pp_msg").textContent=e.message}
+}
+$("proBtn").onclick=()=>{const d=$("pro");if(d.showModal)d.showModal();ppInit()};
+/* === END: PAYPAL === */
+$("proGo").addEventListener("click",async()=>{
+  const yr=document.querySelector('input[name="plan"]:checked').value==="y";
+  try{const r=await api("waitlist.join",{plan:yr?"y":"m",diag:navigator.userAgent.slice(0,200)});toast(r.already?"You're already on the list.":"You're on the waitlist.")}
+  catch(e){toast(e.message,"err")}
+});
+/* === START: HAPTICS TOGGLE JS === */
+function paintHap(){$("hapBtn").textContent="Haptics: "+(LS.get("artibytte-haptics")==="off"?"Off":"On")}
+$("hapBtn").onclick=()=>{const off=LS.get("artibytte-haptics")==="off";LS.set("artibytte-haptics",off?"on":"off");paintHap();if(off)HAP("success")};
+paintHap();
+/* === END: HAPTICS TOGGLE JS === */
+/* === START: THEME-COLOR (STATUS BAR) === */
+function paintBar(){
+  let m=document.querySelector('meta[name="theme-color"]');
+  if(!m){m=document.createElement("meta");m.name="theme-color";document.head.appendChild(m)}
+  m.content=getComputedStyle(document.body).backgroundColor;
+}
+try{matchMedia("(prefers-color-scheme:dark)").addEventListener("change",paintBar)}catch(e){}
+/* === END: THEME-COLOR (STATUS BAR) === */
+/* === START: LICENSE GATE === */
+const LICK="artibytte-license-v1",TEAM_EMAIL="team@artibytte.co";
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const getLic=()=>{try{return JSON.parse(LS.get(LICK)||"null")}catch(e){return null}};
+const licOk=()=>{const l=getLic();return !!(l&&l.code&&LS.get(TKK))};
+const gStep=s=>["A","B","C"].forEach(k=>$("g"+k).hidden=k!==s);
+function openGate(){
+  gStep("A");$("g_err").textContent="";$("g_lic").value="";
+  $("g_get").href="mailto:"+TEAM_EMAIL+"?subject="+encodeURIComponent("ArtiBytte Protocol License Request")+"&body="+encodeURIComponent("Hi ArtiBytte team,\n\nI'd like to request a license for the ArtiBytte Executive Protocol.\n\nName:\nEmail:\nOrganization: "+(getEnt().name||"")+"\nUse case:\n\nThank you.");
+  $("gate").showModal();setTimeout(()=>$("g_lic").focus(),60);
+}
+$("g_go").onclick=async()=>{
+  const c=$("g_lic").value.trim().toUpperCase(),b=$("g_go");
+  if(!c){$("g_err").textContent="Enter your license.";HAP("error");return}
+  b.disabled=true;$("g_err").textContent="";
+  try{
+    const s=await api("license.login",{code:c},{noAuth:true,quiet:true});
+    LS.set(TKK,s.token);loadSession(s);$("gate").close();enterSetup();
+  }catch(e){$("g_err").textContent=e.message;HAP("error")}
+  b.disabled=false;
+};
+$("g_lic").addEventListener("keydown",e=>{if(e.key==="Enter")$("g_go").click()});
+$("g_guest").onclick=()=>{$("g_merr").textContent="";gStep("B");setTimeout(()=>$("g_email").focus(),60)};
+$("g_back").onclick=()=>gStep("A");
+$("g_mk").onclick=async()=>{
+  const em=$("g_email").value.trim(),b=$("g_mk");
+  if(!EMAIL_RE.test(em)){$("g_merr").textContent="Enter a valid email.";HAP("error");return}
+  b.disabled=true;$("g_merr").textContent="";
+  try{
+    const s=await api("license.createFree",{email:em},{noAuth:true,quiet:true});
+    LS.set(TKK,s.token);loadSession(s);$("g_code").textContent=s.user.code;gStep("C");
+  }catch(e){$("g_merr").textContent=e.message;HAP("error")}
+  b.disabled=false;
+};
+$("g_email").addEventListener("keydown",e=>{if(e.key==="Enter")$("g_mk").click()});
+$("g_cp").onclick=()=>copyText($("g_code").textContent,$("g_cp"));
+$("g_ct").onclick=()=>{$("gate").close();enterSetup()};
+$("g_x").onclick=()=>$("gate").close();
+/* === END: LICENSE GATE === */
+/* === START: PROFILE MENU === */
+const PM=$("prof"),SD=$("setD");
+const outside=(d,e)=>{const r=d.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom};
+function paintProf(){
+  const l=getLic()||{},em=l.email||"",L=((em||l.code||"A").trim()[0]||"A").toUpperCase();
+  $("avL").textContent=L;$("pAvL").textContent=L;
+  $("pEm").textContent=em||l.code||"Guest";
+  $("pPl").textContent=(PLAN==="pro"?"Pro plan":"Free plan")+(em&&l.code?" · "+l.code:"");
+}
+function paintSet(){
+  const l=getLic()||{};
+  $("set_hap").textContent=LS.get("artibytte-haptics")==="off"?"Off":"On";
+  $("set_lic").textContent=l.code||"-";
+  $("set_plan").textContent=PLAN==="pro"?"Pro":"Free";
+  paintSetX();
+}
+$("avBtn").onclick=()=>{paintProf();PM.showModal()};
+PM.addEventListener("click",e=>{
+  if(e.target===PM){if(outside(PM,e))PM.close();return}
+  const b=e.target.closest("[data-p]");if(!b)return;
+  const k=b.dataset.p;
+  if(k==="set"){PM.close();paintSet();SD.showModal()}
+  else if(k==="off"){PM.close();openOffline()}
+  else if(k==="ws"){PM.close();openWs()}
+  else if(k==="help"){PM.close();openHelp()}  else if(k==="mem"){PM.close();openMembers()}
+  else if(k==="tr"){PM.close();openTrash()}
+  else toast(b.dataset.n+" is coming soon.");});
+$("set_hap").onclick=()=>{$("hapBtn").click();paintSet();api("me.update",{haptics:LS.get("artibytte-haptics")==="off"?"off":"on"},{quiet:true}).catch(()=>{})};
+$("set_org").onclick=()=>{if(!can("settings")){toast("Only the owner can change workspace settings.","err");return}SD.close();openSheet("eform")};$("setX").onclick=()=>SD.close();
+SD.addEventListener("click",e=>{if(e.target===SD&&outside(SD,e))SD.close()});
+$("set_out").onclick=async()=>{
+  const l=getLic()||{};
+  if(!await confirmBox("Log out?","Your files stay in your account. Keep your license ("+(l.code||"")+") to log back in.","Log out",true))return;
+  LS.set(LICK,"");LS.set(TKK,"");SESS=null;SD.close();
+  try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+  pushed=false;show("home");toast("Logged out.");
+};
+/* === END: PROFILE MENU === */
+/* === START: MEMBERS === */
+const MK="artibytte-members-v1",MD=$("memD");
+const ROLES={owner:["Owner","Can change workspace settings and invite new members."],member:["Member","Can't change workspace settings or invite new members."],restricted:["Restricted member","Can only see and edit content they created or were explicitly shared with."]};
+let MB={me:null,list:[],link:"",linkRole:"member"};
+const myRole=()=>MB.me?MB.me.role:"owner";
+const meId=()=>MB.me?MB.me.id:"";
+const can=a=>myRole()==="owner"||a==="content";
+const canEdit=it=>{if(myRole()!=="restricted")return true;const me=meId();return !!it&&(it.by===me||(it.sharedWith||[]).includes(me))};
+async function mbLoad(){
+  const r=await api("member.list",{wsId:WSID});
+  MB.me=r.me;MB.list=r.members;
+  if(r.me.role==="owner"){const i=await api("invite.get",{wsId:WSID});MB.link=i.link;MB.linkRole=i.role}
+}
+function mbRender(){
+  const own=can("invite");
+  $("m_inv").hidden=!own;
+  $("m_link").value=MB.link||"";
+  $("m_lrole").value=MB.linkRole;
+  $("mem_sub").textContent=own?"Invite people and set what they can do.":"Only the owner can invite people or change roles.";
+  $("m_list").innerHTML=MB.list.map(m=>{
+    const E=esc(m.email),I=esc(m.id);
+    const right=m.role==="owner"?'<span class="meta">Owner</span>':own?`<select class="msel" data-r="${I}" aria-label="Role for ${E}">${["member","restricted"].map(k=>`<option value="${k}"${m.role===k?" selected":""}>${ROLES[k][0]}</option>`).join("")}</select><button class="lnk" type="button" data-x="${I}" aria-label="Remove ${E}">Remove</button>`:`<span class="meta">${esc(m.label||ROLES[m.role][0])}</span>`;
+    return `<div class="mrow"><span class="av">${esc((m.email||"?")[0])}</span><div class="mi"><b>${E}</b>${m.status==="invited"?'<span class="meta">Invited</span>':""}</div>${right}</div>`;
+  }).join("");
+  $("m_leg").innerHTML=Object.keys(ROLES).map(k=>`<p class="sub"><b>${ROLES[k][0]}</b>: ${ROLES[k][1]}</p>`).join("");
+}
+async function openMembers(){try{await mbLoad();mbRender();MD.showModal()}catch(e){toast(e.message,"err")}}
+$("m_cp").onclick=()=>copyText($("m_link").value,$("m_cp"));
+$("m_lrole").onchange=async()=>{if(!can("invite"))return;try{await api("invite.setRole",{wsId:WSID,role:$("m_lrole").value});MB.linkRole=$("m_lrole").value}catch(e){toast(e.message,"err")}};
+$("m_reset").onclick=async()=>{
+  if(!can("invite"))return;
+  if(!await confirmBox("Reset invite link?","A new link will replace the current one.","Reset",true))return;
+  try{const r=await api("invite.reset",{wsId:WSID});MB.link=r.link;MB.linkRole=r.role;mbRender();toast("New invite link ready.")}catch(e){toast(e.message,"err")}
+};
+$("m_add").onclick=async()=>{
+  if(!can("invite")){toast("Only the owner can invite members.","err");return}
+  const em=$("m_email").value.trim().toLowerCase();
+  if(!EMAIL_RE.test(em)){toast("Enter a valid email.","err");$("m_email").focus();return}
+  try{await api("member.add",{wsId:WSID,email:em,role:$("m_role").value});$("m_email").value="";await mbLoad();mbRender();toast("Added "+em+".")}catch(e){toast(e.message,"err")}
+};
+$("m_email").addEventListener("keydown",e=>{if(e.key==="Enter")$("m_add").click()});
+$("m_list").addEventListener("change",async e=>{
+  const s=e.target.closest("[data-r]");if(!s||!can("invite"))return;
+  try{await api("member.setRole",{wsId:WSID,id:s.dataset.r,role:s.value});await mbLoad();toast("Role updated.")}catch(x){toast(x.message,"err");await mbLoad().catch(()=>{});mbRender()}
+});
+$("m_list").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-x]");if(!b||!can("invite"))return;
+  const m=MB.list.find(x=>x.id===b.dataset.x);if(!m||m.role==="owner")return;
+  if(!await confirmBox("Remove member?","Remove "+m.email+" from this workspace?","Remove",true))return;
+  try{await api("member.remove",{wsId:WSID,id:m.id});await mbLoad();mbRender()}catch(x){toast(x.message,"err")}
+});
+$("memX").onclick=()=>MD.close();
+MD.addEventListener("click",e=>{if(e.target===MD&&outside(MD,e))MD.close()});
+/* === END: MEMBERS === */
+/* === START: OFFLINE PAGES === */
+const OD=$("ofD"),LBK="artibytte-lastbackup";
+const netOn=()=>navigator.onLine!==false;
+function ofNet(){const s=$("of_net");s.textContent=netOn()?"Online":"Offline";s.classList.toggle("off",!netOn())}
+async function ofPers(){try{return navigator.storage&&navigator.storage.persisted?await navigator.storage.persisted():null}catch(e){return null}}
+async function ofPaint(){
+  ofNet();
+  const all=names(),u=used(),p=Math.round(Math.min(100,u/LIMIT*100)),local=location.protocol==="file:";
+  $("of_h").textContent="Saved on this device · "+all.length+" file"+(all.length===1?"":"s");
+  $("of_list").hidden=!all.length;
+  $("of_list").innerHTML=all.map((n,i)=>{const c=lastOf(db[n]),N=esc(n);return `<button class="fr" type="button" data-o="${N}"><span class="ln">${i+1}</span><span class="nm">${N}</span><span class="vv">v${c.v} · ${kb(c.size||c.text.length)}</span></button>`}).join("");
+  const ps=await ofPers();
+  $("of_st").textContent=kb(u)+" of "+kb(LIMIT)+" used ("+p+"%). "+(ps===true?"Protected from browser cleanup.":ps===false?"Not protected from browser cleanup: the browser may delete this data if space runs low.":"Browser cleanup protection is unknown.");
+  const bk=STLAST;
+  $("of_bk").textContent=bk?fmt(bk):(all.length?"Never. Export one now":"-");
+  $("of_app").textContent=local
+    ?"You are using a local copy of this page, so it opens without internet. Its storage is separate from the online version: export a backup there and import it here."
+    :"This page is not installed for offline use. Opening it without internet depends on your browser's cache, which is not guaranteed, and Add to Home Screen does not change that. To be sure, save a copy and open it from your device. The copy has its own storage, so export a backup here and import it there.";
+  $("of_save").hidden=local;
+}
+function openOffline(){ofPaint();OD.showModal()}
+$("of_exp").onclick=()=>{$("exportBtn").click();setTimeout(ofPaint,400)};
+$("of_imp").onclick=()=>$("importBtn").click();
+$("of_list").addEventListener("click",e=>{const b=e.target.closest("[data-o]");if(!b)return;OD.close();openEd(b.dataset.o)});
+$("of_save").onclick=async()=>{
+  try{
+    const r=await fetch(location.href.split("#")[0],{cache:"reload"});
+    if(!r.ok)throw new Error("fetch");
+    const t=await r.text();
+    if(t.indexOf("ArtiBytte Executive Protocol")<0)throw new Error("page");
+    const url=URL.createObjectURL(new Blob([t],{type:"text/html"})),a=document.createElement("a");
+    a.href=url;a.download="artibytte-protocol-app.html";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    toast("App copy saved. Open it from your device to use it offline.");
+  }catch(e){toast("Can't copy the page from here. Use your browser's Save Page As.","err")}
+};
+$("ofX").onclick=()=>OD.close();
+OD.addEventListener("click",e=>{if(e.target===OD&&outside(OD,e))OD.close()});
+window.addEventListener("offline",()=>{ofNet();toast("You're offline. Your files are saved on this device.")});
+window.addEventListener("online",()=>{ofNet();toast("Back online.")});
+window.addEventListener("focus",()=>{if(OD.open)ofPaint()});
+const edDirty=()=>{
+  if(!$("editor").open)return false;
+  const t=$("s_text").value;if(!t.trim())return false;
+  const n=finalName($("s_title").value),f=n&&db[n];
+  return !f||lastOf(f).text!==t;
+};
+$("editor").addEventListener("cancel",e=>{if(edDirty()){e.preventDefault();$("edClose").click()}});
+window.addEventListener("beforeunload",e=>{if(edDirty()){e.preventDefault();e.returnValue=""}});
+/* === END: OFFLINE PAGES === *//* === START: SYSTEM PROMPT PREVIEW JS === */
+const SPD=$("spD");
+const PVW={sp:{t:"System prompt",btn:"cp"},pc:{t:"Protocol core",btn:"cp3"},cf:{t:"Configuration record",btn:"cp4"},or:{t:"Operating record",btn:"cp2"}};
+let pvKey="sp";
+async function openPreview(k){
+  pvKey=k;const c=PVW[k];
+  SPD.querySelector("h2").textContent=c.t;$("sp_pre").textContent="Loading…";$("sp_meta").textContent="";SPD.showModal();
+  try{
+    const r=await getCard(k),x=r.cards[k];
+    $("sp_pre").textContent=x.text||"";$("sp_pre").scrollTop=0;
+    $("sp_meta").textContent="This is exactly what Copy gives you · "+kb(x.bytes)+(x.needsOrg&&!x.ready?" · Fill in Organization to complete the missing fields.":"");
+  }catch(e){$("sp_pre").textContent=e.message}
+}
+$("spEye").onclick=()=>openPreview("sp");
+$("pcEye").onclick=()=>openPreview("pc");
+$("cfEye").onclick=()=>openPreview("cf");
+$("orEye").onclick=()=>openPreview("or");
+$("spX").onclick=()=>SPD.close();
+SPD.addEventListener("click",e=>{if(e.target===SPD&&outside(SPD,e))SPD.close()});
+$("sp_cp").onclick=()=>{SPD.close();$(PVW[pvKey].btn).click()};
+/* === END: SYSTEM PROMPT PREVIEW JS === */
+/* === START: WORKSPACES UI JS === */
+const WD=$("wsD");
+const wsCur=()=>WSR.list.find(w=>w.id===WSID)||WSR.list[0]||{name:"Workspace"};
+const wsDup=(n,id)=>WSR.list.some(w=>w.id!==id&&w.name.toLowerCase()===n.toLowerCase());
+function wsPaint(){
+  const n=wsCur().name,s=$("wsName"),tb=document.querySelector(".ttl b");
+  if(s)s.textContent=n;if(tb)tb.textContent=n;
+  document.querySelectorAll('[data-p="ws"] .soon').forEach(x=>{x.textContent=n;x.style.cssText="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"});
+}
+function wsRender(){
+  $("ws_list").innerHTML=WSR.list.map(w=>{
+    const A=w.id===WSID,I=esc(w.id);
+    return `<div class="mrow"><div class="mi"><b>${esc(w.name)}</b>${A?'<span class="meta">Active</span>':""}</div>${A?"":`<button class="sm" type="button" data-s="${I}">Switch</button>`}<button class="lnk" type="button" data-r="${I}">Rename</button>${w.isDefault||A?"":`<button class="lnk" type="button" data-x="${I}">Delete</button>`}</div>`;
+  }).join("");
+}
+function openWs(){wsRender();$("ws_new").value="";WD.showModal()}
+async function refreshWs(){
+  const r=await api("ws.list");
+  WSR.list=r.workspaces.map(w=>({id:w.id,name:w.name,isDefault:w.isDefault,role:w.role}));
+  if(!WSR.list.some(w=>w.id===WSID)){const d=WSR.list.find(w=>w.isDefault)||WSR.list[0];WSID=d.id;WSR.active=d.id;wsSave()}
+}
+async function wsGo(id){
+  if(id===WSID)return;
+  if(ntCur)ntSaveNow(true);
+  await ntQ;
+  WSID=id;WSR.active=id;wsSave();
+  await wsApply();
+}
+async function wsApply(){
+  clearTimeout(ntTimer);ntCur=null;
+  [WD,$("drawer"),$("editor"),AD,NE,NM,MTD,$("cpk"),SPD,MD,SD,PM,HD,OD,UD,$("ntS"),$("ntO")].forEach(d=>{try{if(d&&d.open)d.close()}catch(e){}});
+  try{await hydrate()}catch(e){toast(e.message,"err");return}
+  ntScope="";ntSelMode=false;ntSel.clear();mtDirty=false;q="";pend=null;warnLvl=0;nameTouched=false;
+  $("q").value="";$("s_text").value="";
+  paintAll();refreshUsed();window.scrollTo(0,0);
+  toast("Switched to "+wsCur().name+".");
+}
+(function(){
+  const t=document.querySelector(".ttl");
+  if(t){t.style.cursor="pointer";t.onclick=openWs}
+  wsPaint();
+})();
+$("ws_list").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-s],[data-r],[data-x]");if(!b)return;
+  if(b.dataset.s){wsGo(b.dataset.s);return}
+  const w=WSR.list.find(x=>x.id===(b.dataset.r||b.dataset.x));if(!w)return;
+  try{
+    if(b.dataset.r){
+      const n=(prompt("Workspace name",w.name)||"").replace(/\s+/g," ").trim().slice(0,40);
+      if(!n||n===w.name)return;
+      await api("ws.rename",{wsId:w.id,name:n});await refreshWs();wsRender();wsPaint();toast("Renamed.");return;
+    }
+    if(!await confirmBox("Delete workspace?","All files, notes and organization details in \""+w.name+"\" will be moved to Trash and purged after the retention period. Other workspaces are not affected.","Delete",true))return;
+    await api("ws.delete",{wsId:w.id});await refreshWs();wsRender();toast("Deleted.");
+  }catch(x){toast(x.message,"err")}
+});
+$("ws_add").onclick=async()=>{
+  const n=$("ws_new").value.replace(/\s+/g," ").trim().slice(0,40);
+  if(!n){toast("Type a workspace name.","err");$("ws_new").focus();return}
+  try{
+    const r=await api("ws.create",{name:n});
+    if(ntCur)ntSaveNow(true);
+    await ntQ;await refreshWs();
+    WSID=r.id;WSR.active=r.id;wsSave();$("ws_new").value="";
+    await wsApply();
+  }catch(e){toast(e.message,"err")}
+};
+$("ws_new").addEventListener("keydown",e=>{if(e.key==="Enter")$("ws_add").click()});
+$("wsX").onclick=()=>WD.close();
+WD.addEventListener("click",e=>{if(e.target===WD&&outside(WD,e))WD.close()});
+/* === END: WORKSPACES UI JS === */
+/* === START: TRASH === */
+const TD=$("trD");
+const trLeft=t=>{const d=Math.max(0,Math.ceil((t-Date.now())/86400000));return d<1?"today":"in "+d+" day"+(d===1?"":"s")};
+async function trPaint(){
+  const L=$("tr_list");
+  try{
+    const r=await api("trash.list",{wsId:WSID});
+    $("tr_sub").textContent="Deleted files stay here for "+r.days+" days, then are purged for good.";
+    L.innerHTML=r.files.length?r.files.sort((a,b)=>b.deletedAt-a.deletedAt).map(f=>{const N=esc(f.name);return `<div class="file"><h3>${N}</h3><p class="meta">Deleted ${esc(fmt(f.deletedAt))} · purged ${trLeft(f.purgeAt)}</p><div class="acts"><button class="sm p" type="button" data-tr="restore" data-n="${N}">Restore</button><button class="sm d" type="button" data-tr="purge" data-n="${N}">Delete forever</button></div></div>`}).join(""):'<div class="none"><b>Trash is empty</b>Deleted files appear here.</div>';
+  }catch(e){L.innerHTML='<p class="meta">'+esc(e.message)+'</p>'}
+}
+function openTrash(){$("tr_list").innerHTML='<p class="meta">Loading…</p>';TD.showModal();trPaint()}
+$("tr_list").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-tr]");if(!b)return;
+  const n=b.dataset.n;b.disabled=true;
+  try{
+    if(b.dataset.tr==="restore"){
+      await api("file.restore",{wsId:WSID,name:n});
+      await hydrate();render();toast("Restored "+n+".");
+    }else{
+      if(!await confirmBox("Delete forever?",'"'+n+'" and all its versions will be removed permanently.',"Delete forever",true)){b.disabled=false;return}
+      await api("file.purge",{wsId:WSID,name:n});
+      refreshUsed();toast("Deleted permanently.");
+    }
+    trPaint();
+  }catch(x){b.disabled=false;toast(x.message,"err")}
+});
+$("trX").onclick=()=>TD.close();
+TD.addEventListener("click",e=>{if(e.target===TD&&outside(TD,e))TD.close()});
+/* === END: TRASH === */
+/* === START: HELP === */
+const HD=$("helpD");
+const diag=()=>{const l=getLic()||{};return "\n\n---\nApp: ArtiBytte Protocol v"+VER.replace("-draft","")+"\nLicense: "+(l.code||"none")+"\nPlan: "+PLAN+"\nBrowser: "+navigator.userAgent};
+const helpMail=(s,b)=>{location.href="mailto:"+TEAM_EMAIL+"?subject="+encodeURIComponent(s)+"&body="+encodeURIComponent(b+diag())};
+function openHelp(){const l=getLic()||{};if(!VER)loadCfg();paintVer();HD.showModal()}
+$("h_how").onclick=()=>{HD.close();openSheet("howSec")};
+$("h_mail").onclick=()=>helpMail("ArtiBytte Protocol Support","Hi ArtiBytte team,\n\nI need help with:\n\n");
+$("h_bug").onclick=()=>helpMail("ArtiBytte Protocol Problem Report","Hi ArtiBytte team,\n\nWhat happened:\n\nWhat I expected:\n\nSteps to reproduce:\n");
+$("helpX").onclick=()=>HD.close();
+HD.addEventListener("click",e=>{if(e.target===HD&&outside(HD,e))HD.close()});
+/* === END: HELP === */
+if(false){ /* DUPLICATE OLD BLOCKS: PROFILE MENU, MEMBERS, LICENSE GATE. Pwede mong burahin lahat hanggang sa katapat na "}" */
+const PM=$("prof"),SD=$("setD");
+const outside=(d,e)=>{const r=d.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom};
+function paintProf(){
+  const l=getLic()||{},em=l.email||"",L=((em||l.code||"A").trim()[0]||"A").toUpperCase();
+  $("avL").textContent=L;$("pAvL").textContent=L;
+  $("pEm").textContent=em||l.code||"Guest";
+  $("pPl").textContent=(PLAN==="pro"?"Pro plan":"Free plan")+(em&&l.code?" · "+l.code:"");
+}
+function paintSet(){
+  const l=getLic()||{};
+  $("set_hap").textContent=LS.get("artibytte-haptics")==="off"?"Off":"On";
+  $("set_lic").textContent=l.code||"-";
+  $("set_plan").textContent=PLAN==="pro"?"Pro":"Free";
+}
+$("avBtn").onclick=()=>{paintProf();PM.showModal()};
+PM.addEventListener("click",e=>{
+  if(e.target===PM){if(outside(PM,e))PM.close();return}
+  const b=e.target.closest("[data-p]");if(!b)return;
+  const k=b.dataset.p;
+  if(k==="set"){PM.close();paintSet();SD.showModal()}
+  else if(k==="off"){PM.close();$("drawer").showModal()}
+  else if(k==="help"){PM.close();location.href="mailto:"+TEAM_EMAIL+"?subject="+encodeURIComponent("ArtiBytte Protocol Support")+"&body="+encodeURIComponent("Hi ArtiBytte team,\n\nI need help with:\n\n")}
+  else if(k==="mem"){PM.close();openMembers()}
+  else toast(b.dataset.n+" is coming soon.");
+});
+$("set_hap").onclick=()=>{$("hapBtn").click();paintSet();api("me.update",{haptics:LS.get("artibytte-haptics")==="off"?"off":"on"},{quiet:true}).catch(()=>{})};
+$("set_org").onclick=()=>{if(!can("settings")){toast("Only the owner can change workspace settings.","err");return}SD.close();openSheet("eform")};
+$("setX").onclick=()=>SD.close();
+SD.addEventListener("click",e=>{if(e.target===SD&&outside(SD,e))SD.close()});
+$("set_out").onclick=async()=>{
+  const l=getLic()||{};
+  if(!await confirmBox("Log out?","Your files stay on this device. Keep your license ("+(l.code||"")+") to log back in.","Log out",true))return;
+  LS.set(LICK,"");SD.close();
+  try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
+  pushed=false;show("home");toast("Logged out.");
+};
+/* === END: PROFILE MENU === */
+/* === START: MEMBERS === */
+const MK="artibytte-members-v1",MD=$("memD");
+const ROLES={owner:["Owner","Can change workspace settings and invite new members."],member:["Member","Can't change workspace settings or invite new members."],restricted:["Restricted member","Can only see and edit content they created or were explicitly shared with."]};
+const meId=()=>{const l=getLic()||{};return (l.email||l.code||"owner").toLowerCase()};
+const newTok=()=>{let a;try{a=crypto.getRandomValues(new Uint8Array(9))}catch(e){a=Array.from({length:9},()=>Math.random()*256|0)}return Array.from(a,x=>x.toString(36).padStart(2,"0")).join("").slice(0,16)};
+let MB={};try{MB=JSON.parse(LS.get(MK)||"{}")||{}}catch(e){}
+const mbSave=()=>LS.set(MK,JSON.stringify(MB));
+function mbInit(){
+  if(!Array.isArray(MB.list))MB.list=[];
+  if(!MB.token)MB.token=newTok();
+  if(!MB.linkRole)MB.linkRole="member";
+  if(!MB.list.some(m=>m.role==="owner")){const l=getLic()||{};MB.list.unshift({id:meId(),email:l.email||l.code||"Owner",role:"owner",t:Date.now()})}
+  mbSave();
+}
+const myRole=()=>{const m=(MB.list||[]).find(x=>x.id===meId());return m?m.role:"owner"};
+/* permission helpers: gamitin sa ibang features */
+const can=a=>myRole()==="owner"||a==="content";
+const canEdit=it=>{if(myRole()!=="restricted")return true;const me=meId();return !!it&&(it.by===me||(it.sharedWith||[]).includes(me))};
+function mbRender(){
+  mbInit();
+  const own=can("invite");
+  $("m_inv").hidden=!own;
+  $("m_link").value=location.href.split("#")[0]+"#join="+MB.token;
+  $("m_lrole").value=MB.linkRole;
+  $("mem_sub").textContent=own?"Invite people and set what they can do.":"Only the owner can invite people or change roles.";
+  $("m_list").innerHTML=MB.list.map(m=>{
+    const E=esc(m.email),I=esc(m.id);
+    const right=m.role==="owner"?'<span class="meta">Owner</span>':own?`<select class="msel" data-r="${I}" aria-label="Role for ${E}">${["member","restricted"].map(k=>`<option value="${k}"${m.role===k?" selected":""}>${ROLES[k][0]}</option>`).join("")}</select><button class="lnk" type="button" data-x="${I}" aria-label="Remove ${E}">Remove</button>`:`<span class="meta">${ROLES[m.role][0]}</span>`;
+    return `<div class="mrow"><span class="av">${esc((m.email||"?")[0])}</span><div class="mi"><b>${E}</b></div>${right}</div>`;
+  }).join("");
+  $("m_leg").innerHTML=Object.keys(ROLES).map(k=>`<p class="sub"><b>${ROLES[k][0]}</b>: ${ROLES[k][1]}</p>`).join("");
+}
+function openMembers(){mbRender();MD.showModal()}
+$("m_cp").onclick=()=>copyText($("m_link").value,$("m_cp"));
+$("m_lrole").onchange=()=>{if(!can("invite"))return;MB.linkRole=$("m_lrole").value;mbSave()};
+$("m_reset").onclick=async()=>{
+  if(!can("invite"))return;
+  if(!await confirmBox("Reset invite link?","A new link will replace the current one.","Reset",true))return;
+  MB.token=newTok();mbSave();mbRender();toast("New invite link ready.");
+};
+$("m_add").onclick=()=>{
+  if(!can("invite")){toast("Only the owner can invite members.","err");return}
+  const em=$("m_email").value.trim().toLowerCase();
+  if(!EMAIL_RE.test(em)){toast("Enter a valid email.","err");$("m_email").focus();return}
+  if(MB.list.some(m=>m.id===em||String(m.email).toLowerCase()===em)){toast("Already in this workspace.","err");return}
+  MB.list.push({id:em,email:em,role:$("m_role").value,t:Date.now()});
+  mbSave();$("m_email").value="";mbRender();toast("Added "+em+".");
+};
+$("m_email").addEventListener("keydown",e=>{if(e.key==="Enter")$("m_add").click()});
+$("m_list").addEventListener("change",e=>{
+  const s=e.target.closest("[data-r]");if(!s||!can("invite"))return;
+  const m=MB.list.find(x=>x.id===s.dataset.r);
+  if(m&&m.role!=="owner"){m.role=s.value;mbSave();toast("Role updated.")}
+});
+$("m_list").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-x]");if(!b||!can("invite"))return;
+  const m=MB.list.find(x=>x.id===b.dataset.x);if(!m||m.role==="owner")return;
+  if(!await confirmBox("Remove member?","Remove "+m.email+" from this workspace?","Remove",true))return;
+  MB.list=MB.list.filter(x=>x!==m);mbSave();mbRender();
+});
+$("memX").onclick=()=>MD.close();
+MD.addEventListener("click",e=>{if(e.target===MD&&outside(MD,e))MD.close()});
+/* === END: MEMBERS === *//* === START: LICENSE GATE === */
+const LICK="artibytte-license-v1",TEAM_EMAIL="team@artibytte.co";
+const LIC_RE=/^ARTI-\d{6}$/,FREE_RE=/^ARTI-FREE-\d{6}$/,EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const validLicense=c=>LIC_RE.test(c)||FREE_RE.test(c); /* palitan ng server check soon */
+const getLic=()=>{try{return JSON.parse(LS.get(LICK)||"null")}catch(e){return null}};
+const licOk=()=>{const l=getLic();return !!(l&&l.code&&validLicense(l.code))};
+const newFree=()=>{let n;try{n=crypto.getRandomValues(new Uint32Array(1))[0]}catch(e){n=Math.floor(Math.random()*4294967296)}return "ARTI-FREE-"+String(n%1000000).padStart(6,"0")};
+const gStep=s=>["A","B","C"].forEach(k=>$("g"+k).hidden=k!==s);
+function openGate(){
+  gStep("A");$("g_err").textContent="";$("g_lic").value="";
+  $("g_get").href="mailto:"+TEAM_EMAIL+"?subject="+encodeURIComponent("ArtiBytte Protocol License Request")+"&body="+encodeURIComponent("Hi ArtiBytte team,\n\nI'd like to request a license for the ArtiBytte Executive Protocol.\n\nName:\nEmail:\nOrganization: "+(getEnt().name||"")+"\nUse case:\n\nThank you.");
+  $("gate").showModal();setTimeout(()=>$("g_lic").focus(),60);
+}
+$("g_go").onclick=()=>{
+  const c=$("g_lic").value.trim().toUpperCase();
+  if(!validLicense(c)){$("g_err").textContent="Invalid license. Format: ARTI-000000";HAP("error");return}
+  LS.set(LICK,JSON.stringify({code:c,type:FREE_RE.test(c)?"free":"license",t:Date.now()}));
+  $("gate").close();enterSetup();
+};
+$("g_lic").addEventListener("keydown",e=>{if(e.key==="Enter")$("g_go").click()});
+$("g_guest").onclick=()=>{$("g_merr").textContent="";gStep("B");setTimeout(()=>$("g_email").focus(),60)};
+$("g_back").onclick=()=>gStep("A");
+$("g_mk").onclick=()=>{
+  const em=$("g_email").value.trim();
+  if(!EMAIL_RE.test(em)){$("g_merr").textContent="Enter a valid email.";HAP("error");return}
+  const code=newFree();
+  LS.set(LICK,JSON.stringify({code,email:em,type:"free",t:Date.now()}));
+  $("g_code").textContent=code;gStep("C");
+};
+$("g_email").addEventListener("keydown",e=>{if(e.key==="Enter")$("g_mk").click()});
+$("g_cp").onclick=()=>copyText($("g_code").textContent,$("g_cp"));
+$("g_ct").onclick=()=>{$("gate").close();enterSetup()};
+$("g_x").onclick=()=>$("gate").close();
+/* === END: LICENSE GATE === */
+} /* END DUPLICATE OLD BLOCKS */
+/* routing */
+let pushed=false,cur="home";
+function show(v,initial){
+  const s=v==="setup";cur=v;$("home").hidden=s;$("setup").hidden=!s;document.documentElement.dataset.view=v;paintBar();
+  if(!initial){window.scrollTo(0,0);(s?$("h1s"):$("go")).focus()}
+}
+const route=i=>show(location.hash==="#setup"&&licOk()?"setup":"home",i);
+window.addEventListener("hashchange",()=>route(false));
+window.addEventListener("popstate",()=>route(false));
+$("go").onclick=()=>{
+  if(!licOk()){openGate();return}
+  enterSetup();
+};
+function enterSetup(){
+  show("setup");bootApp();
+  paintProf();
+  paintProf();
+  try{if(location.hash!=="#setup"){history.pushState({v:"setup"},"","#setup");pushed=true}}  catch(e){try{location.hash="#setup";pushed=true}catch(e2){}}
+};
+$("back").onclick=()=>{
+  const home=()=>{try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}show("home")};
+  if(pushed){pushed=false;try{history.back()}catch(e){}setTimeout(()=>{if(cur==="setup")home()},200);return}
+  home();
+};
+
+/* === START: PARTICLE SPHERE JS === */
+(function(){
+  const cv=$("orbCv");if(!cv||!cv.getContext)return;
+  const cx=cv.getContext("2d"),TAU=Math.PI*2,N=78000,NH=2,NA=0,NS=78000,NC=0;
+  /* === START: RBC SHAPE (BICONCAVE DISC) === */
+  /* Evans-Fung profile, D=2.2. Particles are sampled by surface AREA so the dimple has no hot spot. */
+  const rbcZ=p=>{const q=(p/2.2)*(p/2.2);return 1.1*Math.sqrt(Math.max(0,1-4*q))*(.2072+2.0026*q-1.1228*q*q)};
+  const RBC_M=4000,RBC_C=new Float32Array(RBC_M+1);
+  (()=>{let s=0,pz=rbcZ(0);for(let j=1;j<=RBC_M;j++){const p0=1.1*(j-1)/RBC_M,p1=1.1*j/RBC_M,z1=rbcZ(p1);s+=2*Math.PI*((p0+p1)/2)*Math.hypot(p1-p0,z1-pz);pz=z1;RBC_C[j]=s}for(let j=0;j<=RBC_M;j++)RBC_C[j]/=s})();
+  const rbcRho=()=>{const t=Math.random();let lo=0,hi=RBC_M;while(hi-lo>1){const m=(lo+hi)>>1;if(RBC_C[m]<t)lo=m;else hi=m}return 1.1*(lo+(t-RBC_C[lo])/((RBC_C[hi]-RBC_C[lo])||1))/RBC_M};
+  /* === END: RBC SHAPE (BICONCAVE DISC) === */
+  const P=new Float32Array(N*3),TG=new Float32Array(N*3),BN=new Float32Array(N*3);
+  const CY=new Float32Array(N),HB=new Uint8Array(N),SP=new Float32Array(N),PH=new Float32Array(N),TR=new Uint8Array(N),LN=new Float32Array(N),GE=new Float32Array(N),RR=new Float32Array(N);
+  for(let i=0;i<N;i++){
+    const rho=rbcRho(),zz=(Math.random()<.5?-1:1)*rbcZ(rho),ph=Math.random()*TAU,L=Math.hypot(rho,zz);
+    const nx=rho/L*Math.cos(ph),ny=zz/L,nz=rho/L*Math.sin(ph);
+    /* === START: PARTICLE HIERARCHY (TIERS) === */
+let tr,r;
+if(i<NA){tr=3;r=.86+Math.random()*.14}
+else if(i<NA+NS){tr=0;r=.988+Math.random()*.012}
+else if(i<NA+NS+NC){tr=2;r=Math.pow(Math.random(),1.8)*.6}
+else{tr=1;r=.58+Math.cbrt(Math.random())*.36}
+TR[i]=tr;LN[i]=[0,.013,.009,.028][tr];GE[i]=Math.random();
+/* === END: PARTICLE HIERARCHY (TIERS) === */
+    let wx=Math.random()-.5,wy=Math.random()-.5,wz=Math.random()-.5;
+    const d=wx*nx+wy*ny+wz*nz;wx-=d*nx;wy-=d*ny;wz-=d*nz;
+    const l=Math.hypot(wx,wy,wz)||1;wx/=l;wy/=l;wz/=l;
+    const k=i*3;
+    P[k]=nx*r;P[k+1]=ny*r;P[k+2]=nz*r;
+    TG[k]=wx;TG[k+1]=wy;TG[k+2]=wz;
+    BN[k]=ny*wz-nz*wy;BN[k+1]=nz*wx-nx*wz;BN[k+2]=nx*wy-ny*wx;
+    HB[i]=Math.random()<Math.max(0,Math.min(1,.5+(P[k+1]+P[k+2])*.6))?0:1;
+    SP[i]=(Math.random()<.5?-1:1)*(.4+Math.random()*1.4);
+    PH[i]=Math.random()*TAU;
+{const sy=Math.abs(ny),sx=Math.sqrt(1-ny*ny);let lo=0,hi=1.2;for(let it=0;it<28;it++){const m=(lo+hi)/2,p=m*sx,u=(p/2.2)*(p/2.2),ins=4*u<1&&m*sy<=1.1*Math.sqrt(1-4*u)*(.2072+2.0026*u-1.1228*u*u);if(ins)lo=m;else hi=m}CY[i]=lo/1.1}RR[i]=Math.min(1,Math.hypot(P[k],P[k+2])*CY[i]/1.1);
+  }
+  const COL=[];window.ORBSTATS={total:N,accent:NA,shell:NS,core:NC,mid:N-NA-NS-NC};
+  /* === START: 7 RAINBOW COLORS === */
+const HUES=[335,185],ACOL=[];
+/* alpha per tier as [back,front]: shell, mid, core */
+const TA=[[.3,.75],[.32,.85],[.3,.6]];
+HUES.forEach(h=>{const row=[];TA.forEach(a=>{row.push("hsla("+h+",100%,54%,"+a[0]+")","hsla("+h+",100%,58%,"+a[1]+")")});COL.push(row);ACOL.push(["hsla("+h+",100%,70%,.2)","hsla("+h+",100%,82%,1)"])});
+/* === END: 7 RAINBOW COLORS === */
+const DB=9,COLD=HUES.map(h=>TA.map(a=>Array.from({length:DB},(_,b)=>{const t=b/(DB-1),al=a[0]+(a[1]-a[0])*t;return "hsla("+h+",100%,"+(54+4*t)+"%,"+al.toFixed(3)+")"})));
+  const tilt=.38,ct=Math.cos(tilt),st=Math.sin(tilt);
+  let ry=0,tm=0,last=performance.now(),boost=1,tgt=1;
+  function draw(now){
+    const dpr=Math.min(1.5,window.devicePixelRatio||1),w=cv.clientWidth;
+    if(!w)return;
+    const px=Math.round(w*dpr);
+    if(cv.width!==px){cv.width=px;cv.height=px}
+    const dt=Math.min(80,Math.max(0,now-last))/1000;last=now;
+    boost+=(tgt-boost)*(1-Math.exp(-dt*5));
+    ry=(ry+.34*boost*dt)%TAU;tm+=dt;
+    const cr=Math.cos(ry),sr=Math.sin(ry),c=w/2,R=w/2*.97,t=now/1000,tl=0,ct=1,st=0,fc=Math.cos(1.5708),fs=Math.sin(1.5708),mo=1;
+    cx.setTransform(dpr,0,0,dpr,0,0);cx.clearRect(0,0,w,w);
+    const paths=[],ap=[];for(let k=0;k<NH*3*DB;k++)paths.push(new Path2D());for(let k=0;k<NH;k++)ap.push(new Path2D());const br=1+.012*Math.sin(tm*1.1);const gb=[0,1,2,3,4].map(()=>new Path2D()),gp=[new Path2D(),new Path2D(),new Path2D()],tp=[new Path2D(),new Path2D()];
+    for(let i=0;i<N;i++){
+      const k=i*3,th=tm*SP[i]*.7+PH[i],cc=Math.cos(th)*LN[i],ss=Math.sin(th)*LN[i];
+      const ox=TG[k]*cc+BN[k]*ss,oy=TG[k+1]*cc+BN[k+1]*ss,oz=TG[k+2]*cc+BN[k+2]*ss;
+      const bs=(TR[i]===2?br:1)*(1+(CY[i]-1)*mo),x=P[k]*bs,y=P[k+1]*bs,z=P[k+2]*bs;
+      const xa=x*fc-y*fs,ya=x*fs+y*fc,x1=xa*cr+z*sr,z1=-xa*sr+z*cr,y2=ya*ct-z1*st,z2=ya*st+z1*ct;
+      const oxa=ox*fc-oy*fs,oya=ox*fs+oy*fc,a1=oxa*cr+oz*sr,c1=-oxa*sr+oz*cr,b2=oya*ct-c1*st;
+      const tr=TR[i],fr=z2>0?1:0,db=Math.max(0,Math.min(DB-1,Math.round((z2+1)*.5*(DB-1))));
+if(tr===3&&!fr)continue;
+let p;
+if(tr===0){
+  const rr=RR[i],gw=1,ge=GE[i],pg=0,gbi=Math.min(4,Math.floor(rr/.08));
+  let gi=-1;
+  if(ge<pg)gi=fr?10+gbi:0;
+  else if(0)gi=fr?1:0;
+  const tw=0;
+if(gi>=10)p=gb[gi-10];else if(gi>=0)p=gp[gi];
+else if(0)p=tp[fr];
+else p=paths[HB[i]*3*DB+db];
+}else p=tr===3?ap[HB[i]]:paths[(HB[i]*3+tr)*DB+db];
+      p.moveTo(c+(x1+a1)*R,c+(y2+b2)*R);
+      p.lineTo(c+(x1+a1)*R+.01,c+(y2+b2)*R);
+    }
+    cx.lineWidth=1.3;cx.lineCap="round";
+    /* === START: LAYERED DRAW (BACK TO FRONT, ACCENTS LAST) === */
+for(let b=0;b<DB;b++){cx.lineWidth=.6+.6*b/(DB-1);for(let h=0;h<NH;h++)for(let tr=0;tr<3;tr++){cx.strokeStyle=COLD[h][tr][b];cx.stroke(paths[(h*3+tr)*DB+b])}}
+/* === START: LIGHT RIG ON PARTICLES (KEY + FILL) === */
+cx.globalCompositeOperation="source-atop";cx.globalAlpha=0;
+let g=cx.createRadialGradient(w*.34,w*.28,0,w*.34,w*.28,w*1.05);
+g.addColorStop(0,"rgba(255,232,205,.30)");g.addColorStop(.35,"rgba(255,232,205,0)");g.addColorStop(.45,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.28)");
+cx.fillStyle=g;cx.fillRect(0,0,w,w);
+g=cx.createRadialGradient(w*.86,w*.84,0,w*.86,w*.84,w*.4);
+g.addColorStop(0,"rgba(64,224,208,.18)");g.addColorStop(1,"rgba(64,224,208,0)");
+cx.fillStyle=g;cx.fillRect(0,0,w,w);
+cx.globalCompositeOperation="source-over";cx.globalAlpha=1;
+/* === END: LIGHT RIG ON PARTICLES (KEY + FILL) === */
+cx.lineCap="round";
+cx.lineWidth=1.3;cx.strokeStyle="hsla(43,85%,50%,.35)";cx.stroke(gp[0]);
+cx.lineWidth=1.5;cx.strokeStyle="hsla(43,90%,58%,.85)";cx.stroke(gp[1]);for(let b=0;b<5;b++){const f=1-b/5;cx.lineWidth=1.2+1.6*f;cx.strokeStyle="hsla(45,100%,"+(62+22*f)+"%,"+(.12+.88*f*f).toFixed(3)+")";cx.stroke(gb[b]);}
+cx.lineWidth=4.2;cx.strokeStyle="hsla(45,100%,70%,.22)";cx.stroke(gp[2]);
+cx.lineWidth=2.4;cx.strokeStyle="hsla(45,100%,78%,1)";cx.stroke(gp[2]);
+cx.lineWidth=1.3;cx.strokeStyle="hsla(174,70%,48%,.35)";cx.stroke(tp[0]);
+cx.lineWidth=1.5;cx.strokeStyle="hsla(174,75%,56%,.9)";cx.stroke(tp[1]);
+for(let h=0;h<NH;h++){cx.lineWidth=2.6;cx.strokeStyle=ACOL[h][0];cx.stroke(ap[h]);cx.lineWidth=1.5;cx.strokeStyle=ACOL[h][1];cx.stroke(ap[h])}
+/* === END: LAYERED DRAW (BACK TO FRONT, ACCENTS LAST) === */
+  }
+  const go=$("go");
+  ["pointerdown"].forEach(ev=>go.addEventListener(ev,()=>{tgt=2}));
+  ["pointerup","pointerleave","pointercancel"].forEach(ev=>go.addEventListener(ev,()=>{tgt=1}));
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches){draw(performance.now());return}
+  (function frame(now){if(!document.hidden&&!$("home").hidden)draw(now);requestAnimationFrame(frame)})(performance.now());
+})();
+/* === END: PARTICLE SPHERE JS === */
+/* === START: SETTINGS HARDENING === */
+const THK="artibytte-theme";
+function applyTheme(){const v=LS.get(THK),h=document.documentElement;if(v==="light"||v==="dark")h.dataset.theme=v;else delete h.dataset.theme;paintBar()}
+async function persState(){try{return navigator.storage&&navigator.storage.persisted?await navigator.storage.persisted():null}catch(e){return null}}
+async function paintSetX(){
+  const u=used(),p=Math.min(100,u/LIMIT*100);
+  $("set_stF").style.width=(u>0?Math.max(p,1.5):0)+"%";$("set_stF").classList.toggle("hot",p>=90);
+  $("set_meterW").setAttribute("aria-valuenow",Math.round(p));
+  $("set_st").textContent=kb(u)+" of "+kb(LIMIT)+" used in your account ("+Math.round(p)+"%)";
+  $("set_sub").textContent=PLAN==="pro"?"Pro · managed in PayPal":"None. Free plan.";
+  $("set_theme").value=["light","dark"].includes(LS.get(THK))?LS.get(THK):"auto";
+  const ps=await persState();
+  $("set_pers").textContent=ps===true?"Yes":ps===false?"No. Tap to request":"Unknown";
+  $("set_pers").disabled=ps===true;
+}
+$("set_exp").onclick=()=>$("exportBtn").click();
+$("set_imp").onclick=()=>$("importBtn").click();
+$("set_theme").onchange=()=>{LS.set(THK,$("set_theme").value);applyTheme();api("me.update",{theme:$("set_theme").value},{quiet:true}).catch(()=>{})};
+$("set_pers").onclick=async()=>{
+  if(!navigator.storage||!navigator.storage.persist){toast("Not supported in this browser.","err");return}
+  try{const ok=await navigator.storage.persist();toast(ok?"Storage protected.":"The browser declined. Bookmark or install this page, then try again.",ok?"":"err")}catch(e){toast("Could not request protection.","err")}
+  paintSetX();
+};
+let rate="";
+const rtPaint=()=>{$("rt_g").setAttribute("aria-pressed",String(rate==="good"));$("rt_b").setAttribute("aria-pressed",String(rate==="bad"))};
+$("rt_g").onclick=()=>{rate="good";rtPaint()};
+$("rt_b").onclick=()=>{rate="bad";rtPaint()};
+$("rt_s").onclick=async()=>{
+  if(!rate){toast("Pick Good or Bad first.","err");return}
+  try{
+    await api("feedback.submit",{rating:rate,message:$("rt_m").value.trim(),diag:diag().replace(/^\s*-+\s*/,"").slice(0,400)});
+    rate="";rtPaint();$("rt_m").value="";toast("Thanks for the feedback.");
+  }catch(e){toast(e.message,"err")}
+};
+$("set_clr").onclick=async()=>{
+  if(!await confirmBox("Clear local data?","This signs you out and clears the saved login and settings on this device. Your files stay in your account.","Clear this device",true))return;
+  try{Object.keys(localStorage).filter(k=>k.startsWith("artibytte-")).forEach(k=>localStorage.removeItem(k))}catch(e){}
+  location.replace(location.pathname+location.search);
+};
+window.addEventListener("storage",e=>{
+  try{
+    if(e.key===KEY){const o=JSON.parse(e.newValue||"{}");db={};for(const n in o)if(o[n]&&Array.isArray(o[n].vs))db[n]=o[n];render()}
+    else if(e.key===MK){MB=JSON.parse(e.newValue||"{}")||{}}
+    else if(e.key===EK){ent=JSON.parse(e.newValue||"{}")||{};EF.forEach(k=>{$("e_"+k).value=ent[k]||(k==="type"?DEF_TYPE:"")});eh()}
+    else if(e.key===SK){st=JSON.parse(e.newValue||"{}")||{};paintSteps()}
+    else if(e.key===LICK){paintProf();if(!licOk()&&cur==="setup")show("home")}
+    else if(e.key===THK){applyTheme()}
+    else if(e.key===NK&&!ntCur){ntLoad();ntRender()}
+  }catch(x){}
+});
+applyTheme();
+/* === START: WHAT'S NEW === */
+const UD=$("updD");
+let UPD={latest:0,seen:0};
+const lastUpd=()=>UPD.latest;
+const seenUpd=()=>UPD.seen;
+function paintNew(){
+  const n=lastUpd()>seenUpd();
+  $("avBtn").classList.toggle("new",n);
+  $("set_updR").classList.toggle("new",n);
+  $("set_upd").textContent=n?"New":"View";
+  const m=document.querySelector('#prof [data-p="set"]');
+  if(m){let d=m.querySelector(".dot");if(n&&!d){d=document.createElement("span");d.className="dot";m.appendChild(d)}else if(!n&&d)d.remove()}
+}
+async function openUpd(){
+  try{
+    const r=await api("updates.list");
+    $("upd_list").innerHTML=r.updates.length?r.updates.map(u=>`<div class="upd${u.isNew?" new":""}"><b>${esc(u.t)}</b>${u.isNew?'<span class="nw">New</span>':""}<p class="meta">${esc(u.d)}</p><p>${esc(u.b)}</p></div>`).join(""):'<p class="meta">No updates yet.</p>';
+    UD.showModal();
+    UPD.latest=r.latest;UPD.seen=r.latest;paintNew();
+    api("me.update",{seenUpdate:r.latest},{quiet:true}).catch(()=>{});
+  }catch(e){toast(e.message,"err")}
+}
+$("set_upd").onclick=()=>{SD.close();openUpd()};
+$("updX").onclick=()=>UD.close();
+UD.addEventListener("click",e=>{if(e.target===UD&&outside(UD,e))UD.close()});
+paintNew();
+/* === END: WHAT'S NEW === */
+window.onStore=()=>{
+  const u=used(),p=Math.min(100,u/LIMIT*100);
+  $("stF").style.width=(u>0?Math.max(p,1.5):0)+"%";$("stF").classList.toggle("hot",p>=90);
+  $("stT").textContent=kb(u)+" / "+(LIMIT/1048576)+" MB";
+  $("meterW").setAttribute("aria-valuenow",Math.round(p));
+  if(SD.open)paintSetX();
+};
+/* === END: SETTINGS HARDENING === */
+["gesturestart","gesturechange","gestureend"].forEach(ev=>document.addEventListener(ev,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",e=>{if(e.touches.length>1)e.preventDefault()},{passive:false});
+/* === START: AI NOTES === */
+const NK="artibytte-ainotes-v1",AD=$("aiD"),NE=$("ntE"),NM=$("ntM");
+const CHECK='<svg class="ntok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Saved"><path d="M5 13l4 4L19 7"/></svg>';
+let NT=[],ntScope="",ntCur=null,ntTimer=null,ntMv=null,ntSelMode=false,ntSel=new Set();
+function ntLoad(){}
+const ntSave=()=>true;
+let ntQ=Promise.resolve();
+function ntQueue(fn){ntQ=ntQ.then(fn).catch(e=>toast(e.message,"err"))}
+function ntPush(n,snap){
+  const text=n.text,folder=n.folder,ws=WSID;
+  ntQueue(async()=>{const r=await api("note.save",{wsId:ws,id:n.sid||"",text,folder,snap:!!snap});if(r.id&&!n.sid)n.sid=r.id;refreshUsed()});
+}
+function ntAct(n,op,extra){
+  const ws=WSID;
+  ntQueue(async()=>{if(!n.sid)return;await api("note.action",Object.assign({wsId:ws,id:n.sid,op},extra||{}));refreshUsed()});
+}
+const ntId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const ntLines=n=>n.text.trim().split("\n");
+const ntClip=s=>{const a=Array.from(s);return a.length>35?a.slice(0,35).join("")+"...":s};
+const ntHas=n=>!!n.sid;
+const ntFolders=()=>[...new Set(NT.map(n=>n.folder).filter(Boolean))].sort();
+function ntDo(f){
+  const prev=JSON.stringify(NT);f();
+  if(!ntSave()){NT=JSON.parse(prev);toast("Storage is full or blocked. Nothing was changed.","err");ntRender();return false}
+  warnStorage();ntRender();return true;
+}
+function ntSideRender(){
+  const el=$("ntSide");if(!el)return;
+  const row=(k,l,c)=>`<button class="fr" type="button" data-nf="${esc(k)}"><span class="nm">${esc(l)}</span><span class="vv">${c}</span></button>`;
+  el.innerHTML=row("","Notes",NT.filter(n=>!n.folder).length)+ntFolders().map(f=>row(f,f,NT.filter(n=>n.folder===f).length)).join("");
+}
+function ntRender(){
+  if(ntScope&&!NT.some(n=>n.folder===ntScope))ntScope="";
+  ntSideRender();
+  $("ai_h").textContent=ntScope||"Notes";
+  $("ai_new").hidden=ntSelMode;$("ai_all").hidden=!ntSelMode;$("ai_mito").hidden=!ntSelMode;$("ai_sel").textContent=ntSelMode?"Cancel":"Select";$("ai_mito").textContent="Mitochondria"+(ntSel.size?" · "+ntSel.size:"");
+  const l=NT.filter(n=>n.folder===ntScope).sort((a,b)=>(b.pin-a.pin)||(b.t-a.t));
+  $("ai_list").innerHTML=l.length?l.map(n=>{
+    const ls=ntLines(n),pv=ls.slice(1).join(" ").trim();
+    const on=ntSel.has(n.id);return `<div class="nti${on?" sel":""}"><button class="ntrow" type="button" data-o="${n.id}"${ntSelMode?` aria-pressed="${on}"`:""}><b>${ntSelMode?`<span class="ntck">${on?"✓":""}</span>`:""}${esc(ls[0]||"Empty note")}</b>${pv?`<p class="pv">${esc(pv)}</p>`:""}<span class="meta">${n.pin?"Pinned · ":""}${esc(fmt(n.t))}</span></button></div>`;
+  }).join(""):'<div class="none">No notes</div>';
+}
+/* versions: snapshot on close, or every 2 min while typing */
+function ntSnap(n,force){
+  if(!n.text.trim())return;
+  const l=n.vs[n.vs.length-1];
+  if(l&&l.text===n.text)return;
+  if(!force&&(!l||Date.now()-l.t<120000))return;
+  n.vs.push({t:Date.now(),text:n.text});
+  while(n.vs.length>20||(n.vs.length>1&&n.vs.reduce((a,v)=>a+v.text.length,0)>200000))n.vs.shift();
+}
+function ntSaveNow(snap){
+  clearTimeout(ntTimer);
+  const n=ntCur;if(!n)return true;
+  const txt=$("nt_x").value,isNew=!NT.includes(n);
+  if(isNew&&!txt.trim())return true;
+  if(n.text!==txt){n.text=txt;n.t=Date.now()}
+  if(isNew)NT.push(n);
+  if(n.text!==n.lastSent||(snap&&n.sp)){n.lastSent=n.text;n.sp=!snap;ntPush(n,snap)}$("nt_st").innerHTML=CHECK;$("nt_hist").hidden=!ntHas(n);ntSideRender();return true;
+}
+function ntVs(on){$("nt_vs").hidden=!on;$("nt_x").hidden=on;$("nt_hist").textContent=on?"Done":"Versions"}
+function openNote(id){
+  ntCur=id?NT.find(x=>x.id===id):{id:ntId(),text:"",t:Date.now(),pin:false,folder:ntScope,vs:[]};
+  if(!ntCur)return;
+  $("nt_x").value=ntCur.text;$("nt_st").innerHTML=id?CHECK:"";
+  $("nt_hist").hidden=!ntHas(ntCur);ntVs(false);
+  NE.showModal();if(!id){$("nt_x").focus();setTimeout(()=>$("nt_x").focus(),80)}
+}
+async function ntClose(){
+  const n=ntCur;if(!n)return;
+  if(!ntSaveNow(true)){
+    if(!await confirmBox("Not saved","Storage is full. Close and lose this change?","Close",true))return;
+    ntLoad();
+  }else if(!n.text.trim()&&!n.sid){NT=NT.filter(x=>x!==n);ntSave()}
+  ntCur=null;NE.close();ntRender();
+}
+$("nt_x").addEventListener("input",()=>{
+  $("nt_st").innerHTML="";clearTimeout(ntTimer);
+  ntTimer=setTimeout(()=>ntSaveNow(false),600);
+});
+$("nt_back").onclick=ntClose;
+$("nt_st").onclick=()=>{
+  if(!ntCur)return;
+  if(!ntSaveNow(true))return;
+  const has=$("nt_x").value.trim();
+  ntClose();
+  if(has)toast("Saved.");
+};
+NE.addEventListener("cancel",e=>{e.preventDefault();ntClose()});
+window.addEventListener("pagehide",()=>{if(ntCur)ntSaveNow(true)});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&ntCur)ntSaveNow(false)});
+$("nt_hist").onclick=async()=>{
+  if(!$("nt_vs").hidden){ntVs(false);return}
+  if(!ntSaveNow(true))return;
+  const n=ntCur;await ntQ;
+  if(n.sid){try{const r=await api("note.get",{wsId:WSID,id:n.sid});n.vs=r.versions.map(v=>({t:v.t,text:v.text}))}catch(e){toast(e.message,"err");return}}
+  $("nt_vs").innerHTML=n.vs.map((v,i)=>[v,i]).reverse().filter(([v])=>v.text!==n.text).map(([v,i])=>`<button class="fr" type="button" data-v="${i}"><span class="nm">${esc(fmt(v.t))}</span><span class="vv">${kb(new Blob([v.text]).size)}</span></button>`).join("");
+  ntVs(true);
+};
+$("nt_vs").addEventListener("click",e=>{
+  const b=e.target.closest("[data-v]");if(!b)return;
+  const v=ntCur.vs[+b.dataset.v];if(!v)return;
+  $("nt_x").value=v.text;ntSaveNow(true);ntVs(false);toast("Restored.");
+});
+/* move */
+function ntMoveRender(){
+  const row=(f,l)=>`<button class="fr" type="button" data-mf="${esc(f)}"><span class="nm">${esc(l)}</span>${ntMv.folder===f?'<span class="vv">Here</span>':""}</button>`;
+  $("ntM_list").innerHTML=row("","Notes")+ntFolders().map(f=>row(f,f)).join("");
+}
+function ntMoveTo(f){const n=ntMv;if(ntDo(()=>{n.folder=f})){ntAct(n,"move",{folder:f});NM.close();toast("Moved.")}}
+$("ntM_list").addEventListener("click",e=>{const b=e.target.closest("[data-mf]");if(b)ntMoveTo(b.dataset.mf)});
+$("ntM_add").onclick=()=>{
+  const f=$("ntM_new").value.replace(/\s+/g," ").trim().slice(0,40);
+  if(!f){toast("Type a folder name.","err");$("ntM_new").focus();return}
+  $("ntM_new").value="";ntMoveTo(f);
+};
+$("ntM_new").addEventListener("keydown",e=>{if(e.key==="Enter")$("ntM_add").click()});
+$("ntMX").onclick=()=>NM.close();
+NM.addEventListener("click",e=>{if(e.target===NM&&outside(NM,e))NM.close()});
+/* list + sidebar */
+$("ai_list").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-o],[data-a]");if(!b)return;
+  if(b.dataset.o){if(ntSelMode){const i=b.dataset.o;ntSel.has(i)?ntSel.delete(i):ntSel.add(i);ntRender();return}openNote(b.dataset.o);return}
+  const n=NT.find(x=>x.id===b.dataset.id);if(!n)return;
+  const a=b.dataset.a;
+  if(a==="pin")ntDo(()=>{n.pin=!n.pin});
+  else if(a==="dup")ntDo(()=>{NT.push({...n,id:ntId(),t:Date.now(),pin:false,vs:[]})});
+  else if(a==="share"){if(navigator.share){try{await navigator.share({text:n.text})}catch(x){}}else copyText(n.text,b)}
+  else if(a==="move"){ntMv=n;ntMoveRender();NM.showModal()}
+  else if(a==="del"){
+    if(!await confirmBox("Delete note?","This note will be removed from this device.","Delete",true))return;
+    ntDo(()=>{NT=NT.filter(x=>x!==n)});
+  }
+});
+$("ai_new").onclick=()=>openNote(null);
+/* === START: NOTE SHARE + MORE === */
+const NSH=$("ntS"),NOP=$("ntO");
+const HTTPS="https:"+"/"+"/";
+const SHA=[
+  {g:"ai",n:"ChatGPT",u:HTTPS+"chatgpt.com/"},
+  {g:"ai",n:"Claude",u:HTTPS+"claude.ai/new"},
+  {g:"ai",n:"Gemini",u:HTTPS+"gemini.google.com/app"},
+  {g:"ai",n:"DeepSeek",u:HTTPS+"chat.deepseek.com/"},
+  {g:"ai",n:"Grok",u:HTTPS+"grok.com/"},
+  {g:"ai",n:"Perplexity",u:HTTPS+"www.perplexity.ai/"},
+  {g:"ai",n:"Copilot",u:HTTPS+"copilot.microsoft.com/"},
+  {g:"ai",n:"Mistral",u:HTTPS+"chat.mistral.ai/chat"},
+  {g:"ai",n:"Kimi",u:HTTPS+"www.kimi.com/"},
+  {g:"ai",n:"Qwen",u:HTTPS+"chat.qwen.ai/"},
+  {g:"ap",n:"Messages",u:"sms:",d:t=>"sms:?&body="+encodeURIComponent(t)},
+  {g:"ap",n:"WhatsApp",u:HTTPS+"web.whatsapp.com/",d:t=>HTTPS+"wa.me/?text="+encodeURIComponent(t)},
+  {g:"ap",n:"Messenger",u:HTTPS+"www.messenger.com/"},
+  {g:"ap",n:"Email",u:"mailto:",d:(t,s)=>"mailto:?subject="+encodeURIComponent(s)+"&body="+encodeURIComponent(t)},
+  {g:"ap",n:"Telegram",u:HTTPS+"web.telegram.org/",d:t=>HTTPS+"t.me/share/url?url=%20&text="+encodeURIComponent(t)},
+  {g:"ap",n:"Notion",u:HTTPS+"www.notion.so/"},
+  {g:"ap",n:"Facebook",u:HTTPS+"www.facebook.com/"},
+  {g:"ap",n:"Instagram",u:HTTPS+"www.instagram.com/"},
+  {g:"ap",n:"LinkedIn",u:HTTPS+"www.linkedin.com/feed/"},
+  {g:"ap",n:"Slack",u:HTTPS+"slack.com/"},
+  {g:"ap",n:"Google Docs",u:HTTPS+"docs.new"},
+  {g:"ap",n:"Copy",s:"copy"},
+  {g:"ap",n:"More…",s:"more"}
+];
+const shHtml=g=>SHA.map((a,i)=>a.g===g?`<button class="chip" type="button" data-i="${i}">${esc(a.n)}</button>`:"").join("");
+$("ntS_ai").innerHTML=shHtml("ai");$("ntS_ap").innerHTML=shHtml("ap");
+function ntReady(){
+  if(!ntCur||!$("nt_x").value.trim()){toast("Write something first.","err");return false}
+  return true;
+}
+function shareTo(a,btn){
+  const t=$("nt_x").value,ttl=(t.trim().split("\n")[0]||"Note").slice(0,80);
+  if(a.s==="more"){
+    if(navigator.share){NSH.close();navigator.share({title:ttl,text:t}).catch(()=>{});return}
+    copyText(t,btn);return;
+  }
+  if(a.s==="copy"){copyText(t,btn);return}
+  let url=a.u,direct=false;
+  if(a.d){const d=a.d(t,ttl);if(d.length<=1800){url=d;direct=true}}
+  try{navigator.clipboard&&navigator.clipboard.writeText(t)}catch(e){}
+  NSH.close();
+  if(/^(sms|mailto):/.test(url))location.href=url;
+  else if(!window.open(url,"_blank","noopener"))location.href=url;
+  toast(direct?"Opening "+a.n+"…":"Copied. Paste it in "+a.n+".");
+}
+$("nt_sh").onclick=()=>{if(ntReady())NSH.showModal()};
+NSH.addEventListener("click",e=>{
+  if(e.target===NSH&&outside(NSH,e)){NSH.close();return}
+  const b=e.target.closest("[data-i]");if(b)shareTo(SHA[+b.dataset.i],b);
+});
+$("ntSX").onclick=()=>NSH.close();
+$("nt_mo").onclick=()=>{
+  if(!ntReady())return;
+  ntSaveNow(false);
+  $("ntO_pin").textContent=ntCur.pin?"Unpin":"Pin";
+  NOP.showModal();
+};
+NOP.addEventListener("click",e=>{if(e.target===NOP&&outside(NOP,e))NOP.close()});
+$("ntOX").onclick=()=>NOP.close();
+$("ntO_pin").onclick=()=>{
+  NOP.close();const n=ntCur;if(!n)return;
+  n.pin=!n.pin;ntSaveNow(false);ntAct(n,n.pin?"pin":"unpin");toast(n.pin?"Pinned.":"Unpinned.");
+};
+$("ntO_dup").onclick=()=>{
+  NOP.close();const n=ntCur;if(!n)return;
+  ntSaveNow(true);
+  {const c={...n,id:ntId(),sid:"",lastSent:"",t:Date.now(),pin:false,vs:[]};if(ntDo(()=>{NT.push(c)})){c.lastSent=c.text;ntPush(c,true);toast("Duplicated.")}}
+};
+$("ntO_mv").onclick=()=>{
+  NOP.close();const n=ntCur;if(!n)return;
+  ntSaveNow(true);ntMv=n;ntMoveRender();NM.showModal();
+};
+$("ntO_del").onclick=async()=>{
+  NOP.close();const n=ntCur;if(!n)return;
+  if(!await confirmBox("Delete note?","This note will be removed from this device.","Delete",true))return;
+  clearTimeout(ntTimer);
+  if(ntDo(()=>{NT=NT.filter(x=>x!==n)})){ntAct(n,"delete");ntCur=null;NE.close();toast("Deleted.")}
+};
+/* === END: NOTE SHARE + MORE === */
+/* === START: MITOCHONDRIA P1 === */
+let mtF=[],mtDirty=false,mtLarge=false,mtIds=[],mtTm,mtSeq=0;
+const MTD=$("mtD");
+$("ai_sel").onclick=()=>{ntSelMode=!ntSelMode;ntSel.clear();ntRender()};
+function mtSize(){const sz=new Blob([$("mt_p").value]).size;$("mt_sub").textContent=mtF.length+" fragments · "+kb(sz)+((mtLarge||sz>60000)?" · Large: select fewer notes.":"")+(mtDirty?" · Edited":"")}
+async function mtRefresh(force){
+  if(mtDirty&&!force){mtSize();return}
+  const sq=++mtSeq;
+  try{
+    const r=await api("mito.build",{wsId:WSID,noteIds:mtIds,objective:$("mt_obj").value,type:$("mt_ty").value||"rd"});
+    if(sq!==mtSeq)return;
+    const ty=$("mt_ty");
+    if(!ty.options.length){ty.innerHTML=Object.keys(r.types).map(k=>`<option value="${k}">${esc(r.types[k][0])}</option>`).join("");ty.value="rd"}
+    mtF=r.fragments;mtLarge=r.large;
+    $("mt_fr").innerHTML=mtF.map(f=>`<div class="nti" style="padding:10px 12px"><b>${esc(f.id)}</b><span class="meta">${esc(f.alias)} · ${esc(f.title)}</span><p class="pv">${esc(f.text)}</p></div>`).join("");
+    $("mt_p").value=r.prompt;mtDirty=false;mtSize();
+  }catch(e){toast(e.message,"err")}
+}
+async function openMito(list){
+  await ntQ;
+  mtIds=list.map(n=>n.sid).filter(Boolean);
+  if(!mtIds.length){toast("Notes are still saving. Try again.","err");return}
+  mtDirty=false;$("mt_p").value="";MTD.showModal();await mtRefresh(true);
+}
+$("ai_mito").onclick=()=>{
+  const l=NT.filter(n=>ntSel.has(n.id));
+  if(!l.length){toast("Select at least one note.","err");return}
+  if(!l.some(n=>n.text.trim())){toast("Selected notes are empty.","err");return}
+  openMito(l);
+};
+$("ai_all").onclick=()=>{const v=NT.filter(n=>n.folder===ntScope);const all=v.length&&v.every(n=>ntSel.has(n.id));v.forEach(n=>all?ntSel.delete(n.id):ntSel.add(n.id));ntRender()};
+const mtChg=()=>{if(mtDirty)toast("Prompt was edited. Tap Reset to apply.");mtRefresh(false)};
+$("mt_obj").addEventListener("input",()=>{clearTimeout(mtTm);mtTm=setTimeout(()=>mtRefresh(false),400)});
+$("mt_ty").onchange=mtChg;
+$("mt_p").addEventListener("input",()=>{mtDirty=true;mtRefresh(false)});
+$("mt_rs").onclick=()=>mtRefresh(true);
+$("mt_cp").onclick=()=>copyText($("mt_p").value,$("mt_cp"));
+$("mtX").onclick=()=>MTD.close();
+MTD.addEventListener("click",e=>{if(e.target===MTD&&outside(MTD,e))MTD.close()});
+AD.addEventListener("close",()=>{ntSelMode=false;ntSel.clear();ntRender()});
+/* === END: MITOCHONDRIA P1 === */
+$("ntSide").addEventListener("click",e=>{const b=e.target.closest("[data-nf]");if(!b)return;ntScope=b.dataset.nf;ntRender();AD.showModal()});
+$("aiBtn").onclick=()=>{ntScope="";ntRender();AD.showModal()};
+$("aiX").onclick=()=>AD.close();
+AD.addEventListener("click",e=>{if(e.target===AD&&outside(AD,e))AD.close()});
+ntSideRender();
+/* === END: AI NOTES === */
+paintSteps();
+render();
+paintProf();
+$("s_title").value=CHIPS.op();
+sbState();
+route(true);
+loadCfg();if(licOk()&&cur==="setup")bootApp();
+</script>
+</body>
+</html>
